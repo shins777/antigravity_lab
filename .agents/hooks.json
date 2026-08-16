@@ -1,0 +1,21 @@
+{
+  "code-formatter-and-linter": {
+    "SessionStart": null,
+    "PreInvocation": null,
+    "PostInvocation": null,
+    "Stop": null,
+    "PreToolUse": null,
+    "PostToolUse": [
+      {
+        "matcher": "replace_file_content|write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/format_and_lint.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

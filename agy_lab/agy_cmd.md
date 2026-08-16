@@ -92,8 +92,6 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 | `/learn` | 최근 성공한 작업 방식이나 피드백을 분석해 재사용 가능한 규칙/스킬로 자동 저장합니다. | 프로젝트 특유의 코딩 컨벤션이나 디버깅 팁을 에이전트에게 영구 학습시킬 때 |
 | `/mcp` | Model Context Protocol(MCP) 서버 연결 상태를 확인하고 관리합니다. | 사내 Jira, GitHub, Postgres DB 등의 MCP 도구를 연결하거나 해제할 때 |
 | `/hooks` | 특정 툴 이벤트(파일 변경 전, 커밋 전 등)에 반응하는 훅 설정을 관리합니다. | 에이전트가 파일 수정 직후 자동으로 `linter`나 `prettier`를 돌리도록 구성할 때 |
-| `/browser` | 브라우저 서브에이전트를 구동하여 웹 브라우징/UI 테스트를 수행합니다. | 로컬 웹 서버(`localhost:3000`)에 직접 접근해 렌더링을 확인하거나 문서를 검색할 때 |
-| `/teamwork-preview` | 여러 전문 에이전트 팀을 구성하여 대규모 프로젝트를 자율 분업 처리합니다 *(구독 전용)*. | 프론트엔드/백엔드/QA 에이전트가 동시에 협동하여 기능 하나를 완성해야 할 때 |
 
 ---
 
@@ -912,8 +910,10 @@ Set Effort
    ### 테스트 케이스
 
    1. **Skill 만들기** 
-    *  프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를 만들고 SKILL.md 파일을 생성합니다.
-         파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-commit-helper/SKILL.md
+   * 프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를 만들고 SKILL.md 파일을 생성합니다.
+   * 파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-commit-helper/SKILL.md  
+   * 참고 : 스킬에 마크다운 지침 외에 별도 첨부 파일이 필요 없다면 <스킬명>.md 단일 파일로 바로 생성하셔도 정상 인식됩니다. 만일 스킬   실행에 필요한 추가 참조 파일, 실행 스크립트, 예제 데이터 등이 함께 포함되는 경우에는 폴더를 만들어서 그안에 모두 저장해서 사용합니다.  
+
     * Skill 내용
       ```
       ---
@@ -964,9 +964,36 @@ Set Effort
       ```
 
    2. 특정 스킬 로드 및 프롬프트 주입
-      * **입력**: `/skills run generate-unit-tests`
+      * **입력**: `/git-commit-helper push all change code to the repository.`
       * **기대 결과**: 스킬 템플릿에 정의된 워크플로우 지침이 현재 프롬프트 컨텍스트에 즉시 반영되어 후속 작업을 수행함
+      ```
+      > /git-commit-helper push all change code to the repository.
 
+      ─────────────────────────────────────────── Conversation compacted ───────────────────────────────────────────
+
+      ● Bash(git status)
+      ● Bash(git add .)
+      ● Bash(git diff --cached)
+      ● Bash(git config user.name "ForusOne" && git config user.email "forusone777@gmail.com")
+      ● Bash(git commit -m "docs(cli): update agy_command.md and add git-commit-helper skill")
+      ● Bash(git push origin main) (ctrl+o to expand)
+
+      An 분석된 스테이징 변경사항에 맞춰 Conventional Commits 규칙을 준수한 커밋 메시지를 생성하고 리포지토리에
+      푸시(Push)까지 성공적으로 완료하였습니다.
+
+      ### Conventional Commit Message
+
+         docs(cli): update agy_command.md and add git-commit-helper skill
+      ──────
+      ### Push Details
+
+      • Repository: shins777/antigravity_lab https://github.com/shins777/antigravity_lab.git (main branch)
+      • Commit SHA: 78f2b55
+      • Files Pushed:
+            1. .agents/skills/git-commit-helper/SKILL.md (새로운 커밋 헬퍼 스킬 추가)
+            2. agy_lab/agy_command.md (CLI 모델 버전 업데이트 및 /skills 가이드 예시 강화)
+
+      ```
       ---
 
 ## 5. `/learn`
@@ -982,72 +1009,186 @@ Set Effort
      * 설정 디렉터리(예: `.antigravity/rules/` 또는 global config)에 해당 규칙 파일이 새로 생성/저장됨
      * "새로운 규칙이 영구 저장되었습니다" 확인 메시지 반환
 
+   ```
+      > /learn "우리 팀의 커밋 메시지 규칙과 에러 핸들링 패턴을 기억해"
+      ● Read(~/Documents/my_project/antigravity_lab/.agents/skills/git-commit-helper/SKILL.md)
+      ● Edit(~/.gemini/antigravity-cli/brain/c754a989...1-b038-238910befec4/learning_proposal.md) (ctrl+o to expand)
+
+      I have created a learning proposal artifact at learning_proposal.md.
+
+      ### Proposed Learning Rules:
+      1. Commit Convention Rule (.agents/rules/commit-convention.md)
+            • Enforces Conventional Commits format: <type>(<scope>): <subject> (feat, fix, docs, style, refactor,
+            test, chore).
+      2. Error Handling Pattern Rule (.agents/rules/error-handling.md)
+            • Enforces no silent exception swallowing, explicit diagnostics logging, specific exception types, and
+            root cause tracing.
+
+
+      Please review the proposal artifact. If you approve, please type "yes" or "proceed" to save these rules to
+      your workspace!
+
+      ────────────────────────────────────────────────────────────
+      > yes
+
+      ● Edit(~/Documents/my_project/antigravity_lab/.agents/rules/commit-convention.md)
+      ● Edit(~/Documents/my_project/antigravity_lab/.agents/rules/error-handling.md)
+      ● Edit(~/Documents/my_project/antigravity_lab/.agents/rules/clean-markdown-spans.md)
+      ● Bash(git status) (ctrl+o to expand)
+
+      The workspace rules have been successfully created and saved to your project!
+
+      ### Created Workspace Rules:
+
+      1. commit-convention.md
+            • Enforces: Conventional Commits specification (feat, fix, docs, style, refactor, test, chore).
+      2. error-handling.md
+            • Enforces: Explicit error logging, no silent exception swallowing, and root cause tracing.
+      3. clean-markdown-spans.md
+            • Enforces: Automatic prevention and stripping of artificial [span_XX] tags in markdown files.
+
+
+      These rules will now automatically guide the agent's behavior for all future interactions in this
+      repository.
+
+      ────────────────────────────────────────────────────────────
+      > remove 3. clean-makrdown-spans.md
+
+      ● Bash(rm -f /Users/hangsik/Documents/my_project/antigravity_lab/.agents/rules/clean-markdown-spans.md)
+      ● Bash(ls -la .agents/rules/) (ctrl+o to expand)
+
+      The rule file clean-markdown-spans.md has been removed from the repository.
+
+      ### Remaining Active Workspace Rules:
+
+      1. commit-convention.md
+      2. error-handling.md
+
+
+   ```
+
 ---
 
 ## 6. `/mcp`
 
 * **테스트 목적**: Model Context Protocol(MCP) 서버 연결 상태를 점검하고, 툴/리소스 바인딩을 관리하는지 검증
-* **사전 조건**: 로컬 설정(`mcp_config.json`)에 외부 MCP 서버(예: `github-mcp`, `postgres-mcp`)가 1개 이상 등록된 상태
 
-### 테스트 케이스
-1. **MCP 서버 연결 상태 및 제공 도구 목록 확인**
+### 1.	기본 프로젝트 설정:
+* 아래는 BigQuery MCP 서버 등록하는 방법을 예를 들어서 설명합니다. 
+
+```
+gcloud config set project <YOUR_GCP_PROJECT_ID>
+```
+* 연동할 계정에 최소 BigQuery Data Viewer 및 BigQuery Job User(쿼리 실행용) 권한이 부여되어 있어야 합니다.
+
+### 2. MCP 설정 파일에 BigQuery 서버 등록
+* 프로젝트 전용(.agents/mcp.json) 또는 전역 설정(~/.gemini/config/mcp_config.json) 파일에 BigQuery MCP 서버 구성을 추가합니다.
+* 파일 경로 예시: .agents/mcp_config.json
+   ```
+   {
+   "mcpServers": {
+      "bigquery": {
+         "command": "npx",
+         "args": [
+         "-y",
+         "@modelcontextprotocol/server-bigquery"
+         ],
+         "env": {
+         "BIGQUERY_PROJECT_ID": "<YOUR_GCP_PROJECT_ID>",
+         "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/service-account-key.json"
+         }
+      }
+   }
+   }
+   ```
+
+2. **MCP 서버 연결 상태 및 제공 도구 목록 확인**
    * **입력**: `/mcp`
-   * **기대 결과**: 연결된 MCP 서버의 헬스체크 상태(`CONNECTED`/`DISCONNECTED`)와 해당 서버가 제공하는 툴 목록이 출력됨
-2. **특정 MCP 서버 재연결/갱신**
-   * **입력**: `/mcp restart postgres-mcp`
+   * **기대 결과**: 연결된 MCP 서버의 사용할수 있는 지 여부와 해당 서버가 제공하는 툴 목록이 출력됨
+   ```
+      Plugins (~/.gemini/config/plugins)
+      >  ✓ bigquery  Tools: list_dataset_ids, get_dataset_info, list_table_ids, get_table_info, execute_sql_readonly,
+                     +1 more
+         ✓ github  Tools: create_or_update_file, search_repositories, create_repository, get_file_contents,
+                  push_files, +21 more   
+   ```
+
+
+3. **특정 MCP 서버 재연결/갱신**
+   * **입력**: `BigQuery MCP를 사용해서 'bbc_news' 데이터셋의 테이블 목록을 조회해줘.`
    * **기대 결과**: MCP 클라이언트가 해당 서버 연결을 초기화 및 재연결하고 사용 가능한 도구 목록을 갱신함
+
+   ```
+   > BigQuery MCP를 사용해서 'bbc_news' 데이터셋의 테이블 목록을 조회해줘.
+
+   ● bigquery/list_table_ids(List tables in bbc_news dataset) (ctrl+o to expand)
+
+   BigQuery MCP를 통해 ai-hangsik.bbc_news 데이터셋의 테이블 목록을 조회한 결과입니다:
+
+      Table ID                                            | Full Table Path
+   -----------------------------------------------------|----------------------------------------------------
+      fulltext                                            | ai-hangsik.bbc_news.fulltext
+
+   ```
+
+
 
 ---
 
 ## 7. `/hooks`
 
-* **테스트 목적**: 에이전트 이벤트(파일 생성 전/후, 도구 실행 전/후 등)에 연결된 자동화 훅(Hook) 설정을 조회하고 토글하는지 검증
-* **사전 조건**: 훅 설정(예: `post-file-edit: "npm run lint:fix"`)이 구성되어 있는 환경
+* **테스트 목적**: 에이전트의 수명주기 이벤트(예: 프롬프트 입력 전, 도구 실행 전/후, 파일 수정 후 등)가 발생할 때 사용자가 지정한 스크립트나 명령어를 자동으로 가로채 실행하는 자동화 훅(Lifecycle Hooks) 기능입니다.
+가장 실무에서 유용한 "파일 수정 직후 코드 포맷팅(Prettier) 및 린트(ESLint) 자동 실행 Hook" 예제입니다.
 
-### 테스트 케이스
-1. **등록된 훅 목록 및 활성화 상태 확인**
-   * **입력**: `/hooks`
-   * **기대 결과**: 이벤트 트리거 종류, 실행되는 쉘 명령/스크립트, ON/OFF 활성 상태가 표시됨
-2. **이벤트 트리거 정상 동작 검증**
-   * **입력**: `/hooks enable post-file-edit`
-   * **기대 결과**: 이후 에이전트가 소스 코드를 수정할 때마다 지정된 `linter`/`prettier` 스크립트가 자동으로 후행 실행됨
+### 1. Hook 설정 파일 생성 (hooks.json)
+프로젝트 워크스페이스(.agents/) 또는 전역 설정(~/.gemini/config/) 폴더 내에 hooks.json 파일을 작성합니다.
+* 파일 경로: .agents/hooks.json
+   ```
+      {
+      "code-formatter-and-linter": {
+         "PostToolUse": [
+            {
+            "matcher": "replace_file_content|write_to_file",
+            "hooks": [
+               {
+                  "type": "command",
+                  "command": "./scripts/format_and_lint.sh",
+                  "timeout": 15
+               }
+            ]
+            }
+         ]
+      }
+      }
+
+   ```
+
+### 2. /hook 명령어를 통한 관리 및 등록
+* 대화창에서 /hook 인터랙티브 메뉴 또는 CLI 명령어로 등록 상태를 점검할 수 있습니다.
+   * Hook 목록 및 활성 상태 조회:
+   ```
+      Hooks
+      5 hook types
+
+      PreToolUse      Before tool execution
+    > PostToolUse     After tool execution  1 hook
+      PreInvocation   Before each LLM invocation
+      PostInvocation  After each LLM invocation
+      Stop            When agent tries to exit
+
+   ```
+
+   ```
+      PostToolUse — Matchers
+         After tool execution
+
+      > + Add new matcher...
+         + Match all (no filter)
+         [code-formatter-and-linter] replace_file_content|write_to_file    1 hook  (workspace)  [on/off]   
+   ```
 
 ---
 
-## 8. `/browser`
-
-* **테스트 목적**: 브라우저 서브에이전트(Headless/UI Browser)를 기동하여 로컬/원격 웹 페이지 접근 및 탐색 작업을 수행하는지 검증
-* **사전 조건**: 로컬 웹 서버(`http://localhost:3000`)가 구동 중이거나 외부 인터넷 접근이 가능한 환경
-
-### 테스트 케이스
-1. **브라우저 에이전트 구동 및 페이지 렌더링 검증**
-   * **입력**: `/browser http://localhost:3000 "로그인 폼이 정상적으로 렌더링되는지 확인해줘"`
-   * **기대 결과**:
-     * 브라우저 세션이 초기화되어 지정된 URL로 이동함
-     * DOM 트리 파싱 및 스크린샷/텍스트 추출을 수행함
-     * UI 렌더링 상태 및 요소 존재 여부에 대한 검증 결과를 출력함
-
----
-
-## 9. `/teamwork-preview`
-
-* **테스트 목적**: 여러 도메인 전문 서브에이전트(Planner, Coder, Reviewer 등)가 병렬/순차적으로 협업하여 복합 태스크를 분업 처리하는지 검증
-* **사전 조건**: 팀워크 기능 권한(구독 활성 상태)이 부여된 계정
-
-### 테스트 케이스
-1. **멀티 에이전트 팀 분업 워크플로우 실행**
-   * **입력**: `/teamwork-preview "REST API 엔드포인트 구현 및 테스트 코드, API 문서까지 한 번에 완성해줘"`
-   * **기대 결과**:
-     * 에이전트 팀 오케스트레이션 패널이 열림
-     * 백엔드 에이전트(API 코드 작성)와 QA 에이전트(테스트 케이스 작성)가 역할을 분담하여 순차/병렬로 작업을 수행함
-     * 각 에이전트의 작업 결과물이 종합되어 최종 완료 리포트로 제시됨
-2. **권한 미보유 상태 처리 (예외 케이스)**
-   * **입력**: `/teamwork-preview <작업내용>` (무료/미인증 티어 계정)
-   * **기대 결과**: 팀워크 프리뷰 전용 구독 플랜이 필요하다는 안내 메시지를 반환하고 일반 단일 에이전트 모드로 폴백됨
-
-
-
----
 <br>
 <br>
 
@@ -1059,18 +1200,59 @@ Set Effort
 
 ## 1. `/diff`
 
-* **테스트 목적**: 에이전트의 이전 턴 작업으로 수정되었거나 Git 스테이지에 올라가지 않은 코드 변경 내역을 인터랙티브 뷰어로 정확히 표시하는지 검증 
-* **사전 조건**: 워크스페이스 내 파일에 수정/추가/삭제된 변경 사항이 존재하는 상태   
+* **테스트 목적**: 에이전트가 작업(코드 작성, 파일 수정, 리팩토링 등)을 수행하면서 발생시킨 파일 변경 사항을 대화창/TUI 내에서 시각적으로 비교 및 검토하는 명령어입니다. 
 
 ### 테스트 케이스
 1. **코드 변경 내역 TUI 뷰어 렌더링**
    * **입력**: `/diff`  
+   ```
+   > diff
+   ```
    * **기대 결과**:
      * 터미널 내에 변경된 파일 목록 및 파일별 `+`(추가) / `-`(삭제) 라인이 색상 구분된 인터랙티브 Diff 뷰어로 출력됨  
      * 방향키나 키보드 단축키를 통해 변경된 청크(Hunk) 간 이동이 정상 동작함
-2. **변경 사항이 없는 경우 처리 (예외 케이스)**
-   * **입력**: `/diff` (클린 워크스페이스 상태)
-   * **기대 결과**: "커밋되지 않은 변경 사항이나 최근 수정 내역이 없습니다"라는 안내 메시지 출력
+   ```
+      Diff (git)  All Changes  Per Turn  Commit Tree
+      6 file(s) changed
+
+      > agy_lab/agy_command.md  +193 -48
+
+      ? [Untracked] .agents/hooks.json  +21
+      ? [Untracked] .agents/mcp_config.json  +8
+      ? [Untracked] rules/commit-convention.md  +18
+      ? [Untracked] rules/error-handling.md  +11
+      ? [Untracked] scripts/format_and_lint.sh  +36
+
+   ```
+
+   ```
+      agy_lab/agy_command.md  +193 -48
+
+      >   95 -  | `/browser` | 브라우저 서브에이전트를 구동하여 웹 브라우징/UI 테스트를 수행합니다. | 로컬 웹
+               서버(`localhost:3000`)에 직접 접근해 렌더링을 확인하거나 문서를 검색할 때 |
+         96 -  | `/teamwork-preview` | 여러 전문 에이전트 팀을 구성하여 대규모 프로젝트를 자율 분업 처리합니다
+               *(구독 전용)*. | 프론트엔드/백엔드/QA 에이전트가 동시에 협동하여 기능 하나를 완성해야 할 때 |
+         95
+         96    ---
+         97
+            @@ -912,8 +910,10 @@ Set Effort
+         910       ### 테스트 케이스
+         911
+         912       1. **Skill 만들기**
+         915 -      *  프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를
+               만들고 SKILL.md 파일을 생성합니다.
+         916 -           파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-
+               commit-helper/SKILL.md
+         913 +     * 프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를
+               만들고 SKILL.md 파일을 생성합니다.
+         914 +     * 파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-commit-
+               helper/SKILL.md
+         915 +     * 참고 : 스킬에 마크다운 지침 외에 별도 첨부 파일이 필요 없다면 <스킬명>.md 단일 파일로 바로
+               생성하셔도 정상 인식됩니다. 만일 스킬   실행에 필요한 추가 참조 파일, 실행 스크립트, 예제 데이터 등이
+               함께 포함되는 경우에는 폴더를 만들어서 그안에 모두 저장해서 사용합니다.
+         916 +   
+   ```
+
 
 ---
 
@@ -1080,48 +1262,81 @@ Set Effort
 * **사전 조건**: 소스 코드가 인덱싱되어 있는 다중 파일 프로젝트 워크스페이스  
 
 ### 테스트 케이스
-1. **심볼 및 패턴 실시간 스트리밍 검색**
-   * **입력**: `/codesearch handleUserAuthentication`  
-   * **기대 결과**:
-     * 워크스페이스 전체 파일에서 해당 키워드가 선언되거나 호출된 위치(파일 경로, 라인 번호, 코드 스니펫)가 스트리밍 형태로 검색되어 나열됨  
-     * 특정 검색 결과를 선택 시 해당 코드 블록의 상세 미리보기가 제공됨
-2. **검색 결과가 없는 경우 처리**
-   * **입력**: `/codesearch nonexistentFunctionXYZ`
-   * **기대 결과**: 검색된 일치 항목이 없음을 알리는 메시지 반환
+```
+   > /codesearch  A new feature
+```
 
----
+```
+   Code Search: A new feature
+   Found 4 results
+   .agents/rules/commit-convention.md
+   > L12: - `feat`: A new feature
+
+   agy_lab/agy_command.md
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+   L1266: > /codesearch A new feature
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+   L1270: Code Search: `feat`: A new feature
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+   L1287: > L12: - `feat`: A new feature More info:
+
+   Keyboard: ↑/↓ Navigate  ←/→ Prev/Next File  enter Open File  ctrl+g Open in Editor  esc Close Search
+
+```
 
 ## 3. `/open`
 
 * **테스트 목적**: 에이전트가 최근 수정한 파일 목록이나 사용자가 지정한 파일을 외부 기본 에디터(VS Code, Vim 등)로 열어주는지 검증  
-* **사전 조건**: 환경 변수(`$EDITOR`) 또는 CLI 설정에 외부 에디터가 구성되어 있고, 최근 수정된 파일이 있는 상태
 
 ### 테스트 케이스
-1. **최근 수정된 파일 외부 에디터 호출**
-   * **입력**: `/open`   
-   * **기대 결과**: 에이전트가 직전 턴에서 수정한 파일(들)이 시스템 기본 에디터(예: VS Code 탭)에서 즉시 열림   
-2. **특정 파일 지정 오픈**
-   * **입력**: `/open src/controllers/auth.ts`
-   * **기대 결과**: 지정한 경로(`src/controllers/auth.ts`)의 파일이 외부 에디터에서 해당 파일 경로로 정확히 열림
+```
+   > /open hooks.json
+   ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+
+```
+   > /open .agents/hooks.json
+   {
+   "code-formatter-and-linter": {
+      "SessionStart": null,
+      "PreInvocation": null,
+      "PostInvocation": null,
+      "Stop": null,
+      "PreToolUse": null,
+      "PostToolUse": [
+         {
+         "matcher": "replace_file_content|write_to_file",
+         "hooks": [
+            {
+               "type": "command",
+               "command": "./scripts/format_and_lint.sh",
+               "timeout": 15
+            }
+         ]
+         }
+      ]
+   }
+   }
+   ~     
+```
 
 ---
 
 ## 4. `/add-dir`
 
-* **테스트 목적**: 현재 세션의 컨텍스트 탐색 및 에이전트 작업 허용 범위에 추가 외부 디렉터리를 정상적으로 바인딩하는지 검증   
-* **사전 조건**: 메인 프로젝트 경로 외부에 추가 라이브러리/패키지 디렉터리가 존재하는 환경   
-
-### 테스트 케이스
-1. **추가 디렉터리 경로 등록 및 인덱싱 확장**
-   * **입력**: `/add-dir ../shared-utils`
-   * **기대 결과**:
-     * 에이전트의 컨텍스트 스코프에 `../shared-utils` 디렉터리가 추가됨   
-     * "디렉터리가 성공적으로 추가되었습니다" 확인 메시지와 함께 해당 폴더 내 소스 코드가 인덱싱 풀에 포함됨
-2. **존재하지 않는 디렉터리 경로 입력 (예외 케이스)**
-   * **입력**: `/add-dir /invalid/path/to/folder`
-   * **기대 결과**: "지정한 디렉터리를 찾을 수 없습니다"라는 유효성 검증 에러 메시지 출력
-
----
+### /add-dir 개요
+   * 현재 세션의 컨텍스트 탐색 및 에이전트 작업 허용 범위에 추가 외부 디렉터리를 정상적으로 바인딩하는지 검증  
+   * **/add-dir**은 Antigravity(agy) 세션의 기본 작업 영역(루트 디렉터리) 외부에 존재하는 특정 디렉터리를 런타임 작업 컨텍스트 및 보안 허용 경로(Allowed Scope)에 동적으로 추가 등록하는 명령어입니다.
+   * 보안상 에이전트는 세션이 시작된 루트 폴더 바깥의 파일에 기본적으로 접근할 수 없는데, /add-dir을 통해 명시적으로 통로를 열어줍니다.
+### /add-dir을 사용하는 핵심 목적
+#### 접근 제한(Sandbox/Scope) 해제:
+기본적으로 에이전트 도구(view_file, grep_search, list_dir 등)는 세션 루트 외부의 절대 경로 접근을 보안 이유로 차단합니다. /add-dir을 실행하면 해당 외부 폴더가 **화이트리스트(허용된 작업 영역)**에 추가되어 에이전트가 에러 없이 파일을 읽고 탐색할 수 있습니다.
+#### 다중 프로젝트 및 모노레포(Monorepo) 통합 참조:
+예를 들어 프론트엔드 작업 중 다른 디렉터리에 분리된 백엔드 API 코드나 공통 UI 라이브러리를 함께 열람하며 코드를 작성해야 할 때 유용합니다.
+#### 외부 공통 자산(Skills, Agents, 규칙 문서)의 즉각적 공유:
+개별 프로젝트마다 스킬 파일이나 룰을 복사해 넣지 않고, 중앙 공유 저장소(예: company-shared-agent-rules/)를 /add-dir로 연결해 세션 내에서 즉시 프롬프트 컨텍스트로 활용할 수 있습니다.
+#### 외부 대용량 참조 데이터셋 및 설계 문서 연동:
+코드 레포지토리 내부에 넣기 부담스러운 대용량 로그 디렉터리, 별도 관리되는 기획/설계 문서(Markdown, OpenAPI Spec 등)를 현재 세션의 에이전트 분석 대상으로 포함시킬 때 사용합니다.---
 
 ## 5. `/artifact`
 
@@ -1140,8 +1355,17 @@ Set Effort
 
 ## 6. `/context`
 
-* **테스트 목적**: 현재 모델의 컨텍스트 윈도우 사용 현황(누적 토큰량, 남은 버퍼, 파일별 점유율)을 시각적으로 정확히 표시하는지 검증
-* **사전 조건**: CLI 세션 내에 프롬프트 및 파일 내용이 컨텍스트에 로드된 상태
+### 사용 목적 
+현재 세션에서 LLM(에이전트)에게 주입되고 있는 컨텍스트 윈도우(토큰 사용량, 활성화된 파일, 시스템 지침 등)의 상태를 점검하고 최적화하기 위해 사용하는 명령어입니다.
+주요 사용 목적
+* 토큰(Token) 사용량 및 제한 모니터링:
+현재 대화 히스토리, 로드된 파일들, 시스템 프롬프트가 모델의 최대 컨텍스트 창(Context Window) 중 얼만큼의 토큰을 차지하고 있는지 시각적으로 확인합니다.
+* 로드된 컨텍스트 목록 점검:
+에이전트가 현재 기억하고 있는 파일 목록, 인덱싱된 디렉터리, 활성화된 규칙(.agents/rules/), 스킬(skills) 등이 무엇인지 확인하여 불필요한 정보가 주입되어 있지 않은지 검토합니다.
+* 불필요한 컨텍스트 정리 및 압축:
+긴 대화나 대용량 파일 참조로 인해 컨텍스트가 가득 차 응답 품질이 떨어지거나 비용이 증가할 때, 필요 없는 파일을 컨텍스트에서 제외(drop/clear)하거나 요약하도록 관리할 수 있습니다.
+* 환각(Hallucination) 및 지침 누락 방지:
+에이전트가 이전 지침을 잊어버리거나 엉뚱한 답변을 할 때, 실제로 핵심 규칙이나 소스 코드가 컨텍스트 안에 정상적으로 포함되어 있는지 디버깅하는 용도로 활용합니다.
 
 ### 테스트 케이스
 1. **컨텍스트 윈도우 사용량 시각화**
@@ -1149,10 +1373,58 @@ Set Effort
    * **기대 결과**:
      * 현재 사용 중인 총 토큰 수와 최대 지원 컨텍스트 한도 대비 백분율(%)이 프로그레스 바 형태로 시각화되어 표시됨
      * 대화 기록, 시스템 프롬프트, 첨부된 파일/도구 정의별 토큰 점유율 세부 분석 데이터가 출력됨
+      ```
+         ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+         └ Context Usage
+         ◉ ◉ ◉ ◉ ◉ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     Gemini 3.6 Flash (Low) · 16.3k/1.0M tokens
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □      (1.6%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     Token usage by category
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ◉ User messages: 5 tokens (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ◉ Agent responses: 154 tokens (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ◉ Tool calls: 0 tokens (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ⛁ System overhead: 16.1k tokens (1.5%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     □ Free space: 1.0M (98.4%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ⊠ Checkpoint buffer: 4 tokens (not counted in usage)
+
+
+         Checkpoints (1) · /rewind
+         └ Checkpoint 1 (active, in context): Undo Clear Command History
+
+         System files · auto-loaded
+         └ ~/.gemini/GEMINI.md
+         └ .agents/rules/
+         └ .agents/skills/
+         └ .agents/agents/
+         └ .agents/hooks.json
+      ```     
 2. **임계치 도달 경고 검증**
    * **상태**: 컨텍스트 사용량이 90%를 초과한 상태
    * **입력**: `/context`
    * **기대 결과**: 컨텍스트 정리가 필요함을 알리는 경고(Warning) 뱃지가 함께 표시되며, `/clear` 또는 컨텍스트 축소 방안을 제안함
+
+      ```
+         >/clear
+         >
+         ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+         └ Context Usage
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     Gemini 3.6 Flash (Low) · 0/1.0M tokens
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □      (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     Estimated usage (awaiting generation)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ◉ User messages: 0 tokens (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ◉ Agent responses: 0 tokens (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     ◉ Tool calls: 0 tokens (0.0%)
+         □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     □ Free space: 1.0M (100.0%)
+
+         System files · auto-loaded
+         └ ~/.gemini/GEMINI.md
+         └ .agents/rules/
+         └ .agents/skills/
+         └ .agents/agents/
+         └ .agents/hooks.json
+
+         Related: /artifact · /skill · /rewind
+
+      ```
 
 
 ---
@@ -1165,31 +1437,57 @@ Set Effort
 
 ## 1. `/model`
 
-* **테스트 목적**: 추론 엔진으로 사용할 기본 모델(예: Gemini 2.5 Pro, Gemini 2.5 Flash 등)을 정상 조회하고 전환할 수 있는지 검증 
-* **사전 조건**: CLI 세션 활성화 및 API 인증 완료 상태
+* **테스트 목적**: 추론 엔진으로 사용할 기본 모델(예: Gemini 3.5 flash)을 정상 조회하고 전환할 수 있는지 검증 
 
-### 테스트 케이스
-1. **모델 선택 대화형 UI 호출 및 변경**
-   * **입력**: `/model`   
-   * **기대 결과**: 사용 가능한 모델 목록이 선택형 리스트로 렌더링되며, 특정 모델(예: `gemini-2.5-pro`)을 선택 시 활성 모델이 즉시 갱신됨  
-2. **직접 인자 지정을 통한 모델 전환**
-   * **입력**: `/model gemini-2.5-flash`
-   * **기대 결과**: "활성 모델이 gemini-2.5-flash로 전환되었습니다" 확인 메시지 출력 및 이후 프롬프트에 해당 모델 적용  
+```
+   > /model
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   Switch Model
+
+   > Gemini 3.7 Flash (current)
+   Gemini 3.6 Flash
+   Gemini 3.5 Flash
+   Gemini 3.1 Pro
+
+   Effort  ◂        ◉──────────────○──────────────○        ▸
+                     low          medium          high      
+               Faster responses, lighter reasoning — great for simpler tasks
+
+```
 
 ---
 
 ## 2. `/permissions`
 
-* **테스트 목적**: 파일 쓰기 및 쉘 명령 실행 등 도구 호출 시의 자율성 모드(`request-review`, `always-proceed`, `strict`)를 정상 변경하는지 검증  
-* **사전 조건**: CLI 세션 활성화 상태
+각 권한 설정 범위(Config Scope)의 차이와 용도입니다.
+### 1. Project (프로젝트 로컬)
+* 적용 범위: 현재 작업 중인 특정 프로젝트 폴더 내에서만 유효합니다.
+* 저장 위치: <현재 프로젝트 루트>/.agents/settings.json (또는 .agents/permissions.json)
+* 추천 상황: 팀원들과 공유하지 않고 해당 레포지토리 작업에만 맞춤 권한(예: 특정 디렉터리 자동 수정 허용)을 줄 때 선택합니다.
+### 2. Shared with Antigravity (프로젝트 공유 / 버전 관리 포함)
+* 적용 범위: 프로젝트 팀원 모두에게 공통으로 적용되는 규칙입니다.
+* 저장 위치: 프로젝트 저장소 내부의 공유 설정 파일(Git 커밋 대상)
+* 추천 상황: 팀 단위 프로젝트에서 "이 명령어는 누구나 승인 없이 실행 가능", "이 폴더는 누구든 수정 금지" 같은 팀 표준 보안 정책을 Git으로 공유할 때 선택합니다.
+### 3. Global (전역 사용자 설정)
+* 적용 범위: 내 컴퓨터에서 agy로 여는 모든 프로젝트에 전역적으로 적용됩니다.
+* 저장 위치: ~/.gemini/config/settings.json (홈 디렉터리)
+* 추천 상황: 프로젝트와 무관하게 "기본적으로 모든 읽기 작업은 항상 승인 없이 허용"과 같은 개인 선호 환경을 일괄 적용할 때 선택합니다.
 
-### 테스트 케이스
-1. **권한 모드 변경 적용**
-   * **입력**: `/permissions always-proceed`  
-   * **기대 결과**: 도구 실행 모드가 자동 승인 모드로 변경되며, 이후 파일 수정 시 사용자 확인 프롬프트 없이 즉각 실행됨  
-2. **엄격 모드 동작 검증**
-   * **입력**: `/permissions strict`  
-   * **기대 결과**: 모든 도구 호출(읽기, 검색, 쓰기 등) 전에 사용자 수동 승인 다이얼로그가 표시됨
+```
+Permission Config Editor
+
+Select a config scope to edit:
+
+> Project
+  Shared with Antigravity
+  Global
+
+  Rules that apply only to this project (highest priority)
+
+Keyboard: ↑/↓ Navigate  enter Save  esc Close
+
+                                                               
+```
 
 ---
 
@@ -1202,6 +1500,33 @@ Set Effort
 1. **환경설정 TUI 패널 호출 및 수정**
    * **입력**: `/config` (또는 `/settings`)
    * **기대 결과**: 대화형 환경설정 패널이 열리며, 출력 상세도(`verbosity`) 또는 테마 변경 후 저장 시 설정 파일에 즉시 영속 반영됨   
+
+   ```
+      >
+      ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      Settings
+
+      Search:  
+               ────────────────────
+
+      > Agent Mode           default
+      Animation Speed      medium
+      Artifact Review      asks for review
+      Color Scheme         terminal
+      Copy on Select       on
+      Editor               auto ($EDITOR)
+      Editor Mode          default
+      Enable Telemetry     on
+      Non-Workspace Access on
+      Notifications        off
+      Rendering Mode       native terminal (inline)
+      Sandbox Mode         off
+      Show Active Tasks    on
+      Show Feedback Survey on
+      Show Tips            on
+      Tool Permission      always-proceed
+      Verbosity            high   
+   ```
 
 ---
 
@@ -1222,13 +1547,13 @@ Set Effort
 * **테스트 목적**: 터미널 하단 상태 표시줄의 표시 여부(ON/OFF) 및 모듈(토큰, 브랜치, 모델명) 커스텀 설정을 검증
 * **사전 조건**: 상태 표시줄이 렌더링 가능한 터미널 뷰 상태
 
-### 테스트 케이스
-1. **상태 표시줄 토글**
-   * **입력**: `/statusline toggle`
-   * **기대 결과**: 하단 상태 표시줄이 숨김/표시 상태로 즉시 전환됨   
-2. **표시 항목 커스텀**
-   * **입력**: `/statusline config --show tokens,git`
-   * **기대 결과**: 하단 바에 활성 모델과 함께 토큰 사용량과 Git 브랜치 정보가 지정된 서식대로 갱신 표시됨
+```
+   > /statusline
+   ⎿  Statusline off. Run /statusline to re-enable.
+
+   > /statusline
+   ⎿  Statusline on.
+```
 
 ---
 
