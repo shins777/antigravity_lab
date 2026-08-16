@@ -114,7 +114,7 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 
 | 명령어 (Aliases) | 기능 설명 | 주요 사용 상황 |
 | :--- | :--- | :--- |
-| `/model` | 추론에 사용할 기본 모델(예: Gemini 2.5 Pro / Flash 등)을 선택합니다. | 비용 절감을 위해 빠른 모델로 낮추거나 정밀 분석을 위해 상위 모델로 변경할 때 |
+| `/model` | 추론에 사용할 기본 모델(예: Gemini 3.6 Pro / Flash 등)을 선택합니다. | 비용 절감을 위해 빠른 모델로 낮추거나 정밀 분석을 위해 상위 모델로 변경할 때 |
 | `/permissions` | 도구 실행 시의 자율성 모드(`request-review`, `always-proceed`, `strict`)를 설정합니다. | 파일 쓰기나 쉘 명령어 실행 시 매번 승인받을지, 완전 자동 실행할지 결정할 때 |
 | `/config`<br>`(/settings)` | CLI의 통합 환경설정 패널(출력 상세도, 테마 등)을 엽니다. | 도구 호출 로그가 너무 많아 출력 상세도(`verbosity`)를 낮추거나 UI 설정을 바꿀 때 |
 | `/keybindings` | 대화형 단축키 에디터를 열어 TUI 키 매핑을 커스텀합니다. | 에이전트 중단, 프롬프트 줄바꿈 등의 단축키를 본인 손에 맞게 변경할 때 |
@@ -843,17 +843,20 @@ Set Effort
 1. **실행 중인 백그라운드 태스크 목록 및 상태 확인**
    * **입력**: `/tasks`  
    * **기대 결과**: 활성 태스크 ID, 작업명, 상태(`RUNNING`, `PENDING`), 경과 시간이 테이블 형태로 렌더링됨  
-2. **백그라운드 태스크 강제 취소**
-   * **입력**: `/tasks kill <TASK_ID>`
-   * **기대 결과**: 해당 비동기 작업 프로세스가 안전하게 인터럽트되고 태스크 상태가 `CANCELLED`로 변경됨
 
+   ```
+   Tasks
+   Agent Backgrounded
+   > ● [22:39:00] gcloud services enable aiplatform.googleapis.com artifactregistry.googlea...  completed (exit 0)
+     ● [22:38:52] gcloud config set project ai-hangsik         
+   ```
 ---
 
 ## 4. `/skills`
 
 ### Antigravity (agy): Agent vs Skill 차이점 가이드
 
-   * Antigravity(`agy`)에서 **Agent**와 **Skill**은 **"주체(누가 일하는가)"**와 **"능력/절차(어떻게 일하는가)"**의 관계를 가집니다.
+   * Antigravity(`agy`)에서 **Agent**와 **Skill**은 **주체-누가 일하는가**와 **능력/절차-어떻게 일하는가**의 관계를 가집니다.
 
 
 
@@ -907,10 +910,60 @@ Set Effort
    * **사전 조건**: 워크스페이스 또는 전역 설정에 1개 이상의 스킬(예: `generate-unit-tests`, `deploy-k8s`)이 정의된 상태   
 
    ### 테스트 케이스
+
+   1. **Skill 만들기** 
+    *  프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를 만들고 SKILL.md 파일을 생성합니다.
+         파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-commit-helper/SKILL.md
+    * Skill 내용
+      ```
+      ---
+      name: git-commit-helper
+      description: 현재 스테이징된 git 변경사항(diff)을 분석하여 Conventional Commits 규칙에 맞춘 커밋 메시지를 생성합니다.
+      ---
+
+      # Git Commit Helper Instructions
+
+      당신은 Git 커밋 메시지 작성 도우미입니다. 아래 절차에 따라 작업을 수행하세요:
+
+      1. `run_command`를 사용하여 `git status`와 `git diff --cached`를 실행합니다.
+      2. 변경 사항이 없다면 사용자에게 `git add`를 먼저 진행하도록 안내합니다.
+      3. 변경 사항이 있다면 아래 Conventional Commits 규칙에 맞춰 메시지를 작성합니다:
+         - 형각: `<type>(<scope>): <subject>` (예: `feat(auth): add jwt token validation`)
+         - 타입: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+      4. 최종 결과는 즉시 복사해 사용할 수 있는 코드 블록 형태로 제공하세요.      
+      ```
+
+
    1. **등록된 스킬 목록 조회**
       * **입력**: `/skills`   
       * **기대 결과**: 등록된 스킬의 이름, 파라미터 요구사항, 적용 범위(Local/Global)가 나열됨   
-   2. **특정 스킬 로드 및 프롬프트 주입**
+      ```
+      Skills
+      9 skills
+
+      Create new skills
+      Workspace: ~/Documents/Antigravity/gemini_api_test/.agents/skills/{skill_name}/SKILL.md
+      Workspace: ~/Documents/my_project/antigravity_lab/.agents/skills/{skill_name}/SKILL.md
+      Global:    ~/.gemini/antigravity-cli/skills/{skill_name}/SKILL.md
+      Shared:    ~/.gemini/skills/{skill_name}/SKILL.md
+
+      Workspace skills · Workspace config
+      git-commit-helper: 현재 스테이징된 git 변경사항(diff)을 분석하여 Conventional Commits 규칙에 맞춘 커밋 메시지
+
+      /Users/hangsik/.gemini/antigravity-cli/builtin/skills · From ~/.gemini/antigravity-cli/skills.json
+      agy-customizations: Comprehensive guide and reference for the Antigravity Customization System. Use to ex...
+      antigravity-guide: Provides a comprehensive guide, quick reference, and sitemap for Google Antigravity (A...
+
+      /Users/hangsik/.gemini/config/plugins/conductor/skills · From ~/.gemini/antigravity-cli/skills.json
+      conductor:implement: Executes the tasks defined in the specified track's plan
+      conductor:newTrack: Plans a track, generates track-specific spec documents and updates the tracks file
+      conductor:revert: Reverts previous work
+      conductor:review: Reviews the completed track work against guidelines and the plan
+      conductor:setup: Scaffolds the project and sets up the Conductor environment
+      conductor:status: Displays the current progress of the project
+      ```
+
+   2. 특정 스킬 로드 및 프롬프트 주입
       * **입력**: `/skills run generate-unit-tests`
       * **기대 결과**: 스킬 템플릿에 정의된 워크플로우 지침이 현재 프롬프트 컨텍스트에 즉시 반영되어 후속 작업을 수행함
 
