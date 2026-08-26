@@ -99,9 +99,9 @@ gcloud storage buckets create $GCS_BUCKET_NAME --location=$GCP_REGION
 
 ```bash
 # 1. 작업 디렉터리 생성 및 이동
-mkdir -p ~/antigravity-lab/agy_agent/src
-mkdir -p ~/antigravity-lab/agy_agent/tests
-cd ~/antigravity-lab/agy_agent
+mkdir -p ~/antigravity-lab/lab/agy_agent/src
+mkdir -p ~/antigravity-lab/lab/agy_agent/tests
+cd ~/antigravity-lab/lab/agy_agent
 
 # 2. Python 가상환경 생성 및 활성화
 python3 -m venv .venv

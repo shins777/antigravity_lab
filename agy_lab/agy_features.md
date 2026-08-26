@@ -61,8 +61,8 @@ Antigravity는 프로젝트 로컬(Workspace)과 시스템 전역(Global) 설정
 
 ```bash
 # 1. 실습 루트 디렉터리 생성 및 이동
-mkdir -p ~/antigravity-lab/agy_features
-cd ~/antigravity-lab/agy_features
+mkdir -p ~/antigravity-lab/lab/agy_features
+cd ~/antigravity-lab/lab/agy_features
 
 # 2. Antigravity 표준 확장 디렉터리 생성
 mkdir -p .agents/agents

@@ -63,9 +63,9 @@ Gemini Enterprise 연동에 필요한 GCP 환경 변수를 설정하고 Discover
 
 ```bash
 # 1. 작업 디렉터리 생성 및 이동
-mkdir -p ~/antigravity-lab/agy_ge/scripts
-mkdir -p ~/antigravity-lab/agy_ge/config
-cd ~/antigravity-lab/agy_ge
+mkdir -p ~/antigravity-lab/lab/agy_ge/scripts
+mkdir -p ~/antigravity-lab/lab/agy_ge/config
+cd ~/antigravity-lab/lab/agy_ge
 
 # 2. GCP 기본 변수 설정
 export GCP_PROJECT_ID="your-project-id"

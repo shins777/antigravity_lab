@@ -41,8 +41,8 @@ git --version
 curl --version
 
 # 3. 실습용 전용 디렉터리 생성 및 이동
-mkdir -p ~/antigravity-lab/agy_setting
-cd ~/antigravity-lab/agy_setting
+mkdir -p ~/antigravity-lab/lab/agy_setting
+cd ~/antigravity-lab/lab/agy_setting
 ```
 
 ---
@@ -131,7 +131,7 @@ agy login
 실습 디렉터리에서 Antigravity CLI 대화형 세션을 시작합니다.
 
 ```bash
-cd ~/antigravity-lab/agy_setting
+cd ~/antigravity-lab/lab/agy_setting
 agy
 ```
 
@@ -141,7 +141,7 @@ agy
 
 ```text
 Accessing workspace:
-/Users/hangsik/antigravity-lab/agy_setting
+/Users/hangsik/antigravity-lab/lab/agy_setting
 Do you trust the contents of this project?
 Antigravity CLI requires permission to read, edit, and execute files here.
 > Yes, I trust this folder
@@ -159,7 +159,7 @@ Antigravity CLI requires permission to read, edit, and execute files here.
       ▄▀▀▄        Antigravity CLI 1.1.13
      ▀▀▀▀▀▀       user@example.com (Agent Platform)
     ▀▀▀▀▀▀▀▀      Gemini 3.6 Flash (Low)
-   ▄▀▀    ▀▀▄     ~/antigravity-lab/agy_setting
+   ▄▀▀    ▀▀▄     ~/antigravity-lab/lab/agy_setting
   ▄▀▀      ▀▀▄
 
 ───────────────────────────────────────────────────────────────────────────────────────────────────
