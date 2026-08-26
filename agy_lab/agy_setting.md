@@ -40,9 +40,12 @@ python3 --version
 git --version
 curl --version
 
-# 3. 실습용 전용 디렉터리 생성 및 이동
+# 3. pip 최신 버전 업그레이드
+pip install --upgrade pip
+
+# 4. 실습용 전용 디렉터리 생성
 mkdir -p ~/antigravity-lab/lab/agy_setting
-cd ~/antigravity-lab/lab/agy_setting
+
 ```
 
 ---
@@ -52,22 +55,24 @@ cd ~/antigravity-lab/lab/agy_setting
 프로젝트 간 패키지 충돌을 방지하기 위해 가상환경을 생성하고 활성화합니다.
 
 ```bash
-# 1. 가상환경 생성 (.venv)
+
+# 1. Project root 디렉토리로 변경
+cd ~/antigravity-lab/
+
+# 2. 가상환경 생성 (.venv)
 python3 -m venv .venv
 
-# 2. 가상환경 활성화
+# 3. 가상환경 활성화
 # macOS / Linux:
 source .venv/bin/activate
 
 # Windows (WSL2 / PowerShell):
 # source .venv/bin/activate  또는  .venv\Scripts\activate
 
-# 3. pip 최신 버전 업그레이드
-pip install --upgrade pip
 ```
 
 > [!TIP]
-> 속도가 빠른 패키지 매니저인 `uv`를 사용하는 경우 다음과 같이 가상환경을 생성할 수 있습니다:
+> 가상환경 생성 및 활성화를 위해서 속도가 빠른 패키지 매니저인 `uv`를 사용하는 경우 다음과 같이 가상환경을 생성할 수 있습니다:
 >
 > ```bash
 > uv venv .venv
@@ -131,7 +136,7 @@ agy login
 실습 디렉터리에서 Antigravity CLI 대화형 세션을 시작합니다.
 
 ```bash
-cd ~/antigravity-lab/lab/agy_setting
+cd ~/antigravity-lab/
 agy
 ```
 

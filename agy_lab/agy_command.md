@@ -1,6 +1,6 @@
 # Antigravity CLI 명령어 개요 및 사용법 가이드 (agy_command)
 
-본 문서는 **Antigravity CLI**의 기본 실행 구조와 TUI 대화형 세션 내에서 슬래시(`/`)를 통해 호출할 수 있는 전체 명령어 체계를 기능별로 분류(Categorization)하고, 각 명령어의 **개요(Overview), 사용법(Usage), 옵션/별칭(Options & Aliases), 실습 예제(Examples)**를 정리한 가이드입니다.
+본 문서는 **Antigravity CLI**의 기본 실행 구조와 TUI 대화형 세션 내에서 슬래시(`/`)를 통해 호출할 수 있는 전체 명령어 체계를 기능별로 분류(Categorization)하고, 각 명령어의 개요(Overview), 사용법(Usage), 옵션/별칭(Options & Aliases), 실습 예제(Examples)를 정리한 가이드입니다.
 
 ---
 
@@ -24,6 +24,10 @@
 터미널에서 Antigravity CLI를 실행할 때 사용할 수 있는 기본 플래그 옵션입니다:
 
 ```bash
+
+# Project root 디렉토리로 전환
+cd ~/antigravity-lab/
+
 # 기본 대화형 세션 시작
 agy
 
@@ -31,7 +35,7 @@ agy
 agy --agent code-reviewer
 
 # 사용할 기본 모델을 지정하여 실행
-agy --model gemini-3.6-pro
+agy --model gemini-3.5-flash
 
 # 특정 워크스페이스 디렉터리로 바로 진입
 agy --dir ~/Documents/my_project/antigravity_lab
@@ -51,7 +55,7 @@ agy --dir ~/Documents/my_project/antigravity_lab
                     ┌── /resume (/switch, /conversation) : 이전 대화 복원/전환
                     ├── /rewind (/undo)                 : 직전 턴 상태로 롤백
                     ├── /clear (/new)                   : 대화 메모리 초기화
-세션 및 대화 관리 ──┼── /fork (/branch)                 : 현재 문맥 복제 새 브랜치 생성
+세션 및 대화 관리 ──----┼── /fork (/branch)                 : 현재 문맥 복제 새 브랜치 생성
                     ├── /rename                         : 활성 세션 이름 변경
                     ├── /btw                            : 메인 작업 중단 없이 사이드 질문
                     └── /copy                           : 직전 에이전트 응답 클립보드 복사
