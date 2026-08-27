@@ -108,7 +108,7 @@ agy --dir ~/Documents/my_project/antigravity_lab
 - **Examples (예시):**
   ```text
   > /clear
-  대화 컨텍스트가 초기화되었습니다. 새로운 작업을 입력하세요.
+
   ```
 
 ---
@@ -119,11 +119,11 @@ agy --dir ~/Documents/my_project/antigravity_lab
 - **Aliases (별칭):** `/branch`
 - **Usage (사용법):**
   ```text
-  /fork [새 브랜치 세션명]
+  /fork
   ```
 - **Examples (예시):**
   ```text
-  > /fork experiment-fastapi-migration
+  > /fork
   ```
 
 ---
