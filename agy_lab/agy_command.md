@@ -124,7 +124,18 @@ agy --dir ~/Documents/my_project/antigravity_lab
 - **Examples (예시):**
   ```text
   > /fork
+  ⎿  Forked conversation.
+     To go back, use: /resume 99915f66-8d2e-4900-bf09-b2cedeb12500
   ```
+
+> [!TIP]
+> **세션 제어 명령어 빠른 비교 매트릭스 (Quick Comparison Matrix: `/clear`, `/fork`, `/resume`)**
+>
+> | 명령어 (Command) | 별칭 (Aliases)             | 세션 ID (Session ID)      | 컨텍스트 히스토리 (Context History) | 로컬 파일 변경사항 (Files on Disk) | 주요 사용 시점 (Primary Use Case)                       |
+> | :--------------- | :------------------------- | :------------------------ | :---------------------------------- | :--------------------------------- | :------------------------------------------------------ |
+> | **`/clear`**     | `/new`                     | **현재 세션 유지**        | **완전 초기화 (빈 상태)**           | 변경된 파일 유지                   | 이전 대화와 무관하게 토큰 메모리를 비우고 새 작업 시작  |
+> | **`/fork`**      | `/branch`                  | **신규 세션 ID 생성**     | **현재 턴까지 복제 보존**           | 변경된 파일 유지                   | 원본 세션을 백업한 채 대안적 구현/실험(A/B 테스트) 진행 |
+> | **`/resume`**    | `/switch`, `/conversation` | **지정한 세션 ID로 전환** | **해당 세션 히스토리 복원**         | 변경된 파일 유지                   | 과거에 진행하던 다른 세션 또는 원본 세션으로 복귀       |
 
 ---
 
@@ -177,26 +188,27 @@ agy --dir ~/Documents/my_project/antigravity_lab
 에이전트의 작업 전략 수립 방식, 자율 루프 실행, 인터뷰 모드 및 추론 깊이를 제어하는 명령어 그룹입니다.
 
 ```
-                    ┌── /planning : 작업 전 영향도 분석 및 단계별 계획 수립
+                    ┌── /plan     : 작업 전 영향도 분석 및 단계별 계획 수립
                     ├── /fast     : 계획 생략 즉시 코드 수정/도구 실행
                     ├── /goal     : 목표 100% 완료 시까지 자율 반복 루프 실행
-계획 및 실행 제어 ──┼── /grill-me : 요구사항 구체화를 위한 대화형 인터뷰 진행
+계획 및 실행 제어 ──────┼── /grill-me : 요구사항 구체화를 위한 대화형 인터뷰 진행
                     ├── /effort   : 모델 추론 깊이(low/medium/high) 설정
                     └── /schedule : 지연 실행 타이머 또는 주기적 Cron 작업 등록
 ```
 
 ---
 
-#### 1. `/planning`
+#### 1. `/plan`
 
-- **Overview (개요):** 코드를 즉시 수정하지 않고 요구사항 분석, 영향받는 파일 목록, 단계별 실행 계획(체크리스트)을 먼저 수립하여 사용자의 검토를 받습니다.
+- **Overview (개요):** 코드를 즉시 수정하지 않고 요구사항 분석, 영향받는 파일 목록, 단계별 실행 계획(체크리스트)을 먼저 수립하여 사용자의 검토를 받습니다. md 파일이 만들어지며 그것을 통해서 처리해야 할 임무에 대한 계획을 정리해 놓습니다. 최종적으로는 그 plan이 있는 md file을 실행해서 임무를 완성합니다.
+
 - **Usage (사용법):**
   ```text
-  /planning <작업 지시사항>
+  /plan <작업 지시사항>
   ```
 - **Examples (예시):**
   ```text
-  > /planning Vertex AI Agent Engine 배포를 위한 아키텍처 구성 및 코드 스캐폴딩
+  > /plan wirte a code with ADK agent to provide a feature of search websites when user input is given.
   ```
 
 ---
@@ -210,7 +222,7 @@ agy --dir ~/Documents/my_project/antigravity_lab
   ```
 - **Examples (예시):**
   ```text
-  > /fast src/main.py의 15번째 줄 디버그 로그 삭제해줘
+  > /fast remove src folder under root folder.
   ```
 
 ---
@@ -218,13 +230,20 @@ agy --dir ~/Documents/my_project/antigravity_lab
 #### 3. `/goal`
 
 - **Overview (개요):** 명시된 완료 조건(DoD: Definition of Done)이 충족될 때까지 에이전트가 `분석 ➜ 수정 ➜ 테스트 ➜ 오류 해결` 루프를 자율적으로 반복 수행합니다.
+
 - **Usage (사용법):**
   ```text
   /goal <목표 및 명확한 종료 조건>
   ```
 - **Examples (예시):**
   ```text
-  > /goal pytest tests/test_auth.py가 100% 통과할 때까지 버그를 찾고 코드를 수정해줘
+  > /goal build an agent which connects to MCP server that is to search Google Map. Google Maps API Key should be managed in .env file.
+
+  >  Please update the goal with the following guideline.
+  1. Implement MCP server  with Streamable HTTP.
+  2. Deploy the MCP server on Cloud Run on GCP.
+  3. Deploy the agent on ADK framework on Agent Engine.
+
   ```
 
 ---
@@ -238,7 +257,7 @@ agy --dir ~/Documents/my_project/antigravity_lab
   ```
 - **Examples (예시):**
   ```text
-  > /grill-me 실시간 트래픽을 모니터링하는 대시보드를 만들고 싶어
+  > /grill-me make a dashboard to check the current CPU status in my desktop.
   ```
 
 ---
@@ -268,8 +287,18 @@ agy --dir ~/Documents/my_project/antigravity_lab
   ```
 - **Examples (예시):**
   ```text
-  > /schedule in 10m "현재 실행 중인 빌드 로그를 확인하고 요약해줘"
-  > /schedule "0 9 * * *" "매일 아침 최신 브랜치 변경사항 요약"
+  > /schedule in 5m "Update README.md file under root directory"
+
+  ▸ Thought for 4s, 103 tokens
+    Scheduling Task Details
+
+  ● Schedule(300s: Update README.md file under root directory) (ctrl+o to expand)
+
+    A timer has been scheduled for 5 minutes (300 seconds).
+
+    • Task ID: task-338
+    • Notification Prompt: "Update README.md file under root directory"
+    • Trigger Time: ~13:45:37
   ```
 
 ---
@@ -281,8 +310,8 @@ agy --dir ~/Documents/my_project/antigravity_lab
 ```
                     ┌── /agents : 등록된 서브에이전트 목록 조회 및 호출
                     ├── /tasks  : 백그라운드 비동기 태스크 상태 점검 및 중단
-서브에이전트, 툴    ├── /skills : 로컬 및 글로벌 스킬(Skill) 목록 조회
-및 확장성           ├── /learn  : 최근 피드백 및 성공 패턴을 영구 규칙/스킬로 학습
+서브에이전트, 툴        ├── /skills : 로컬 및 글로벌 스킬(Skill) 목록 조회
+및 확장성             ├── /learn  : 최근 피드백 및 성공 패턴을 영구 규칙/스킬로 학습
                     ├── /mcp    : Model Context Protocol 서버 연결 관리
                     └── /hooks  : 이벤트 트리거 훅(Hooks) 설정 관리
 ```
@@ -292,15 +321,45 @@ agy --dir ~/Documents/my_project/antigravity_lab
 #### 1. `/agents`
 
 - **Overview (개요):** 프로젝트 및 글로벌 환경에 정의된 서브에이전트(예: `code-reviewer`, `db-optimizer`) 목록을 조회하고 직접 작업을 위임합니다.
-- **Usage (사용법):**
+- **Usage (사용법) :**
   ```text
-  /agents
-  @[경로/에이전트.md] <요청사항>
+    1. Prompt 에 넣어서 처리하는 방법.
+    >
+    Spawn a background research subagent to scan all SQL queries in the repository and summarize where table partitioning is missing.
+    Delegate the unit test execution to a subagent while we continue discussing the architecture here.
+
+   2. 파일을 직접 넣어서 처리하는 방법.
+    >
+    /agents
+    @[경로/에이전트.md] <요청사항>
   ```
 - **Examples (예시):**
   ```text
+
+  1. Sub agent를 선택하는 방법.
+
+  > /agents
+
+    Create New Agents
+    Workspace: /Users/hangsik/Documents/Antigravity/gemini_api_test/.agents/agent...
+    Workspace: /Users/hangsik/Documents/my_project/antigravity_lab/.agents/agents...
+    Global: /Users/hangsik/.gemini/config/agents/{agent_name}/agent.md
+
+    Available Agents
+      ● default  Default agent
+    >   code-reviewer  코드 보안 취약점, 성능 병목, 스타일 가이드 분�...
+
+
+    ──────────────────────────────
+    >
+    ? for shortcuts   code-reviewer (Gemini 3.7 Flash · medium)  /agents
+
+  2. Sub agent 파일을 직접 지정하는 방식
+
   > /agents
   > @[.agents/agents/code-reviewer.md] 작성된 코드의 보안 취약점을 점검해줘
+
+
   ```
 
 ---
@@ -323,11 +382,75 @@ agy --dir ~/Documents/my_project/antigravity_lab
 
 #### 3. `/skills`
 
-- **Overview (개요):** 현재 워크스페이스(`.agents/skills/`) 및 전역(`~/.gemini/antigravity-cli/builtin/skills/`)에 활성화된 스킬 목록과 설명을 조회합니다.
+- **Overview (개요):** 현재 워크스페이스(`.agents/skills/`), 전역(`~/.gemini/antigravity-cli/skills/`, `~/.gemini/config/skills/`), 내장(`builtin/skills/`) 및 플러그인에 등록되어 활성화된 모든 스킬(Skill) 목록과 설명을 TUI 화면에서 조회하고 탐색합니다.
+
+- **Skill의 개념 (Concept):**
+  - **절차적 업무 지침서 (How-to Playbook):** 특정 작업(예: Git 커밋 메시지 생성, BigQuery 쿼리 최적화, SAST 보안 스캔 등)을 수행하는 표준 절차와 규칙을 모듈화한 단위입니다.
+  - **Agent vs Skill:**
+    - **Agent (주체/누가):** 자율적 판단과 컨텍스트를 가진 작업 수행 주체 (Stateful)
+    - **Skill (절차/어떻게):** 에이전트가 필요 시 호출하여 참조하는 재사용 가능한 전문 작업 매뉴얼/도구 (Stateless)
+
+- **스킬 탐색 및 저장 위치 (Scope & Directory Hierarchy):**
+  - **Workspace Skills (프로젝트 전용):** `<프로젝트 루트>/.agents/skills/<스킬명>/SKILL.md` (우선순위 높음)
+  - **Global Skills (사용자 전역):** `~/.gemini/antigravity-cli/skills/<스킬명>/SKILL.md` 또는 `~/.gemini/config/skills/<스킬명>/SKILL.md`
+  - **Shared Skills (공유 스킬):** `~/.gemini/skills/<스킬명>/SKILL.md`
+  - **Built-in Skills (내장 스킬):** `~/.gemini/antigravity-cli/builtin/skills/`
+  - **Plugin Skills (플러그인 확장):** `~/.gemini/config/plugins/<플러그인명>/skills/`
+
 - **Usage (사용법):**
+
   ```text
+  # 1. 등록된 전체 스킬 목록 및 설명 TUI 조회
   /skills
+
+  # 2. 특정 스킬을 직접 슬래시 명령어로 호출하여 실행
+  /<스킬명> [추가 작업 지시사항]
+
+  # 3. 자연어 프롬프트를 통한 자동/명시적 스킬 호출
+  Apply the <스킬명> skill to [작업 대상]
   ```
+
+- **SKILL.md 파일 기본 구조 (Structure):**
+
+  ```markdown
+  ---
+  name: git-commit-helper
+  description: 현재 스테이징된 git 변경사항(diff)을 분석하여 Conventional Commits 규칙에 맞춘 커밋 메시지를 생성합니다.
+  ---
+
+  # Git Commit Helper Instructions
+
+  당신은 Git 커밋 메시지 작성 도우미입니다. 아래 절차에 따라 작업을 수행하세요:
+
+  1. `run_command`로 `git status`와 `git diff --cached`를 확인합니다.
+  2. 변경 사항을 기반으로 `<type>(<scope>): <subject>` 포맷의 커밋 메시지를 생성합니다.
+  ```
+
+- **Examples (예시):**
+  1. **스킬 목록 TUI 조회 (`/skills` 실행 시):**
+
+     ```text
+     > /skills
+
+     Skills (9 skills)
+
+     Create new skills
+     Workspace: ~/Documents/my_project/antigravity_lab/.agents/skills/{skill_name}/SKILL.md
+     Global:    ~/.gemini/antigravity-cli/skills/{skill_name}/SKILL.md
+     Shared:    ~/.gemini/skills/{skill_name}/SKILL.md
+
+     Workspace skills · Workspace config
+     ● git-commit-helper: 현재 스테이징된 git 변경사항(diff)을 분석하여 Conventional Commits 규칙에 맞춘 커밋 메시지 생성
+
+     Built-in skills · From ~/.gemini/antigravity-cli/skills.json
+     ● agy-customizations: Comprehensive guide and reference for the Antigravity Customization System.
+     ● antigravity-guide: Provides a comprehensive guide, quick reference, and sitemap for Google Antigravity.
+     ```
+
+  2. **슬래시 명령어로 스킬 직접 호출:**
+     ```text
+     > /git-commit-helper 현재 변경된 파일들을 커밋하고 origin main 브랜치로 푸시해줘.
+     ```
 
 ---
 
@@ -372,7 +495,7 @@ agy --dir ~/Documents/my_project/antigravity_lab
 ```
                     ┌── /diff        : 스테이징/미커밋 코드 변경사항 인터랙티브 뷰어
                     ├── /codesearch  : 실시간 인덱스 기반 고속 코드 검색
-작업 공간 및        ├── /open        : 특정 파일이나 변경된 코드를 외부 IDE로 열기
+작업 공간 및           ├── /open        : 특정 파일이나 변경된 코드를 외부 IDE로 열기
 코드 유틸리티       ├── /add-dir     : 추가 워크스페이스 디렉터리 경로 등록
                     ├── /artifact    : 에이전트가 생성한 설계서, 다이어그램 등 산출물 조회
                     └── /context     : 현재 모델 컨텍스트 윈도우 토큰 사용량 시각화
@@ -520,7 +643,7 @@ agy --dir ~/Documents/my_project/antigravity_lab
 ## 5. 실습 체크리스트 (Verification Checklist)
 
 - [ ] `/resume`을 실행하여 이전 세션 목록이 정상적으로 브라우징되는지 확인
-- [ ] `/planning`을 사용하여 사전 계획서를 아티팩트로 생성해보았는지 확인
+- [ ] `/plan`을 사용하여 사전 계획서를 아티팩트로 생성해보았는지 확인
 - [ ] `/effort` 명령어로 추론 강도를 `low`/`high`로 변경해보았는지 확인
 - [ ] `/context`를 통해 현재 토큰 점유율을 확인해보았는지 확인
 - [ ] `/model`을 통해 원하는 Gemini 모델로 정상 변경되는지 확인

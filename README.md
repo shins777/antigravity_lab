@@ -1,89 +1,90 @@
 # Antigravity Lab (antigravity_lab)
 
-Google Antigravity CLI 기반 개발 환경 구축, 핵심 기능 확장, ADK(Agent Development Kit) 비즈니스 전략 에이전트 개발, GCP Vertex AI Agent Engine(Reasoning Engine) 배포 및 Gemini Enterprise 연동을 다루는 종합 핸즈온 실습 저장소입니다.
+Google Antigravity CLI 기반 개발 환경 구축, 핵심 기능 확장, Model Context Protocol (MCP) 서버 연동, ADK(Agent Development Kit) 에이전트 개발, GCP Cloud Run 및 Vertex AI Agent Engine(Reasoning Engine) 배포, 실시간 시스템 모니터링 대시보드를 다루는 종합 핸즈온 실습 저장소입니다.
 
 ---
 
 ## 1. 실습 디렉터리 구조 (Lab Directory Structure)
 
-모든 실습 프로젝트는 공통 루트 디렉터리(`~/antigravity-lab`) 아래의 **`lab/`** 폴더 내에 실습 모듈별로 격리되어 구성됩니다.
+모든 실습 프로젝트는 공통 루트 디렉터리 아래의 **`lab/`** 폴더 내에 실습 모듈별로 격리되어 구성됩니다.
 
 ```text
-~/antigravity-lab/
-└── lab/                                     # 실습 통합 디렉터리
-    ├── agy_setting/                         # Lab 1: 설치 및 기본 환경 구성 실습
-    │   ├── .venv/                           # Python 독립 가상환경
-    │   └── .agents/                         # 워크스페이스 에이전트/규칙 설정
-    │
-    ├── agy_command/                         # Lab 2: CLI 기본 실행 및 명령어 실습
-    │   └── src/                             # 실습용 샘플 스크립트
-    │
-    ├── agy_features/                        # Lab 3: Agent, Skill, Rule, MCP, Plugin 확장 실습
-    │   ├── .agents/
-    │   │   ├── agents/                      # 커스텀 에이전트 정의 (code-reviewer.md)
-    │   │   ├── skills/                      # 커스텀 스킬 정의
-    │   │   ├── rules/                       # 보안 및 코딩 가드레일
-    │   │   └── plugins/                     # 플러그인 확장 모듈
-    │   ├── mcp_servers.json                 # MCP 서버 연동 설정
-    │   └── src/                             # 대상 소스 코드
-    │
-    ├── agy_agent/                           # Lab 4: ADK 전략 분석 에이전트 및 GCP 배포 실습
-    │   ├── src/
-    │   │   ├── agent.py                     # ADK 에이전트 핵심 로직 (A4 1장 보고서 생성)
-    │   │   ├── tools.py                     # 커스텀 도구 정의 (검색/데이터 요약)
-    │   │   └── deploy.py                    # Vertex AI Reasoning Engine 배포 스크립트
-    │   ├── tests/                           # 로컬 및 원격 질의 테스트
-    │   └── requirements.txt                 # 패키지 의존성 정의
-    │
-    └── agy_ge/                              # Lab 5: Gemini Enterprise 등록 및 연동 실습
-        ├── config/
-        │   └── agent_definition.json        # Discovery Engine 등록 페이로드
-        └── scripts/
-            ├── register_agent.sh            # Discovery Engine REST API 등록 스크립트
-            └── test_ge_agent.py             # GE 연동 검증 스크립트
+antigravity_lab/
+├── lab/                                     # 실습 통합 디렉터리
+│   ├── agy_command/                         # Lab: CLI 명령어 및 에이전트 개발 실습
+│   │   ├── adk_search_agent/                # 🔍 Vertex AI Search Grounding 기반 검색 에이전트
+│   │   ├── google_maps_mcp_agent/           # 🗺️ Streamable HTTP MCP Server (Cloud Run) & Agent Engine
+│   │   └── plan/                            # 실습 구현 계획 문서 모음
+│   │
+│   ├── cpu_dashboard/                       # ⚡ Desktop CPU & System Status 실시간 대시보드 (Streamlit)
+│   │   ├── app.py                           # 대시보드 메인 UI
+│   │   ├── metrics.py                       # psutil 기반 메트릭 수집기
+│   │   └── run.sh                           # 원클릭 실행 스크립트
+│   │
+│   ├── agy_setting/                         # Lab: 설치 및 기본 환경 구성 실습
+│   ├── agy_features/                        # Lab: Agent, Skill, Rule, MCP, Plugin 확장 실습
+│   ├── agy_agent/                           # Lab: ADK 전략 분석 에이전트 및 GCP 배포 실습
+│   └── agy_ge/                              # Lab: Gemini Enterprise 등록 및 연동 실습
+│
+├── agy_lab/                                 # Antigravity 학습 가이드 문서 모음
+│   ├── agy_setting.md                       # 환경 설정 및 .gemini/.agents 구조 가이드
+│   ├── agy_command.md                       # CLI 슬래시 명령어 완벽 가이드
+│   ├── agy_features.md                      # 커스텀 아키텍처 확장 가이드
+│   ├── agy_agent.md                         # ADK 에이전트 개발 가이드
+│   └── agy_ge.md                            # Gemini Enterprise 연동 가이드
+│
+└── .agents/                                 # Antigravity 설정 및 커스텀 확장 자산
+    ├── agents/                              # 서브에이전트 정의 (code-reviewer.md)
+    ├── rules/                               # 프로젝트 규칙 및 가드레일 (commit, error handling)
+    ├── skills/                              # 가이드 생성 및 개발 보조 Skill
+    └── mcp_config.json                      # 전역 MCP 서버 연동 설정
 ```
 
 ---
 
 ## 2. 핸즈온 실습 커리큘럼 가이드 (Hands-on Labs)
 
-각 실습 모듈별 상세 단계와 가이드는 아래 링크된 Markdown 문서를 참조하세요:
+각 실습 모듈별 상세 단계와 가이드는 아래 링크된 문서를 참조하세요:
 
-|  단계  | 실습 모듈명      | 실습 작업 디렉터리                   |                                      실습 가이드 문서                                       | 주요 학습 내용                                                                                 |
-| :----: | :--------------- | :----------------------------------- | :-----------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------- |
-| **01** | **agy_setting**  | `~/antigravity-lab/lab/agy_setting`  |                          [agy_setting.md](agy_lab/agy_setting.md)                           | Antigravity CLI 설치, Python 가상환경, Google 계정 인증, TUI 세션 시작                         |
-| **02** | **agy_command**  | `~/antigravity-lab/lab/agy_command`  | [agy_command.md](agy_lab/agy_command.md)<br>([Deep-Dive](agy_lab/deep-dive/agy_all_cmd.md)) | 슬래시(`/`) 내장 명령어 5대 카테고리(세션/계획/서브에이전트/분석/설정) 정복                    |
-| **03** | **agy_features** | `~/antigravity-lab/lab/agy_features` |                         [agy_features.md](agy_lab/agy_features.md)                          | Agent 페르소나 정의, Skill 바인딩, Rule 가드레일, MCP 서버 연동, Plugin 확장                   |
-| **04** | **agy_agent**    | `~/antigravity-lab/lab/agy_agent`    |                            [agy_agent.md](agy_lab/agy_agent.md)                             | ADK 기반 1-Page 비즈니스 전략 리포트 에이전트 개발 및 GCP Vertex AI Agent Engine 배포          |
-| **05** | **agy_ge**       | `~/antigravity-lab/lab/agy_ge`       |                               [agy_ge.md](agy_lab/agy_ge.md)                                | 배포된 Agent Engine을 Gemini Enterprise(Discovery Engine) 커스텀 에이전트로 등록 및 E2E 테스트 |
+|  단계  | 실습 모듈명         | 실습 작업 디렉터리                                                                 |                       실습 가이드 문서                       | 주요 학습 내용                                                                           |
+| :----: | :------------------ | :--------------------------------------------------------------------------------- | :----------------------------------------------------------: | :--------------------------------------------------------------------------------------- |
+| **01** | **agy_setting**     | [`lab/agy_setting/`](lab/agy_setting/)                                             |           [agy_setting.md](agy_lab/agy_setting.md)           | Antigravity CLI 설치, 가상환경 구성, `.gemini`/`.agents` 디렉터리 아키텍처 이해          |
+| **02** | **agy_command**     | [`lab/agy_command/`](lab/agy_command/)                                             |           [agy_command.md](agy_lab/agy_command.md)           | 슬래시(`/`) 내장 명령어(`/plan`, `/fork`, `/clear`, `/btw` 등) 및 ADK 에이전트 실습      |
+| **03** | **google_maps_mcp** | [`lab/agy_command/google_maps_mcp_agent/`](lab/agy_command/google_maps_mcp_agent/) | [README.md](lab/agy_command/google_maps_mcp_agent/README.md) | Streamable HTTP (SSE) MCP 서버 구현, GCP Cloud Run 배포, Vertex AI Agent Engine 배포     |
+| **04** | **cpu_dashboard**   | [`lab/cpu_dashboard/`](lab/cpu_dashboard/)                                         |           [README.md](lab/cpu_dashboard/README.md)           | `psutil` + `Streamlit` + `Plotly` 기반 데스크톱 CPU 및 시스템 자원 실시간 모니터링       |
+| **05** | **agy_features**    | [`lab/agy_features/`](lab/agy_features/)                                           |          [agy_features.md](agy_lab/agy_features.md)          | Agent 페르소나 정의, Skill 바인딩, Rule 가드레일, MCP 서버 연동, Plugin 확장             |
+| **06** | **agy_agent**       | [`lab/agy_agent/`](lab/agy_agent/)                                                 |             [agy_agent.md](agy_lab/agy_agent.md)             | ADK 기반 비즈니스 전략 리포트 에이전트 개발 및 GCP Vertex AI Agent Engine 배포           |
+| **07** | **agy_ge**          | [`lab/agy_ge/`](lab/agy_ge/)                                                       |                [agy_ge.md](agy_lab/agy_ge.md)                | 배포된 Agent Engine을 Gemini Enterprise(Discovery Engine) 커스텀 에이전트로 등록 및 연동 |
 
 ---
 
-## 3. 빠른 시작 가이드 (Quick Start)
+## 3. 대표 실습 프로젝트 실행 가이드
 
-### Step 1: 실습 통합 디렉터리 준비
+### 1) Google Maps Streamable HTTP MCP 에이전트
 
 ```bash
-# 1. 실습 통합 디렉터리 생성
-mkdir -p ~/antigravity-lab/lab
-cd ~/antigravity-lab/lab
+# MCP 진단 테스트
+python lab/agy_command/google_maps_mcp_agent/main.py --test-mcp
 
-# 2. 개별 실습 모듈 디렉터리 생성 (필요에 따라 생성)
-mkdir -p ~/antigravity-lab/lab/agy_setting
-mkdir -p ~/antigravity-lab/lab/agy_command
-mkdir -p ~/antigravity-lab/lab/agy_features
-mkdir -p ~/antigravity-lab/lab/agy_agent
-mkdir -p ~/antigravity-lab/lab/agy_ge
+# GCP Cloud Run 배포
+./lab/agy_command/google_maps_mcp_agent/deploy_cloud_run.sh
+
+# Vertex AI Agent Engine 배포
+python lab/agy_command/google_maps_mcp_agent/deploy_agent_engine.py
 ```
 
-### Step 2: 실습 진행
-
-원하는 실습 디렉터리로 이동하여 Antigravity CLI를 실행하고 실습 가이드 문서를 따라 실습을 진행합니다.
+### 2) Desktop CPU 상태 모니터링 대시보드
 
 ```bash
-# 예시: agy_setting 실습 진입
-cd ~/antigravity-lab/lab/agy_setting
-agy
+# 대시보드 실행 (Streamlit)
+./lab/cpu_dashboard/run.sh
+```
+
+### 3) ADK Web Search 에이전트
+
+```bash
+# 웹 검색 에이전트 실행
+python lab/agy_command/adk_search_agent/main.py "Antigravity CLI 최신 업데이트 요약해줘"
 ```
 
 ---
@@ -97,5 +98,6 @@ agy
   - `agy_agent`: ADK & Agent Engine 실습 모듈
   - `agy_ge`: Gemini Enterprise 연동 실습 모듈
   - `git-commit-helper`: Conventional Commits 규격 커밋 지원 모듈
-- **`.agents/rules/`**: 프로젝트 코딩 컨벤션 및 에러 처리 가드레일
+- **`.agents/rules/`**: 프로젝트 코딩 컨벤션 및 에러 처리 가드레일 (`commit-convention.md`, `error-handling.md`)
 - **`.agents/agents/`**: 서브에이전트 정의 (`code-reviewer.md`)
+- **`.agents/mcp_config.json`**: Antigravity 전역 MCP 서버 연동 설정

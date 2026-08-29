@@ -177,27 +177,10 @@ Antigravity CLI requires permission to read, edit, and execute files here.
 
 ### Step 6: 디렉터리 구조 및 설정 파일 관리
 
-Antigravity의 설정 및 커스터마이징 파일은 다음과 같은 계층 구조로 관리됩니다.
-
-```text
-~/.gemini/antigravity-cli/          # 전역(Global) 설정 디렉터리
-├── config.json                     # 전역 CLI 환경설정
-├── brain/                          # 세션 트랜스크립트 및 아티팩트 저장소
-└── builtin/skills/                 # 내장 스킬 모듈
-
-<프로젝트 루트>/                    # 프로젝트(Local) 워크스페이스
-├── .agents/
-│   ├── agents/                     # 커스텀 서브에이전트 정의 (.md)
-│   ├── rules/                      # 가드레일 및 코딩 컨벤션 규칙 (.md)
-│   └── skills/                     # 프로젝트 전용 스킬 정의 (SKILL.md)
-└── .gitignore
-```
-
-#### 프로젝트 가드레일 및 규칙 예시 설정
-
-`.agents/rules/` 디렉터리를 만들고 기본 커밋/에러 핸들링 규칙을 배치할 수 있습니다.
+Antigravity의 설정 및 커스터마이징 파일은 전역(Global)과 프로젝트(Workspace) 계층으로 나뉘어 관리됩니다.
 
 ```bash
+# 프로젝트 루트에서 .agents 커스터마이징 디렉터리 생성
 mkdir -p .agents/rules .agents/skills .agents/agents
 ```
 
@@ -235,7 +218,163 @@ Antigravity 프롬프트(`> `)에서 아래 명령어를 순서대로 입력하�
 
 ---
 
-## 4. 문제 해결 및 FAQ (Troubleshooting)
+## 4. 환경 디렉터리 구조 및 설정 파일 상세 가이드 (`.gemini` & `.agents`)
+
+Antigravity는 사용자 개별 머신 레벨의 **전역 설정(`.gemini`)**과 팀 프로젝트 단위로 공유되는 **워크스페이스 커스터마이징(`.agents`)**을 분리하여 체계적인 에이전트 개발 환경을 제공합니다.
+
+```text
+├── ~/.gemini/                               # [전역] 사용자 홈 기반 전역 설정 및 런타임 데이터
+│   ├── antigravity-cli/
+│   │   ├── settings.json                   # CLI 전역 설정 (기본 모델, 테마, 권한 등)
+│   │   ├── cache/
+│   │   │   └── projects.json               # 프로젝트 경로 - ID 매핑 캐시
+│   │   ├── brain/                          # 세션 트랜스크립트 및 생성 아티팩트
+│   │   │   └── <conversation_id>/
+│   │   │       ├── .system_generated/logs/ # JSONL 대화 로그 (transcript.jsonl)
+│   │   │       ├── scratch/                # 임시 분석/디버깅 스크립트 저장소
+│   │   │       └── *.md                    # 사용자 제공 구조화된 아티팩트 문서
+│   │   └── builtin/skills/                 # CLI 내장 기본 스킬 모듈
+│   └── config/
+│       ├── skills/                         # 머신 전역 커스텀 스킬
+│       ├── plugins/                        # 머신 전역 플러그인
+│       └── mcp_config.json                 # 머신 전역 MCP(Model Context Protocol) 서버 설정
+│
+└── <Workspace Root>/                        # [로컬] 프로젝트 워크스페이스 (Git 형상 관리 대상)
+    ├── GEMINI.md                            # 프로젝트/디렉터리 최상위 가이드라인 및 공통 지침
+    ├── .agents/                             # 프로젝트 전용 에이전트 커스터마이징 폴더
+    │   ├── rules/                           # 가드레일, 코딩 스타일, 보안 제약 규칙 (.md)
+    │   ├── skills/                          # 도메인 특화 절차형 스킬 워크플로우 (SKILL.md)
+    │   ├── agents/                          # 전문 서브에이전트 정의 파일 (.md)
+    │   ├── mcp_config.json                  # 프로젝트 전용 MCP 서버 연동 설정
+    │   └── hooks.json                       # 에이전트 라이프사이클 이벤트 훅 정의
+    └── .gitignore                           # 시크릿(.env) 및 임시 파일 제외 설정
+```
+
+---
+
+### 4.1 `.gemini` 폴더 (전역 설정 및 런타임 저장소)
+
+사용자의 홈 디렉터리(`~/.gemini/`)에 위치하며, Antigravity 런타임 구동 시 필요한 전역 설정, 대화 기록, 캐시 데이터를 관리합니다.
+
+#### 주요 파일 및 디렉터리
+
+1. **`~/.gemini/antigravity-cli/settings.json` (전역 CLI 환경설정 파일)**
+   - 기본 AI 모델, 추론 강도(Reasoning Effort), 권한 승인 모드, 터미널 UI 테마 등을 전역적으로 제어합니다.
+   - 예시:
+     ```json
+     {
+       "model": "gemini-3.6-pro",
+       "effort": "medium",
+       "sandbox": false,
+       "dangerously_skip_permissions": false
+     }
+     ```
+
+2. **`~/.gemini/antigravity-cli/cache/projects.json` (프로젝트 매핑 캐시)**
+   - 로컬 작업 디렉터리 경로와 고유 `project_id`의 매핑 정보를 유지하여 `/fork <project_id>` 또는 `--project` 옵션 실행 시 프로젝트 범위를 추적합니다.
+
+3. **`~/.gemini/antigravity-cli/brain/<conversation_id>/` (세션 메모리 및 아티팩트)**
+   - 각 대화 세션의 트랜스크립트 로그(`transcript.jsonl`, `transcript_full.jsonl`)가 보관됩니다.
+   - 복잡한 분석 보고서, 아키텍처 다이어그램, 계획 문서 등 사용자에게 제시된 아티팩트(`.md`) 및 임시 실행 스크립트(`scratch/`)가 영구 보존됩니다.
+
+4. **`~/.gemini/config/mcp_config.json` (전역 MCP 설정 파일)**
+   - 모든 워크스페이스에서 공통으로 사용할 Model Context Protocol 서버(예: PostgreSQL 브리지, 로컬 파일 서버, 웹 브라우저 자동화 도구 등)를 정의합니다.
+
+---
+
+### 4.2 `.agents` 폴더 (프로젝트 레벨 에이전트 커스터마이징)
+
+프로젝트 루트 디렉터리에 위치하며, Git과 같은 버전 관리 시스템(VCS)에 커밋하여 **팀 전체가 동일한 AI 코딩 표준과 전문 스킬을 공유**할 수 있도록 설계된 핵심 폴더입니다.
+
+#### 1. `.agents/rules/` (규칙 및 가드레일)
+
+- 코딩 컨벤션, 에러 핸들링 원칙, 커밋 메시지 규약, 보안 정책 등을 마크다운(`.md`)으로 정의합니다.
+- YAML Frontmatter를 통해 규칙이 활성화되는 조건을 제어할 수 있습니다.
+- **예시 (`.agents/rules/commit-convention.md`):**
+  ```markdown
+  ---
+  trigger: always_on
+  description: Git commit message conventional format rule
+  ---
+
+  # Conventional Commits Guidelines
+
+  - Format: `<type>(<scope>): <subject>`
+  - Allowed Types: feat, fix, docs, style, refactor, test, chore
+  ```
+
+#### 2. `.agents/skills/` (스킬 모듈)
+
+- 에이전트에게 특정 비즈니스 로직, 복잡한 빌드/배포 절차, 런북 가이드를 가르치는 모듈입니다.
+- 각 스킬은 독립된 폴더 내 `SKILL.md` 파일로 작성되며, 점진적 공개(Progressive Disclosure) 방식으로 동작하여 필요한 시점에만 컨텍스트에 로드됩니다.
+- **구조:**
+  ```text
+  .agents/skills/deploy-pipeline/
+  ├── SKILL.md             # 스킬 메타데이터 및 지침 (필수)
+  ├── scripts/             # 자동화 보조 셸/파이썬 스크립트
+  ├── examples/            # 참조 예제 코드
+  └── references/          # 상세 매뉴얼 문서
+  ```
+
+#### 3. `.agents/agents/` (서브에이전트 정의)
+
+- 전문적인 역할을 수행하는 독립 서브에이전트(Subagent)를 선언합니다.
+- **예시 (`.agents/agents/code-reviewer.md`):**
+  ```markdown
+  ---
+  name: code-reviewer
+  description: 코드 리뷰 및 보안 취약점 분석 전문 에이전트
+  model: pro
+  tools:
+    - read_file
+    - grep_search
+    - find_by_name
+  ---
+
+  당신은 시니어 코드 리뷰어입니다. 코드의 잠재적 버그, 메모리 누수, 보안 취약점을 중점적으로 검토하세요.
+  ```
+
+#### 4. `.agents/mcp_config.json` (프로젝트 전용 MCP 설정)
+
+- 프로젝트 개발에 필요한 로컬 DB, 사내 API 도구, Docker 컨테이너와의 연동을 정의합니다.
+- **예시:**
+  ```json
+  {
+    "mcpServers": {
+      "sqlite-db": {
+        "command": "uvx",
+        "args": ["mcp-server-sqlite", "--db-path", "./data/app.db"]
+      }
+    }
+  }
+  ```
+
+#### 5. `.agents/hooks.json` (에이전트 라이프사이클 훅)
+
+- 에이전트가 도구를 호출하기 전(`pre_tool_call`), 호출한 후(`post_tool_call`), 또는 세션이 시작될 때 자동으로 실행할 셸 명령어를 바인딩합니다. (예: 파일 수정 후 자동 linter/formatter 실행)
+
+---
+
+### 4.3 설정 우선순위 및 보안 권장사항
+
+#### 커스터마이징 로딩 우선순위 (Priority)
+
+동일한 이름의 스킬이나 규칙이 존재할 경우 다음 순서로 우선 적용(Override)됩니다:
+
+1. **프로젝트 로컬 커스터마이징** (`<Workspace Root>/.agents/`, `GEMINI.md`) — _최우선_
+2. **명시적 설정 파일** (`skills.json`, `plugins.json`)
+3. **사용자 전역 설정** (`~/.gemini/config/`)
+4. **Antigravity 내장 스킬/설정** (`~/.gemini/antigravity-cli/builtin/`)
+
+> [!CAUTION]
+> **보안 및 시크릿 관리 주의사항**
+>
+> - API 키(`GEMINI_API_KEY`, `GOOGLE_API_KEY`), 데이터베이스 비밀번호, 인증 토큰은 절대로 `.agents/` 또는 `GEMINI.md` 파일 내에 직접 작성하여 Git에 커밋하지 마십시오.
+> - 환경 변수 파일(`.env`, `.env.local`)은 반드시 `.gitignore`에 등록하여 버전 관리에서 제외하고, 안전한 템플릿 파일(`.env.example`)만 공유해야 합니다.
+
+---
+
+## 5. 문제 해결 및 FAQ (Troubleshooting)
 
 ### Q1. `agy: command not found` 오류가 발생합니다.
 
@@ -272,10 +411,11 @@ Antigravity 프롬프트(`> `)에서 아래 명령어를 순서대로 입력하�
 
 ---
 
-## 5. 실습 완료 체크리스트
+## 6. 실습 완료 체크리스트
 
 - [ ] Python 3.10 이상 버전 확인 및 가상환경 활성화 완료
 - [ ] Antigravity CLI 바이너리 설치 및 `agy --version` 확인 완료
 - [ ] Google 계정 로그인 (`agy login`) 및 인증 완료
 - [ ] 실습 워크스페이스 생성 및 신뢰(Trust) 승인 완료
 - [ ] `agy` TUI 실행 및 `/help` 명령어 정상 작동 확인 완료
+- [ ] `.gemini` 및 `.agents` 환경 디렉터리 역할 및 설정 파일 구조 이해 완료
