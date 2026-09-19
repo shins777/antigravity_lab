@@ -1,5 +1,14 @@
 # Antigravity 웹앱 핸즈온 랩 (agy_webapp)
 
+> **대상:** Antigravity CLI(`agy`) 설치 및 로그인을 마친 개발자
+> **목표:** `agy` 에이전트와 함께 **로컬에서 바로 뜨는 웹 애플리케이션 2개**를 완성한다.
+> **전제 조건:** [agy_setup.md](./agy_setup.md) 의 설치·로그인 단계를 완료한 상태
+
+| Lab   | 만드는 것                                             | 스택                            | 포트 |
+| ----- | ----------------------------------------------------- | ------------------------------- | ---- |
+| **A** | 내 PC의 OS에 맞는 **실시간 시스템 모니터링 대시보드** | Python · FastAPI · psutil · SSE | 8000 |
+| **B** | 브라우저에서 바로 즐기는 **테트리스 게임**            | Node.js · Express · Canvas      | 3000 |
+
 > [!IMPORTANT]
 > **OS별 표기 규칙**
 >
@@ -11,34 +20,16 @@
 > | **Windows (PowerShell)** | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
 > | **모든 OS 동일**         | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
 >
-> - **WSL2 / Git Bash** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
+> - **WSL2 / Git Bash / GCP Cloud Shell** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
 > - Windows에서는 `python3` → `python`, `curl` → `curl.exe`, `/` → `\` 로 바뀌는 점에 유의하세요.
 
-> **대상:** Antigravity CLI(`agy`) 로그인을 마친 개발자
-> **목표:** 실무에서 실제로 쓰는 `agy` 명령어를 익히고, **로컬에서 바로 뜨는 웹 애플리케이션 2개**를 에이전트와 함께 완성한다.
-> **전제 조건:** [agy_lab_all.md](./agy_lab_all.md)의 Lab 1(설치)·Lab 2(OAuth 로그인)를 완료한 상태
-
-| Lab   | 만드는 것                                             | 스택                            | 포트 |
-| ----- | ----------------------------------------------------- | ------------------------------- | ---- |
-| **A** | 내 PC의 OS에 맞는 **실시간 시스템 모니터링 대시보드** | Python · FastAPI · psutil · SSE | 8000 |
-| **B** | 브라우저에서 바로 즐기는 **테트리스 게임**            | Node.js · Express · Canvas      | 3000 |
-
-> [!IMPORTANT]
-> **모든 실행은 스크립트 한 줄로 끝납니다.** 긴 명령을 외울 필요가 없습니다.
+> [!NOTE]
+> **Windows 실행 정책** — `.\run.ps1` 을 처음 실행할 때 `이 시스템에서 스크립트를 실행할 수 없으므로...` 오류가 나면
+> 현재 세션에 한해 정책을 완화한 뒤 다시 실행하세요. 이 문서에서는 이후 `.\run.ps1` 형태로만 표기합니다.
 >
-> | 동작      | macOS / Linux | Windows (PowerShell) |
-> | --------- | ------------- | -------------------- |
-> | 서버 실행 | `./run.sh`    | `.\run.ps1`          |
-> | 동작 검증 | `./verify.sh` | `.\verify.ps1`       |
-> | 서버 종료 | `./stop.sh`   | `.\stop.ps1`         |
->
-> 이 스크립트들은 **Lab 진행 중 에이전트가 직접 만들어 줍니다.** 동작하지 않으면 오류 메시지를 그대로 붙여넣어 수정을 요청하세요.
-
-> [!TIP]
-> **Windows 사용자**는 두 가지 선택지가 있습니다.
->
-> 1. **PowerShell** 사용 → 이 문서의 `Windows (PowerShell)` 블록을 따릅니다.
-> 2. **WSL2 / Git Bash** 사용 → `macOS / Linux` 블록을 그대로 따르면 됩니다. (더 간단합니다)
+> ```powershell
+> Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+> ```
 
 ---
 
@@ -46,21 +37,26 @@
 
 ### 1-1. 작업공간 생성
 
+[agy_setup.md](./agy_setup.md) 에서 사용한 워크스페이스 루트(`~/antigravity-lab`) 아래에 이번 랩 전용 폴더를 만듭니다.
+
 **macOS / Linux**
 
 ```bash
-cd ~/Documents/my_project/antigravity_lab
-mkdir -p lab/agy_webapp
-cd lab/agy_webapp
+mkdir -p ~/antigravity-lab/agy_webapp
+cd ~/antigravity-lab/agy_webapp
+pwd
 ```
 
 **Windows (PowerShell)**
 
 ```powershell
-Set-Location "$HOME\Documents\my_project\antigravity_lab"
-New-Item -ItemType Directory -Force -Path "lab\agy_webapp" | Out-Null
-Set-Location "lab\agy_webapp"
+New-Item -ItemType Directory -Force -Path "$HOME\antigravity-lab\agy_webapp" | Out-Null
+Set-Location "$HOME\antigravity-lab\agy_webapp"
+Get-Location
 ```
+
+> [!NOTE]
+> 이 폴더 안에 Lab A(`sysinfo_dashboard/`)와 Lab B(`tetris_game/`) 두 프로젝트가 생성됩니다.
 
 ### 1-2. 환경 확인
 
@@ -83,11 +79,15 @@ curl.exe --version   # Windows 10 1803+ 기본 포함
 > [!NOTE]
 > Windows에서는 `python3`가 아니라 **`python`** 입니다. PowerShell의 `curl`은 `Invoke-WebRequest`의 별칭이므로, 이 문서에서는 반드시 **`curl.exe`** 로 명시해 실제 curl을 사용합니다.
 
-### 1-3. 프로젝트 규칙 파일 작성
+### 1-3. 프로젝트 규칙 파일(`AGENTS.md`) 작성
 
 에이전트가 **매번 같은 규칙으로 코드를 쓰도록** 룰 파일을 먼저 둡니다. 이 한 파일이 결과 품질의 절반을 좌우합니다.
 
-**macOS / Linux**
+> [!NOTE]
+> 아래 두 블록은 **동일한 내용**을 각 OS의 방식으로 생성합니다. 파일 내용 자체는 `모든 OS 동일` 입니다.
+
+<details open>
+<summary><b>macOS / Linux</b> — 클릭해서 접기/펼치기</summary>
 
 ```bash
 cat > AGENTS.md <<'MDEOF'
@@ -104,7 +104,7 @@ cat > AGENTS.md <<'MDEOF'
   - run.sh / run.ps1       : 의존성 설치 + 포트 정리 + 서버 실행까지 한 번에
   - verify.sh / verify.ps1 : 주요 엔드포인트를 점검하고 ✅/❌ 로 결과 출력
   - stop.sh / stop.ps1     : 해당 포트를 쓰는 프로세스 종료
-- run.sh 는 `chmod +x` 로 실행 권한을 부여한다.
+- 셸 스크립트(*.sh)에는 `chmod +x` 로 실행 권한을 부여한다.
 - 스크립트는 어느 경로에서 실행해도 동작하도록 자기 위치로 이동한 뒤 작업한다.
 - 실패 시 원인을 한글로 알려주고 0 이 아닌 코드로 종료한다.
 
@@ -130,7 +130,10 @@ cat > AGENTS.md <<'MDEOF'
 MDEOF
 ```
 
-**Windows (PowerShell)**
+</details>
+
+<details>
+<summary><b>Windows (PowerShell)</b> — 클릭해서 접기/펼치기</summary>
 
 ```powershell
 @'
@@ -145,8 +148,9 @@ MDEOF
 ## 실행 스크립트 (필수)
 - 각 프로젝트 루트에 아래 6개 스크립트를 반드시 만든다.
   - run.sh / run.ps1       : 의존성 설치 + 포트 정리 + 서버 실행까지 한 번에
-  - verify.sh / verify.ps1 : 주요 엔드포인트를 점검하고 OK/FAIL 로 결과 출력
+  - verify.sh / verify.ps1 : 주요 엔드포인트를 점검하고 ✅/❌ 로 결과 출력
   - stop.sh / stop.ps1     : 해당 포트를 쓰는 프로세스 종료
+- 셸 스크립트(*.sh)에는 `chmod +x` 로 실행 권한을 부여한다.
 - 스크립트는 어느 경로에서 실행해도 동작하도록 자기 위치로 이동한 뒤 작업한다.
 - 실패 시 원인을 한글로 알려주고 0 이 아닌 코드로 종료한다.
 
@@ -163,7 +167,7 @@ MDEOF
 - 외부 의존성은 express 하나만. 나머지는 Node 내장 모듈로 해결한다.
 
 ## 오류 처리
-- 예외를 빈 블록으로 삼키지 않는다.
+- 예외를 빈 블록으로 삼키지 않는다 (`except Exception: pass`, 빈 `catch {}` 금지).
 - 오류 응답은 상태 코드와 이유를 JSON 으로 명확히 반환한다.
 - 구체적인 예외 타입(ValueError, PermissionError 등)을 사용한다.
 
@@ -172,35 +176,52 @@ MDEOF
 '@ | Set-Content -Encoding UTF8 AGENTS.md
 ```
 
-### 1-4. CLI 실행
+</details>
 
-**macOS / Linux**
+### 1-4. CLI 실행 및 확인
+
+**모든 OS 동일**
 
 ```bash
 agy
 ```
 
-**Windows (PowerShell)**
+처음 진입하는 디렉터리이므로 워크스페이스 신뢰 확인 프롬프트가 나타나면 `Yes, I trust this folder` 를 선택합니다.
 
-```powershell
-agy
-```
+**Tool Permission 설정**
+
+기본값(`request-review`)에서는 에이전트가 파일을 쓰거나 명령을 실행할 때마다 승인을 요청합니다.
+이 랩은 생성할 파일이 많으므로 **실습 동안만** 자동 진행으로 바꿔 둡니다.
+
+1. agy 프롬프트에서 `/config` 를 입력합니다.
+2. 목록에서 **Tool Permission** 항목으로 이동합니다.
+3. **`always-proceed`** 를 선택하고 **Enter** 로 저장합니다.
+
+_`/config` 의 Tool Permission 설정 화면_
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/webapp/lab1-1.png" width="700" alt="agy /config 의 Tool Permission 설정 화면"></p>
+
+> [!WARNING]
+> `always-proceed` 는 사용자 확인 없이 파일 수정·명령 실행을 수행합니다. **실습용 설정**으로만 사용하고,
+> 실제 프로젝트에서는 기본값 `request-review` 유지를 권장합니다.
+> 조직 정책에 따라 `(disabled by admin)` 으로 표시되어 선택할 수 없다면 기본값을 그대로 두고
+> 각 도구 호출 시 수동으로 승인하면 됩니다. 실습 진행에는 문제가 없습니다.
 
 ✅ **확인**
 
-- [ ] 헤더에 로그인된 계정이 보인다.
+- [ ] 헤더에 로그인된 계정과 현재 경로(`~/antigravity-lab/agy_webapp`)가 보인다.
 - [ ] 프롬프트에서 `!ls`(Windows PowerShell은 `!dir`)를 입력하면 `AGENTS.md` 가 보인다.
 
 ---
 
-## 2. Part 1. 로그인 이후 핵심 명령어
+## 2. 이 랩에서 쓰는 명령어
 
-로그인 이후 실제로 **매일 쓰게 되는 명령만** 추렸습니다. 나머지는 [부록 A](#부록-a-전체-명령어-치트시트)를 참고하세요.
+> [!NOTE]
+> 여기서는 **이번 랩을 진행하는 데 실제로 필요한 명령만** 추렸습니다.
+> 각 슬래시 명령의 상세 동작·옵션·출력 예시는 [agy_command.md](./agy_command.md) 를 참고하세요.
 
-### 2-1. 입력 단축키 6개
+### 2-1. 입력 단축키
 
-**모든 OS 동일**
-*(macOS와 Windows 터미널 모두 동일하게 Ctrl 키를 사용합니다)*
+**모든 OS 동일** _(macOS와 Windows 터미널 모두 동일하게 Ctrl 키를 사용합니다)_
 
 | 단축키        | 동작                  | 언제 쓰나                          |
 | ------------- | --------------------- | ---------------------------------- |
@@ -211,373 +232,46 @@ agy
 | `Ctrl+R`      | 아티팩트 리뷰 패널    | 생성된 코드를 승인/거절할 때       |
 | `Ctrl+O`      | 도구 추론 로그 펼치기 | 에이전트가 뭘 읽는지 볼 때         |
 
-### 2-2. 슬래시 명령 10개
-
-> **모든 OS 동일** — 이 절의 모든 슬래시 명령과 출력은 OS와 무관하게 동일합니다.
-
-먼저 전체를 훑어보고, 아래에서 **하나씩 직접 실행**해 봅니다.
-
-| 명령           | 한 줄 설명                             | 이 랩에서의 사용처             |
-| -------------- | -------------------------------------- | ------------------------------ |
-| `/planning`    | 코드를 쓰기 전에 **계획서부터** 받는다 | Lab A/B 시작 시                |
-| `/fast`        | 계획 없이 **바로 고친다**              | 오타·문구 수정                 |
-| `/diff`        | 지금까지 **뭐가 바뀌었는지** 본다      | 각 Lab 마무리                  |
-| `/tasks`       | **백그라운드로 돌린 작업**을 관리한다  | 서버를 띄운 채 작업할 때       |
-| `/context`     | 대화가 **얼마나 찼는지** 본다          | 세션이 길어질 때               |
-| `/btw`         | **잠깐 딴 질문**을 한다 (맥락 유지)    | "psutil로 배터리 어떻게 읽지?" |
-| `/open <path>` | 파일을 **에디터로 연다**               | 생성된 코드 직접 확인          |
-| `/rewind`      | **이전 상태로 되돌린다**               | 잘못된 수정 취소               |
-| `/clear`       | **대화를 새로 시작**한다               | Lab A → Lab B 전환 시          |
-| `/copy`        | 마지막 답변을 **클립보드에 복사**한다  | 결과를 문서에 붙여넣을 때      |
-
-> [!NOTE]
-> 아래 **실행 결과**는 이해를 돕기 위한 예시 화면입니다. 실제 출력은 CLI 버전·터미널 폭·색상 테마에 따라 다르게 보일 수 있습니다.
-
----
-
-#### ① `/planning` — 계획부터 받기
-
-큰 작업을 시킬 때, 코드를 바로 쓰지 말고 **"어떻게 만들 건지" 설계도부터** 받는 모드입니다. 방향이 틀렸으면 코드 작성 전에 바로잡을 수 있어 시간을 크게 아낍니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/planning
-간단한 메모장 웹앱을 만들려고 해. 파일 구조와 구현 순서만 먼저 정리해줘.
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-◆ Planning mode ON — 코드를 작성하기 전에 계획 아티팩트를 먼저 생성합니다.
-
-  작업공간 탐색 중... (3 files)
-  계획 수립 중...
-
-┌─ Artifact ─────────────────────────────────────────── plan.md ─┐
-│ # 메모장 웹앱 구현 계획                                        │
-│                                                                │
-│ ## 1. 파일 구조                                                │
-│   memo_app/                                                    │
-│   ├── server.js        # Express 서버, 메모 CRUD API           │
-│   ├── public/index.html                                        │
-│   └── data/memos.json  # 파일 저장소                           │
-│                                                                │
-│ ## 2. 구현 순서                                                │
-│   1) server.js 기본 라우팅   2) 저장/조회 API                  │
-│   3) UI 연결                 4) 검증                           │
-└────────────────────────────────────────────────────────────────┘
-
-  [y] 승인   [n] 거절 후 수정 요청   [Esc] 닫기
-```
-
-> 코드 대신 **계획 아티팩트**가 생성됩니다. `Ctrl+R`로 열어 `y`(승인) 또는 `n`(거절 후 수정 요청)을 누릅니다.
-
----
-
-#### ② `/fast` — 빠르게 바로 고치기
-
-생각하는 단계를 건너뛰고 **즉시 실행**합니다. 오타 수정처럼 고민이 필요 없는 작업에 씁니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/fast
-@AGENTS.md 문서에서 "Lab A" 를 "실습 A" 로 전부 바꿔줘.
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-⚡ Fast mode ON — 추론 계획을 생략하고 바로 실행합니다.
-
-  ✎ edit  AGENTS.md
-      - ## Lab A (Python)
-      + ## 실습 A (Python)
-      (3곳 치환)
-
-  완료: AGENTS.md 1개 파일 수정 (3 replacements) · 2.1s
-```
-
-> `/planning`과 반대입니다. **복잡한 작업에 쓰면 품질이 떨어지니** 단순 작업에만 사용하세요.
-
----
-
-#### ③ `/diff` — 바뀐 내용 확인하기
-
-에이전트가 지금까지 만든 **모든 변경사항을 한눈에** 봅니다. 승인하기 전 최종 검토용입니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/diff
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-┌─ Changes ──────────────────────────────────────────── 4 files ─┐
-│ > app/main.py           M   +82  -0                            │
-│   app/collectors.py     A  +146  -0                            │
-│   static/index.html     A   +95  -0                            │
-│   requirements.txt      A    +5  -0                            │
-├────────────────────────────────────────────────────────────────┤
-│ app/main.py                                                    │
-│  + from fastapi import FastAPI                                 │
-│  + from .collectors import collect_metrics                     │
-│  +                                                             │
-│  + app = FastAPI(title="System Dashboard")                     │
-├────────────────────────────────────────────────────────────────┤
-│ ↑/↓ 파일 이동   PgUp/PgDn 스크롤   Esc 닫기                    │
-└────────────────────────────────────────────────────────────────┘
-```
-
-> `A` = 추가된 파일, `M` = 수정된 파일, `D` = 삭제된 파일입니다.
-
----
-
-#### ④ `/tasks` — 백그라운드 작업 보기
-
-서버처럼 **오래 실행되는 명령**을 에이전트가 백그라운드로 돌렸을 때, 그 목록과 로그를 확인하고 종료할 수 있습니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-개발 서버를 백그라운드로 실행해줘.
-```
-
-**모든 OS 동일**
-
-```text
-/tasks
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-┌─ Background Tasks ─────────────────────────────────────────────┐
-│ ID     상태       경과      명령                               │
-│ ─────────────────────────────────────────────────────────────  │
-│ > t-1  ● running  00:01:24  ./run.sh                           │
-│   t-2  ✓ done     00:00:06  npm install                        │
-│   t-3  ✗ failed   00:00:02  node server.js  (EADDRINUSE)       │
-├────────────────────────────────────────────────────────────────┤
-│ t-1 최근 로그                                                  │
-│   INFO: Uvicorn running on http://127.0.0.1:8000               │
-│   INFO: Application startup complete.                          │
-├────────────────────────────────────────────────────────────────┤
-│ Enter 로그 보기   k 종료(kill)   Esc 닫기                      │
-└────────────────────────────────────────────────────────────────┘
-```
-
-> 서버가 안 뜰 때 **원인 로그를 여기서** 확인합니다. 위 예시의 `t-3`처럼 포트 충돌 원인이 바로 보입니다.
-
----
-
-#### ⑤ `/context` — 대화 용량 확인
-
-에이전트가 기억할 수 있는 양에는 한계가 있습니다. **얼마나 찼는지** 확인하고, 가득 차면 `/clear`로 새로 시작합니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/context
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-┌─ Context Usage ────────────────────────────────────────────────┐
-│ 사용량  ███████████████░░░░░░░░░░░░░░░░  48%  (96,120 tokens)  │
-│                                                                │
-│   대화 기록      ████████░░░░░░░░  38,400   (20%)              │
-│   파일 내용      ██████████░░░░░░  44,900   (23%)              │
-│   도구 출력      ██░░░░░░░░░░░░░░   9,820    (5%)              │
-│   시스템/규칙    █░░░░░░░░░░░░░░░   3,000    (2%)              │
-│                                                                │
-│ 상위 점유 파일                                                 │
-│   app/collectors.py    12,340                                  │
-│   static/app.js         9,870                                  │
-│                                                                │
-│ ℹ 80% 초과 시 /clear 로 새 대화를 시작하는 것을 권장합니다.    │
-└────────────────────────────────────────────────────────────────┘
-```
-
----
-
-#### ⑥ `/btw` — 잠깐 딴 질문하기
-
-작업 흐름을 **깨지 않고** 궁금한 걸 물어봅니다. 일반 질문과 달리 메인 작업의 맥락을 오염시키지 않습니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/btw psutil 로 배터리 잔량을 읽는 함수 이름이 뭐야? 한 줄로만 답해줘.
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-💬 BTW (메인 대화에 영향 없음)
-
-  psutil.sensors_battery() 입니다. percent, power_plugged, secsleft 를 가진
-  namedtuple 을 반환하고, 배터리가 없는 데스크톱에서는 None 을 돌려줍니다.
-
-  ↩ 원래 작업으로 돌아갑니다.
-```
-
-> 답변 후 원래 하던 작업을 그대로 이어갈 수 있습니다.
-
----
-
-#### ⑦ `/open <path>` — 파일 직접 열어보기
-
-에이전트가 만든 파일을 **내 에디터(VS Code, vim 등)로** 바로 엽니다. 터미널 안에서 읽기 답답할 때 유용합니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/open AGENTS.md
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-  ✓ AGENTS.md 를 외부 에디터로 열었습니다.
-    editor: code (설정: editor=auto → $EDITOR)
-    path:   ~/Documents/my_project/antigravity_lab/lab/agy_webapp/AGENTS.md
-```
-
-> 어떤 에디터로 열지는 `$EDITOR` 환경변수 또는 `/config`의 `editor` 설정을 따릅니다.
-> 에디터가 없으면 `no editor configured` 경고가 뜹니다 → `export EDITOR=vim` 으로 지정하세요.
-
----
-
-#### ⑧ `/rewind` — 이전 상태로 되돌리기
-
-에이전트가 엉뚱하게 고쳐놨을 때, **문제가 생기기 전 시점으로** 대화를 되감습니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/rewind
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-┌─ Rewind to checkpoint ─────────────────────────────────────────┐
-│ > #5  2분 전   "SSE 스트리밍 추가해줘"          3 files changed │
-│   #4  6분 전   "프로세스 목록 API 추가"         2 files changed │
-│   #3  9분 전   "collectors.py 구현"             1 file  changed │
-│   #2  12분 전  "계획 승인"                      1 artifact      │
-│   #1  14분 전  "대화 시작"                      —               │
-├────────────────────────────────────────────────────────────────┤
-│ ↑/↓ 선택   Enter 되감기   Esc 취소                             │
-└────────────────────────────────────────────────────────────────┘
-
-(#3 선택 후 Enter)
-  ↶ #3 시점으로 되감았습니다. 이후 2개 턴이 취소되었습니다.
-```
-
-> `/undo`로도 같은 동작을 합니다.
-
----
-
-#### ⑨ `/clear` — 새 대화 시작
-
-주제가 완전히 바뀔 때 **기억을 비우고** 새로 시작합니다. 이전 작업 내용이 새 작업을 방해하지 않게 합니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-/clear
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-  ✓ 새 대화를 시작했습니다.
-    이전 대화: "sysinfo dashboard" (24 turns) → 저장됨
-    컨텍스트 사용량: 48% → 2%
-
-  ℹ 파일은 그대로 남아 있습니다. 이전 대화는 /resume 으로 다시 열 수 있습니다.
-```
-
----
-
-#### ⑩ `/copy` — 마지막 답변 복사
-
-방금 받은 답변을 **클립보드에 복사**합니다. 문서나 이슈 트래커에 붙여넣을 때 편합니다.
-
-**실행**
-
-**모든 OS 동일**
-
-```text
-이 프로젝트 구조를 트리 형태로 정리해줘.
-```
-
-**모든 OS 동일**
-
-```text
-/copy
-```
-
-**실행 결과**
-
-**모든 OS 동일**
-
-```text
-  ✓ 마지막 응답을 클립보드에 복사했습니다. (1,284 chars)
-```
-
-> 복사 후 `Cmd+V`(macOS) / `Ctrl+V`(Windows·Linux)로 어디든 붙여넣을 수 있습니다.
-> SSH 원격 세션에서 실패하면(`local pasteboard is unreachable`) 터미널의 OSC 52 클립보드 옵션을 켜야 합니다.
-
----
+**리뷰 패널(`Ctrl+R`) 키**
+
+| 키        | 동작           |
+| --------- | -------------- |
+| `↑` / `↓` | 파일 이동      |
+| `y`       | 승인           |
+| `n`       | 거절           |
+| `A`       | 전체 일괄 승인 |
+| `Esc`     | 패널 닫기      |
+
+### 2-2. 슬래시 명령
+
+이번 랩에서 사용하는 명령은 아래 6개입니다.
+
+| 명령        | 한 줄 설명                             | 이 랩에서의 사용처             |
+| ----------- | -------------------------------------- | ------------------------------ |
+| `/planning` | 코드를 쓰기 전에 **계획서부터** 받는다 | Lab A·B 시작 시                |
+| `/diff`     | 지금까지 **뭐가 바뀌었는지** 본다      | 각 Lab 마무리, 5-1             |
+| `/tasks`    | **백그라운드로 돌린 작업**을 관리한다  | 서버를 띄운 채 작업할 때       |
+| `/btw`      | **잠깐 딴 질문**을 한다 (맥락 유지)    | "psutil로 배터리 어떻게 읽지?" |
+| `/context`  | 대화가 **얼마나 찼는지** 본다          | 세션이 길어질 때               |
+| `/clear`    | **대화를 새로 시작**한다               | Lab A → Lab B 전환 시 (4-1)    |
+
+필요하면 아래 명령도 함께 씁니다.
+
+| 명령           | 한 줄 설명                            | 언제                  |
+| -------------- | ------------------------------------- | --------------------- |
+| `/fast`        | 계획 없이 **바로 고친다**             | 오타·문구 수정        |
+| `/open <path>` | 파일을 **에디터로 연다**              | 생성된 코드 직접 확인 |
+| `/rewind`      | **이전 상태로 되돌린다**              | 잘못된 수정 취소      |
+| `/copy`        | 마지막 답변을 **클립보드에 복사**한다 | 결과를 문서에 옮길 때 |
+| `/skills`      | 등록된 스킬 목록을 본다               | 5-2 스킬 등록 확인    |
+
+> [!TIP]
+> `/planning` 은 **방향이 틀렸을 때 코드 작성 전에 바로잡을 수 있어** 큰 작업에서 시간을 가장 많이 아껴 줍니다.
+> 반대로 `/fast` 는 복잡한 작업에 쓰면 품질이 떨어지므로 단순 수정에만 사용하세요.
 
 ### 2-3. 미니 실습
 
-아래를 순서대로 직접 입력해 보세요.
-
-**모든 OS 동일**
+아래를 순서대로 직접 입력해 보세요. **모든 OS 동일** 입니다.
 
 ```text
 !ls -la
@@ -585,19 +279,13 @@ agy
 
 > Windows PowerShell 환경이면 `!dir` 를 사용합니다.
 
-**모든 OS 동일**
-
 ```text
 @AGENTS.md 이 규칙 파일을 읽고, 이번 실습에서 지켜야 할 핵심 제약 3가지만 불릿으로 요약해줘.
 ```
 
-**모든 OS 동일**
-
 ```text
 /btw 내 PC의 OS와 CPU 코어 수를 셸 명령으로 확인하는 방법을 한 줄로 알려줘.
 ```
-
-**모든 OS 동일**
 
 ```text
 /context
@@ -623,7 +311,7 @@ agy
 **모든 OS 동일**
 
 ```text
-lab/agy_webapp/sysinfo_dashboard/
+~/antigravity-lab/agy_webapp/sysinfo_dashboard/
 ├── .venv/                  # 가상환경 (커밋 대상 아님)
 ├── app/
 │   ├── __init__.py
@@ -677,7 +365,7 @@ lab/agy_webapp/sysinfo_dashboard/
 
 ```text
 /planning
-lab/agy_webapp/sysinfo_dashboard/ 에 내 PC의 실시간 시스템 정보를 보여주는
+sysinfo_dashboard/ 에 내 PC의 실시간 시스템 정보를 보여주는
 FastAPI 웹 대시보드를 만들려고 해. 지금 이 PC의 운영체제를 먼저 확인하고,
 그 OS에서 얻을 수 있는 정보를 최대한 많이 수집하는 구조로 설계해줘.
 
@@ -747,7 +435,8 @@ FastAPI 웹 대시보드를 만들려고 해. 지금 이 PC의 운영체제를 �
 담은 계획을 먼저 아티팩트로 작성해줘.
 ```
 
-**`Ctrl+R`** 로 계획을 열어 확인한 뒤 `y`로 승인합니다.
+**`Ctrl+R`** 로 계획을 열어 확인한 뒤 `y` 로 승인합니다.
+리뷰 패널을 열지 않고 프롬프트에 **`승인합니다`** 라고 입력해도 됩니다.
 
 > [!TIP]
 > 계획이 과하다 싶으면 줄이세요. 예: `센서와 사용자 세션은 빼고 CPU/메모리/디스크/네트워크/프로세스만 먼저 만들어줘. 나머지는 나중에 추가할게.`
@@ -774,28 +463,28 @@ FastAPI 웹 대시보드를 만들려고 해. 지금 이 PC의 운영체제를 �
 
 생성되는 파일마다 `Ctrl+R` → 내용 확인 → `y` 승인. 파일이 많으면 `A`로 일괄 승인해도 됩니다.
 
-### 3-4. Step 3 — 서버 실행과 검증
+### 3-4. Step 3 — 서버 실행
 
-**터미널을 하나 더 열어** 서버를 띄웁니다. (`agy` 세션은 그대로 둡니다)
+> [!NOTE]
+> 여기서부터 터미널을 **3개** 사용합니다. ① `agy` 세션 ② 서버 실행 ③ 검증.
+> `agy` 세션이 떠 있는 터미널은 그대로 두고, **새 터미널**을 열어 진행하세요.
 
-**macOS / Linux**
+**macOS / Linux** — 터미널 ②
 
 ```bash
-cd ~/Documents/my_project/antigravity_lab/lab/agy_webapp/sysinfo_dashboard
+cd ~/antigravity-lab/agy_webapp/sysinfo_dashboard
 chmod +x *.sh          # 최초 1회
 ./run.sh
 ```
 
-**Windows (PowerShell)**
+**Windows (PowerShell)** — 터미널 ②
 
 ```powershell
-Set-Location "$HOME\Documents\my_project\antigravity_lab\lab\agy_webapp\sysinfo_dashboard"
-powershell -ExecutionPolicy Bypass -File .\run.ps1
+Set-Location "$HOME\antigravity-lab\agy_webapp\sysinfo_dashboard"
+.\run.ps1
 ```
 
-실행 예시:
-
-**모든 OS 동일**
+실행 예시 (**모든 OS 동일**)
 
 ```text
 ▶ 가상환경 확인/생성...
@@ -804,27 +493,33 @@ powershell -ExecutionPolicy Bypass -File .\run.ps1
 INFO:     Uvicorn running on http://127.0.0.1:8000
 ```
 
----
+**브라우저로 직접 보기**
 
-**검증 — 또 다른 터미널에서 스크립트 한 줄**
+| OS      | 명령                                    |
+| ------- | --------------------------------------- |
+| macOS   | `open http://localhost:8000`            |
+| Linux   | `xdg-open http://localhost:8000`        |
+| Windows | `Start-Process "http://localhost:8000"` |
 
-**macOS / Linux**
+API 문서(FastAPI 자동 생성)는 `/docs` 경로입니다.
+
+### 3-5. Step 4 — 검증
+
+**macOS / Linux** — 터미널 ③
 
 ```bash
-cd ~/Documents/my_project/antigravity_lab/lab/agy_webapp/sysinfo_dashboard
+cd ~/antigravity-lab/agy_webapp/sysinfo_dashboard
 ./verify.sh
 ```
 
-**Windows (PowerShell)**
+**Windows (PowerShell)** — 터미널 ③
 
 ```powershell
-Set-Location "$HOME\Documents\my_project\antigravity_lab\lab\agy_webapp\sysinfo_dashboard"
-powershell -ExecutionPolicy Bypass -File .\verify.ps1
+Set-Location "$HOME\antigravity-lab\agy_webapp\sysinfo_dashboard"
+.\verify.ps1
 ```
 
-출력 예시:
-
-**모든 OS 동일**
+출력 예시 (**모든 OS 동일**)
 
 ```text
 ▶ 엔드포인트 점검 (http://localhost:8000)
@@ -842,20 +537,6 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1
 ✅ 전체 통과
 ```
 
----
-
-**브라우저로 직접 보기**
-
-| OS      | 명령                                    |
-| ------- | --------------------------------------- |
-| macOS   | `open http://localhost:8000`            |
-| Linux   | `xdg-open http://localhost:8000`        |
-| Windows | `Start-Process "http://localhost:8000"` |
-
-API 문서(FastAPI 자동 생성)는 `/docs` 경로입니다.
-
----
-
 **부하를 줘서 그래프가 반응하는지 확인**
 
 **macOS / Linux**
@@ -872,16 +553,14 @@ Start-Sleep 10
 Get-Job | Stop-Job; Get-Job | Remove-Job
 ```
 
----
-
 **서버 종료**
 
-| OS            | 명령                                                  |
-| ------------- | ----------------------------------------------------- |
-| macOS / Linux | `./stop.sh` (또는 실행 중인 터미널에서 `Ctrl+C`)      |
-| Windows (PowerShell) | `powershell -ExecutionPolicy Bypass -File .\stop.ps1` |
+| OS                   | 명령                                             |
+| -------------------- | ------------------------------------------------ |
+| macOS / Linux        | `./stop.sh` (또는 실행 중인 터미널에서 `Ctrl+C`) |
+| Windows (PowerShell) | `.\stop.ps1` (또는 `Ctrl+C`)                     |
 
-### 3-5. Step 4 — 개선 요청
+### 3-6. Step 5 — 개선 요청
 
 하나 골라 실행해 보세요. **오류가 나면 터미널/브라우저 콘솔 로그를 그대로 붙여넣는 것**이 가장 빠른 수정 방법입니다.
 
@@ -894,14 +573,10 @@ Get-Job | Stop-Job; Get-Job | Remove-Job
 가능하면 fallback 으로 쓰고 불가능하면 이유를 더 구체적으로 적어줘.
 ```
 
-**모든 OS 동일**
-
 ```text
 @static/app.js 메모리 사용률이 85%를 넘으면 브라우저 알림(Notification API)을 띄우고,
 해당 카드를 깜빡이게 해줘. 알림 권한이 거부된 경우는 콘솔 경고만 남기고 UI는 정상 동작해야 해.
 ```
-
-**모든 OS 동일**
 
 ```text
 @app/main.py 최근 5분간의 CPU/메모리 사용률을 메모리에 링버퍼로 저장하고,
@@ -910,27 +585,28 @@ GET /api/history?minutes=5 로 조회할 수 있게 해줘.
 verify.sh 와 verify.ps1 에도 /api/history 점검 항목을 추가해줘.
 ```
 
-**모든 OS 동일**
-
 ```text
 @app/collectors.py 디스크 카드에 마운트별 "남은 용량이 10% 미만"인 파티션을
 경고 목록으로 별도 반환하는 필드를 추가하고, UI 최상단에 경고 배너로 표시해줘.
 ```
 
-### 3-6. Lab A 트러블슈팅
+### 3-7. Lab A 트러블슈팅
 
-| 증상                                          | OS        | 원인                    | 해결                                                 |
-| --------------------------------------------- | --------- | ----------------------- | ---------------------------------------------------- |
-| `Address already in use` / `EADDRINUSE`       | 공통      | 8000 포트 사용 중       | `./stop.sh` 또는 `.\stop.ps1` 실행                   |
-| `Permission denied: ./run.sh`                 | mac/Linux | 실행 권한 없음          | `chmod +x *.sh`                                      |
-| `이 시스템에서 스크립트를 실행할 수 없으므로` | Windows   | PowerShell 실행 정책    | `powershell -ExecutionPolicy Bypass -File .\run.ps1` |
-| `python3: command not found`                  | Windows   | Windows는 `python`      | `run.ps1` 사용 (내부에서 `python` 호출)              |
-| `ModuleNotFoundError: psutil`                 | 공통      | 가상환경 밖에서 실행    | `run.sh` / `run.ps1` 로 실행                         |
-| 코어별 사용률이 전부 0                        | 공통      | 첫 호출은 기준점이라 0  | 직전 샘플 대비 계산하도록 수정 요청                  |
-| 온도/팬이 항상 미지원                         | mac/Win   | psutil 미지원           | 정상 동작. 배지로 표시되는지 확인                    |
-| 일부 프로세스에서 `AccessDenied`              | 공통      | 권한 없는 프로세스 조회 | 해당 항목만 `error` 표기하고 계속 처리하도록 요청    |
-| 네트워크 속도가 항상 0                        | 공통      | 직전 샘플 미보관        | 이전 카운터와 경과 시간으로 나누도록 요청            |
-| 브라우저에 값이 1회만 표시                    | 공통      | SSE 헤더 누락           | `text/event-stream`, `Cache-Control: no-cache` 확인  |
+| 증상                                          | OS        | 원인                    | 해결                                                                   |
+| --------------------------------------------- | --------- | ----------------------- | ---------------------------------------------------------------------- |
+| `Address already in use` / `EADDRINUSE`       | 공통      | 8000 포트 사용 중       | `./stop.sh` 또는 `.\stop.ps1` 실행                                     |
+| `Permission denied: ./run.sh`                 | mac/Linux | 실행 권한 없음          | `chmod +x *.sh`                                                        |
+| `이 시스템에서 스크립트를 실행할 수 없으므로` | Windows   | PowerShell 실행 정책    | `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` 후 재실행 |
+| `python3: command not found`                  | Windows   | Windows는 `python`      | `run.ps1` 사용 (내부에서 `python` 호출)                                |
+| `ModuleNotFoundError: psutil`                 | 공통      | 가상환경 밖에서 실행    | `run.sh` / `run.ps1` 로 실행                                           |
+| 코어별 사용률이 전부 0                        | 공통      | 첫 호출은 기준점이라 0  | 직전 샘플 대비 계산하도록 수정 요청                                    |
+| 온도/팬이 항상 미지원                         | mac/Win   | psutil 미지원           | 정상 동작. 배지로 표시되는지 확인                                      |
+| 일부 프로세스에서 `AccessDenied`              | 공통      | 권한 없는 프로세스 조회 | 해당 항목만 `error` 표기하고 계속 처리하도록 요청                      |
+| 네트워크 속도가 항상 0                        | 공통      | 직전 샘플 미보관        | 이전 카운터와 경과 시간으로 나누도록 요청                              |
+| 브라우저에 값이 1회만 표시                    | 공통      | SSE 헤더 누락           | `text/event-stream`, `Cache-Control: no-cache` 확인                    |
+
+> [!TIP]
+> 서버가 안 뜰 때는 agy 세션에서 `/tasks` 를 실행해 백그라운드 작업의 **원인 로그**를 확인하세요. 포트 충돌 같은 원인이 바로 보입니다.
 
 ✅ **Lab A 확인**
 
@@ -948,7 +624,7 @@ verify.sh 와 verify.ps1 에도 /api/history 점검 항목을 추가해줘.
 
 ### 4-1. 세션 정리
 
-Lab A 컨텍스트를 비우고 시작합니다.
+Lab A 컨텍스트를 비우고 시작합니다. (파일은 그대로 남습니다)
 
 **모든 OS 동일**
 
@@ -961,7 +637,7 @@ Lab A 컨텍스트를 비우고 시작합니다.
 **모든 OS 동일**
 
 ```text
-lab/agy_webapp/tetris_game/
+~/antigravity-lab/agy_webapp/tetris_game/
 ├── node_modules/           # 커밋 대상 아님
 ├── public/
 │   ├── index.html          # 게임 화면
@@ -1004,7 +680,7 @@ lab/agy_webapp/tetris_game/
 
 ```text
 /planning
-lab/agy_webapp/tetris_game/ 에 브라우저에서 플레이하는 테트리스 게임을 만들어줘.
+tetris_game/ 에 브라우저에서 플레이하는 테트리스 게임을 만들어줘.
 
 [서버 — server.js, 포트 3000]
 - 외부 의존성은 express 하나만. 나머지는 Node 내장 모듈(fs, path)만 사용.
@@ -1057,7 +733,9 @@ lab/agy_webapp/tetris_game/ 에 브라우저에서 플레이하는 테트리스 
 구현 후 내 OS에 맞게 npm install 까지 실행해줘.
 ```
 
-`Ctrl+R` → 계획 확인 → `y` → 구현 → 파일별 승인.
+**`Ctrl+R`** 로 계획을 열어 확인한 뒤 `y` 로 승인합니다.
+리뷰 패널을 열지 않고 프롬프트에 **`승인합니다`** 라고 입력해도 됩니다.
+승인하면 구현이 시작되고, 생성되는 파일마다 다시 승인(`y`, 일괄 승인은 `A`)하면 됩니다.
 
 > [!TIP]
 > 한 번에 다 만들면 디버깅이 어렵습니다. **먼저 "이동·회전·줄삭제·점수"만** 만들고 동작을 확인한 뒤 홀드·고스트·랭킹을 추가하세요.
@@ -1065,24 +743,22 @@ lab/agy_webapp/tetris_game/ 에 브라우저에서 플레이하는 테트리스 
 
 ### 4-4. Step 2 — 실행과 플레이
 
-**macOS / Linux**
+**macOS / Linux** — 터미널 ②
 
 ```bash
-cd ~/Documents/my_project/antigravity_lab/lab/agy_webapp/tetris_game
+cd ~/antigravity-lab/agy_webapp/tetris_game
 chmod +x *.sh          # 최초 1회
 ./run.sh
 ```
 
-**Windows (PowerShell)**
+**Windows (PowerShell)** — 터미널 ②
 
 ```powershell
-Set-Location "$HOME\Documents\my_project\antigravity_lab\lab\agy_webapp\tetris_game"
-powershell -ExecutionPolicy Bypass -File .\run.ps1
+Set-Location "$HOME\antigravity-lab\agy_webapp\tetris_game"
+.\run.ps1
 ```
 
-실행 예시:
-
-**모든 OS 동일**
+실행 예시 (**모든 OS 동일**)
 
 ```text
 ▶ 의존성 확인...
@@ -1099,25 +775,33 @@ tetris server listening on http://localhost:3000
 | Linux   | `xdg-open http://localhost:3000`        |
 | Windows | `Start-Process "http://localhost:3000"` |
 
----
+**플레이 체크포인트**
 
-**점수 API 검증 — 스크립트 한 줄**
+1. 조각이 자동으로 떨어지는가
+2. `←` `→` 이동, `↑` 회전이 벽에서 막히지 않고 자연스러운가
+3. `Space` 하드드롭이 즉시 착지하는가 (페이지가 스크롤되지 않아야 함)
+4. 한 줄을 채우면 삭제되고 점수가 오르는가
+5. 4줄을 동시에 지우면 800×배수 점수가 들어오는가
+6. 10줄을 지우면 레벨이 오르고 낙하 속도가 빨라지는가
+7. 게임 오버 후 이름을 넣으면 랭킹에 반영되는가
 
-**macOS / Linux**
+### 4-5. Step 3 — 검증
+
+**macOS / Linux** — 터미널 ③
 
 ```bash
+cd ~/antigravity-lab/agy_webapp/tetris_game
 ./verify.sh
 ```
 
-**Windows (PowerShell)**
+**Windows (PowerShell)** — 터미널 ③
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\verify.ps1
+Set-Location "$HOME\antigravity-lab\agy_webapp\tetris_game"
+.\verify.ps1
 ```
 
-출력 예시:
-
-**모든 OS 동일**
+출력 예시 (**모든 OS 동일**)
 
 ```text
 ▶ 엔드포인트 점검 (http://localhost:3000)
@@ -1131,35 +815,21 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1
 ✅ 전체 통과
 ```
 
----
-
-**플레이 체크포인트**
-
-1. 조각이 자동으로 떨어지는가
-2. `←` `→` 이동, `↑` 회전이 벽에서 막히지 않고 자연스러운가
-3. `Space` 하드드롭이 즉시 착지하는가 (페이지가 스크롤되지 않아야 함)
-4. 한 줄을 채우면 삭제되고 점수가 오르는가
-5. 4줄을 동시에 지우면 800×배수 점수가 들어오는가
-6. 10줄을 지우면 레벨이 오르고 낙하 속도가 빨라지는가
-7. 게임 오버 후 이름을 넣으면 랭킹에 반영되는가
-
 **저장된 랭킹 직접 확인**
 
-| OS            | 명령                           |
-| ------------- | ------------------------------ |
-| macOS / Linux | `cat data/scores.json`         |
+| OS                   | 명령                           |
+| -------------------- | ------------------------------ |
+| macOS / Linux        | `cat data/scores.json`         |
 | Windows (PowerShell) | `Get-Content data\scores.json` |
-
----
 
 **서버 종료**
 
-| OS            | 명령                                                  |
-| ------------- | ----------------------------------------------------- |
-| macOS / Linux | `./stop.sh` (또는 `Ctrl+C`)                           |
-| Windows (PowerShell) | `powershell -ExecutionPolicy Bypass -File .\stop.ps1` |
+| OS                   | 명령                         |
+| -------------------- | ---------------------------- |
+| macOS / Linux        | `./stop.sh` (또는 `Ctrl+C`)  |
+| Windows (PowerShell) | `.\stop.ps1` (또는 `Ctrl+C`) |
 
-### 4-5. Step 3 — 개선 요청
+### 4-6. Step 4 — 개선 요청
 
 **모든 OS 동일**
 
@@ -1168,22 +838,16 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1
 150ms 애니메이션을 추가해줘. 애니메이션 중에는 입력을 무시해야 해.
 ```
 
-**모든 OS 동일**
-
 ```text
 @public/index.html 모바일에서도 플레이할 수 있게 화면 하단에
 ◀ ▶ ▼ 회전 드롭 터치 버튼을 추가해줘. 데스크톱에서는 숨기고,
 화면 폭 768px 이하에서만 보이게 해줘.
 ```
 
-**모든 OS 동일**
-
 ```text
 @public/tetris.js T-스핀을 감지해서 보너스 점수(싱글 800, 더블 1200, 트리플 1600)를
 주고, 감지되면 보드 위에 "T-SPIN!" 텍스트를 1초간 표시해줘.
 ```
-
-**모든 OS 동일**
 
 ```text
 @server.js 같은 이름으로 더 높은 점수를 제출하면 기존 기록을 갱신하고,
@@ -1191,19 +855,19 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1
 verify.sh 와 verify.ps1 에 이 동작을 확인하는 항목도 추가해줘.
 ```
 
-### 4-6. Lab B 트러블슈팅
+### 4-7. Lab B 트러블슈팅
 
-| 증상                           | OS        | 원인                  | 해결                                                 |
-| ------------------------------ | --------- | --------------------- | ---------------------------------------------------- |
-| `EADDRINUSE :::3000`           | 공통      | 3000 포트 사용 중     | `./stop.sh` 또는 `.\stop.ps1`                        |
-| `Permission denied: ./run.sh`  | mac/Linux | 실행 권한 없음        | `chmod +x *.sh`                                      |
-| 스크립트 실행 차단             | Windows   | PowerShell 실행 정책  | `powershell -ExecutionPolicy Bypass -File .\run.ps1` |
-| `Cannot find module 'express'` | 공통      | 설치 누락             | `npm install` 또는 `run` 스크립트 재실행             |
-| 조각이 안 움직임               | 공통      | 키 이벤트 미바인딩    | 브라우저 콘솔 오류를 그대로 붙여넣어 수정 요청       |
-| 회전 시 블록이 겹침            | 공통      | 충돌 판정 순서 오류   | "회전 후 충돌이면 회전을 취소하도록" 명시해 재요청   |
-| 스페이스바가 페이지를 스크롤   | 공통      | 기본 동작 미차단      | `e.preventDefault()` 추가 요청                       |
-| 점수 저장 시 500               | 공통      | `data/` 디렉터리 없음 | 기동 시 `fs.mkdirSync(..., {recursive:true})` 요청   |
-| 게임이 점점 느려짐             | 공통      | 루프 중복 등록        | 재시작 시 기존 루프 취소 여부 확인 요청              |
+| 증상                           | OS        | 원인                  | 해결                                                                   |
+| ------------------------------ | --------- | --------------------- | ---------------------------------------------------------------------- |
+| `EADDRINUSE :::3000`           | 공통      | 3000 포트 사용 중     | `./stop.sh` 또는 `.\stop.ps1`                                          |
+| `Permission denied: ./run.sh`  | mac/Linux | 실행 권한 없음        | `chmod +x *.sh`                                                        |
+| 스크립트 실행 차단             | Windows   | PowerShell 실행 정책  | `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` 후 재실행 |
+| `Cannot find module 'express'` | 공통      | 설치 누락             | `npm install` 또는 `run` 스크립트 재실행                               |
+| 조각이 안 움직임               | 공통      | 키 이벤트 미바인딩    | 브라우저 콘솔 오류를 그대로 붙여넣어 수정 요청                         |
+| 회전 시 블록이 겹침            | 공통      | 충돌 판정 순서 오류   | "회전 후 충돌이면 회전을 취소하도록" 명시해 재요청                     |
+| 스페이스바가 페이지를 스크롤   | 공통      | 기본 동작 미차단      | `e.preventDefault()` 추가 요청                                         |
+| 점수 저장 시 500               | 공통      | `data/` 디렉터리 없음 | 기동 시 `fs.mkdirSync(..., {recursive:true})` 요청                     |
+| 게임이 점점 느려짐             | 공통      | 루프 중복 등록        | 재시작 시 기존 루프 취소 여부 확인 요청                                |
 
 ✅ **Lab B 확인**
 
@@ -1229,18 +893,26 @@ verify.sh 와 verify.ps1 에 이 동작을 확인하는 항목도 추가해줘.
 
 ### 5-2. 오늘 작업을 스킬로 만들기
 
-같은 작업을 반복할 수 있게 **슬래시 명령으로 저장**합니다.
+같은 작업을 반복할 수 있게 **스킬로 저장**합니다.
+
+> [!IMPORTANT]
+> 스킬은 `.agents/skills/<스킬명>/SKILL.md` 구조로 만드는 것이 표준입니다.
+> (참조 파일이나 스크립트가 없는 단순 스킬은 `.agents/skills/<스킬명>.md` 단일 파일도 인식되지만,
+> 이 실습에서는 확장 가능한 표준 구조를 사용합니다.)
 
 **macOS / Linux**
 
 ```bash
-mkdir -p ~/Documents/my_project/antigravity_lab/.agents/skills
+SKILL_DIR=~/antigravity-lab/.agents/skills/serve-check
+mkdir -p "$SKILL_DIR"
 
-cat > ~/Documents/my_project/antigravity_lab/.agents/skills/serve-check.md <<'MDEOF'
+cat > "$SKILL_DIR/SKILL.md" <<'MDEOF'
 ---
 name: serve-check
 description: 현재 프로젝트의 run/verify/stop 스크립트를 이용해 서버를 띄우고 점검한 뒤 종료한다
 ---
+
+# Serve Check Instructions
 
 1. 프로젝트 루트에서 실행 스크립트를 찾는다 (run.sh/run.ps1, verify.sh/verify.ps1, stop.sh/stop.ps1).
 2. 스크립트가 없으면 현재 OS에 맞게 새로 만들고 실행 권한을 부여한다.
@@ -1256,7 +928,8 @@ MDEOF
 **Windows (PowerShell)**
 
 ```powershell
-New-Item -ItemType Directory -Force -Path "$HOME\Documents\my_project\antigravity_lab\.agents\skills" | Out-Null
+$SkillDir = "$HOME\antigravity-lab\.agents\skills\serve-check"
+New-Item -ItemType Directory -Force -Path $SkillDir | Out-Null
 
 @'
 ---
@@ -1264,32 +937,32 @@ name: serve-check
 description: 현재 프로젝트의 run/verify/stop 스크립트를 이용해 서버를 띄우고 점검한 뒤 종료한다
 ---
 
+# Serve Check Instructions
+
 1. 프로젝트 루트에서 실행 스크립트를 찾는다 (run.sh/run.ps1, verify.sh/verify.ps1, stop.sh/stop.ps1).
-2. 스크립트가 없으면 현재 OS에 맞게 새로 만든다.
+2. 스크립트가 없으면 현재 OS에 맞게 새로 만들고 실행 권한을 부여한다.
 3. 현재 OS를 판별해 알맞은 스크립트로 서버를 백그라운드 실행하고
    기동될 때까지 최대 15초 대기한다.
 4. verify 스크립트를 실행해 결과를 수집한다.
 5. 결과를 | 엔드포인트 | 기대 | 실제 | 판정 | 형식의 표로 보고한다.
 6. 점검이 끝나면 stop 스크립트로 서버를 반드시 종료한다.
 7. 실패 항목이 있으면 원인 추정과 수정 방안을 함께 제시한다.
-'@ | Set-Content -Encoding UTF8 "$HOME\Documents\my_project\antigravity_lab\.agents\skills\serve-check.md"
+'@ | Set-Content -Encoding UTF8 "$SkillDir\SKILL.md"
 ```
 
-CLI를 재시작한 뒤:
-
-**모든 OS 동일**
+CLI를 재시작한 뒤 확인하고 실행합니다. (**모든 OS 동일**)
 
 ```text
-/skills          # serve-check 가 목록에 있는지 확인
-/serve-check     # 실행
+/skills                              # serve-check 가 목록에 있는지 확인
+/serve-check sysinfo_dashboard 를 점검해줘
 ```
 
-### 5-3. 정리
+### 5-3. 정리 및 서버 종료
 
 **macOS / Linux**
 
 ```bash
-cd ~/Documents/my_project/antigravity_lab/lab/agy_webapp
+cd ~/antigravity-lab/agy_webapp
 (cd sysinfo_dashboard && ./stop.sh) 2>/dev/null
 (cd tetris_game && ./stop.sh) 2>/dev/null
 
@@ -1299,9 +972,9 @@ find . -maxdepth 2 -not -path '*/node_modules*' -not -path '*/.venv*' -not -path
 **Windows (PowerShell)**
 
 ```powershell
-Set-Location "$HOME\Documents\my_project\antigravity_lab\lab\agy_webapp"
-powershell -ExecutionPolicy Bypass -File .\sysinfo_dashboard\stop.ps1
-powershell -ExecutionPolicy Bypass -File .\tetris_game\stop.ps1
+Set-Location "$HOME\antigravity-lab\agy_webapp"
+.\sysinfo_dashboard\stop.ps1
+.\tetris_game\stop.ps1
 
 Get-ChildItem -Depth 1 -Exclude node_modules,.venv,.git
 ```
@@ -1311,7 +984,7 @@ Get-ChildItem -Depth 1 -Exclude node_modules,.venv,.git
 **macOS / Linux**
 
 ```bash
-cat > .gitignore <<'MDEOF'
+cat >> .gitignore <<'MDEOF'
 .venv/
 node_modules/
 __pycache__/
@@ -1331,7 +1004,7 @@ node_modules/
 __pycache__/
 *.pyc
 data/scores.json
-'@ | Set-Content -Encoding UTF8 .gitignore
+'@ | Add-Content -Encoding UTF8 .gitignore
 
 git status --short
 ```
@@ -1351,80 +1024,7 @@ git status --short
 
 ---
 
-## 부록 A. 전체 명령어 치트시트
-
-### A-1. 프롬프트 단축키
-
-| 키                       | 동작                        |
-| ------------------------ | --------------------------- |
-| `@`                      | 파일 경로 자동완성          |
-| `!`                      | 셸 명령 즉시 실행           |
-| `Enter`                  | 제출                        |
-| `Shift+Enter` / `Ctrl+J` | 줄바꿈                      |
-| `Esc`                    | 진행 중인 턴 중단           |
-| `Esc` `Esc`              | 프롬프트 비우기             |
-| `Ctrl+R`                 | 아티팩트 리뷰 패널          |
-| `Ctrl+O`                 | 도구 추론 로그 토글         |
-| `Ctrl+G`                 | 외부 에디터로 프롬프트 작성 |
-| `Ctrl+L`                 | 화면 정리                   |
-| `Ctrl+V`                 | 이미지/텍스트 붙여넣기      |
-| `Ctrl+D`                 | 종료 (프롬프트가 빈 상태)   |
-| `?`                      | 도움말                      |
-
-### A-2. 리뷰 패널 키
-
-| 키        | 동작                        |
-| --------- | --------------------------- |
-| `↑` / `↓` | 파일 이동                   |
-| `y`       | 승인                        |
-| `n`       | 거절                        |
-| `A`       | 전체 일괄 승인              |
-| `e`       | 제안된 명령을 에디터로 수정 |
-| `Esc`     | 패널 닫기                   |
-
-### A-3. 자주 쓰는 슬래시 명령
-
-| 명령              | 별칭        | 용도                       |
-| ----------------- | ----------- | -------------------------- |
-| `/planning`       | —           | 다중 턴 계획 모드          |
-| `/fast`           | —           | 빠른 모드 (계획 생략)      |
-| `/boost <task>`   | —           | 심층 추론 (어려운 버그)    |
-| `/diff`           | —           | 대화형 Diff 뷰어           |
-| `/artifact`       | —           | 아티팩트 리뷰 (= `Ctrl+R`) |
-| `/tasks`          | —           | 백그라운드 작업 관리       |
-| `/agents`         | —           | 서브에이전트 모니터링      |
-| `/context`        | —           | 컨텍스트 사용량            |
-| `/btw <질문>`     | —           | 곁가지 질문                |
-| `/open <path>`    | —           | 에디터로 파일 열기         |
-| `/add-dir <path>` | —           | 작업공간 디렉터리 추가     |
-| `/rewind`         | `/undo`     | 이전 체크포인트로 되감기   |
-| `/fork`           | `/branch`   | 대화 분기                  |
-| `/resume`         | `/switch`   | 이전 대화 재개             |
-| `/clear`          | `/new`      | 새 대화                    |
-| `/rename <name>`  | —           | 대화 이름 변경             |
-| `/skills`         | —           | 스킬 목록                  |
-| `/mcp`            | —           | MCP 서버 관리              |
-| `/config`         | `/settings` | 설정 편집                  |
-| `/permissions`    | —           | 권한 프리셋                |
-| `/model`          | —           | 모델 선택                  |
-| `/usage`          | `/quota`    | 쿼터 확인                  |
-| `/copy`           | —           | 마지막 응답 복사           |
-| `/help`           | —           | 도움말                     |
-| `/exit`           | `/quit`     | 종료                       |
-
-### A-4. 셸에서 쓰는 명령
-
-| 용도 | macOS / Linux | Windows (PowerShell) |
-| --- | --- | --- |
-| TUI 실행 | `agy` | `agy` |
-| 특정 에이전트로 실행 | `agy --agent code-reviewer` | `agy --agent code-reviewer` |
-| 모델 목록 | `agy models` | `agy models` |
-| 플러그인 목록 | `agy plugin list` | `agy plugin list` |
-| 헤드리스 단발 실행 | `agy -p "질문"` | `agy -p "질문"` |
-
----
-
-## 부록 B. 좋은 프롬프트 패턴
+## 부록 A. 좋은 프롬프트 패턴
 
 **모든 OS 동일**
 
@@ -1443,3 +1043,10 @@ git status --short
 > [!TIP]
 > 가장 효과가 큰 한 가지: **에이전트에게 스스로 확인할 수단을 함께 주는 것.**
 > 이 랩에서 `verify.sh` / `verify.ps1` 을 먼저 만드는 이유가 바로 이것입니다. 에이전트가 수정 → 검증 → 재수정을 혼자 반복할 수 있게 됩니다.
+
+---
+
+## 부록 B. 다음 단계
+
+- [agy_setup.md](./agy_setup.md) — Antigravity CLI 설치 및 환경 구성
+- [agy_command.md](./agy_command.md) — 슬래시 명령어 전체 가이드 및 단축키 치트시트 (`/planning`, `/diff`, `/tasks`, `/skills`, `/mcp`, `/hooks` 등 상세)
