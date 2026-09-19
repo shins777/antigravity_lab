@@ -1,5 +1,19 @@
 # Antigravity 기반 ADK 비즈니스 전략 에이전트 개발 및 GCP Agent Engine 배포 실습 가이드 (agy_agent)
 
+> [!IMPORTANT]
+> **OS별 표기 규칙**
+>
+> 이 문서의 모든 실행 예제는 아래 세 가지 표기 중 하나를 따릅니다. 자신의 환경에 해당하는 블록만 실행하세요.
+>
+> | 표기                     | 의미                                                       |
+> | ------------------------ | ---------------------------------------------------------- |
+> | **macOS / Linux**        | macOS(zsh) 및 Linux(bash) 터미널에서 실행                  |
+> | **Windows (PowerShell)** | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
+> | **모든 OS 동일**         | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
+>
+> - **WSL2 / Git Bash** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
+> - Windows에서는 `python3` → `python`, `curl` → `curl.exe`, `/` → `\` 로 바뀌는 점에 유의하세요.
+
 본 문서는 **Antigravity CLI**를 활용하여 Google Cloud의 **ADK (Agent Development Kit)** 기반으로 특정 기업명을 입력받아 **A4 1장 분량의 비즈니스 전략 리포트**를 생성하는 AI 에이전트를 개발하고, 이를 **GCP Vertex AI Agent Engine (Reasoning Engine)**에 패키징·배포 및 프로덕션 서빙을 검증하는 종합 핸즈온 실습 가이드입니다.
 
 ---
@@ -54,11 +68,15 @@ sequenceDiagram
 
 | 구분                | 요구사항                                                                                                                    | 비고                     |
 | :------------------ | :-------------------------------------------------------------------------------------------------------------------------- | :----------------------- |
+| **운영체제 (OS)**   | macOS, Linux, Windows 10-11 (PowerShell 5.1+ 또는 WSL2)                                                                     |                          |
 | **GCP 프로젝트**    | Google Cloud Project ID                                                                                                     | Vertex AI 사용 권한 필요 |
 | **GCP 권한**        | Vertex AI Admin, Storage Admin, Cloud Build Editor                                                                          | IAM 권한 확인            |
 | **GCS 버킷**        | Staging용 Cloud Storage 버킷                                                                                                | 배포 아티팩트 보관용     |
 | **로컬 환경**       | Python 3.10+, Antigravity CLI, `gcloud` CLI                                                                                 | 가상환경 활성화          |
 | **활성화 필수 API** | `aiplatform.googleapis.com`<br>`cloudbuild.googleapis.com`<br>`storage.googleapis.com`<br>`artifactregistry.googleapis.com` | Vertex AI & Build API    |
+
+> [!NOTE]
+> `gcloud` CLI 설치 방법은 OS별로 상이합니다. macOS는 `brew install --cask google-cloud-sdk`, Linux는 apt 저장소, Windows는 `winget install Google.CloudSDK` 또는 공식 Windows 설치 관리자를 활용하세요.
 
 ---
 
@@ -67,6 +85,8 @@ sequenceDiagram
 ### Step 1: GCP 환경 설정 및 인증
 
 터미널에서 Google Cloud 인증을 수행하고 실습에 필요한 GCP 프로젝트와 API를 활성화합니다.
+
+#### macOS / Linux
 
 ```bash
 # 1. Google Cloud 계정 및 ADC(Application Default Credentials) 로그인
@@ -91,11 +111,41 @@ gcloud services enable \
 gcloud storage buckets create $GCS_BUCKET_NAME --location=$GCP_REGION
 ```
 
+#### Windows (PowerShell)
+
+```powershell
+# 1. Google Cloud 계정 및 ADC(Application Default Credentials) 로그인
+gcloud auth login
+gcloud auth application-default login
+
+# 2. 실습 대상 GCP 프로젝트 설정 (자신의 프로젝트 ID로 변경)
+$env:GCP_PROJECT_ID = "your-project-id"
+$env:GCP_REGION = "us-central1"
+$env:GCS_BUCKET_NAME = "gs://${env:GCP_PROJECT_ID}-agent-staging"
+
+gcloud config set project $env:GCP_PROJECT_ID
+
+# 3. 필수 GCP API 활성화
+gcloud services enable `
+    aiplatform.googleapis.com `
+    cloudbuild.googleapis.com `
+    storage.googleapis.com `
+    artifactregistry.googleapis.com
+
+# 4. Staging용 Google Cloud Storage 버킷 생성
+gcloud storage buckets create $env:GCS_BUCKET_NAME --location=$env:GCP_REGION
+```
+
+> [!NOTE]
+> ADC 자격 증명 파일은 macOS/Linux에서는 `~/.config/gcloud/application_default_credentials.json`에, Windows에서는 `%APPDATA%\gcloud\application_default_credentials.json`에 저장됩니다.
+
 ---
 
 ### Step 2: 실습 프로젝트 스캐폴딩 및 의존성 구성
 
 실습 전용 디렉터리를 생성하고 가상환경과 필요한 Python 패키지를 설치합니다.
+
+#### macOS / Linux
 
 ```bash
 # 1. 작업 디렉터리 생성 및 이동
@@ -116,7 +166,34 @@ python-dotenv>=1.0.1
 requests>=2.31.0
 pytest>=8.0.0
 EOF
+```
 
+#### Windows (PowerShell)
+
+```powershell
+# 1. 작업 디렉터리 생성 및 이동
+New-Item -ItemType Directory -Force -Path "$HOME\antigravity-lab\lab\agy_agent\src" | Out-Null
+New-Item -ItemType Directory -Force -Path "$HOME\antigravity-lab\lab\agy_agent\tests" | Out-Null
+Set-Location "$HOME\antigravity-lab\lab\agy_agent"
+
+# 2. Python 가상환경 생성 및 활성화
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+# 3. 의존성 정의 (requirements.txt)
+@'
+google-adk>=0.1.0
+google-cloud-aiplatform>=1.60.0
+pydantic>=2.8.2
+python-dotenv>=1.0.1
+requests>=2.31.0
+pytest>=8.0.0
+'@ | Set-Content -Encoding UTF8 requirements.txt
+```
+
+**모든 OS 동일**
+
+```bash
 # 4. 패키지 설치
 pip install --upgrade pip
 pip install -r requirements.txt
@@ -127,6 +204,8 @@ pip install -r requirements.txt
 ### Step 3: 비즈니스 전략 툴 구현 (`src/tools.py`)
 
 에이전트가 기업 정보를 수집하고 정량 지표를 파싱할 때 사용할 커스텀 분석 도구를 작성합니다.
+
+**모든 OS 동일**
 
 ```python
 # src/tools.py
@@ -168,6 +247,8 @@ def get_company_overview(company_name: str) -> Dict[str, Any]:
 ### Step 4: ADK 에이전트 핵심 클래스 구현 (`src/agent.py`)
 
 A4 1장 규격을 강제하는 System Instruction과 Vertex AI Gemini 모델 연동 로직을 작성합니다.
+
+**모든 OS 동일**
 
 ```python
 # src/agent.py
@@ -233,6 +314,8 @@ class BusinessStrategyAgent:
 
 배포 전 로컬 환경에서 에이전트 인스턴스를 생성하고 리포트 생성 결과를 검증합니다.
 
+**모든 OS 동일**
+
 ```python
 # tests/test_local.py
 import os
@@ -268,10 +351,20 @@ if __name__ == "__main__":
 
 #### 로컬 테스트 실행
 
+**macOS / Linux**
+
 ```bash
 export GCP_PROJECT_ID="your-project-id"
 export GCP_REGION="us-central1"
-python tests/test_local.py
+python3 tests/test_local.py
+```
+
+**Windows (PowerShell)**
+
+```powershell
+$env:GCP_PROJECT_ID = "your-project-id"
+$env:GCP_REGION = "us-central1"
+python tests\test_local.py
 ```
 
 ---
@@ -279,6 +372,11 @@ python tests/test_local.py
 ### Step 6: GCP Vertex AI Agent Engine (Reasoning Engine) 원격 배포 (`deploy.py`)
 
 Vertex AI SDK의 `ReasoningEngine.create()` 메서드를 사용하여 에이전트를 클라우드에 배포합니다.
+
+> [!NOTE]
+> `deploy.py` 내의 `open("deployed_agent_resource.txt", ...)`와 같이 파일 입출력 시 복잡한 경로가 포함되는 경우, OS 간 호환성을 위해 `pathlib.Path`를 사용하는 것이 권장됩니다. 이 예제에서는 단순 파일명만 사용하므로 그대로 진행합니다. 또한 `gs://` 로 시작하는 GCS Staging 버킷 경로는 모든 OS에서 동일하게 사용됩니다.
+
+**모든 OS 동일**
 
 ```python
 # deploy.py
@@ -322,7 +420,15 @@ with open("deployed_agent_resource.txt", "w") as f:
 
 #### 배포 실행
 
+**macOS / Linux**
+
 ```bash
+python3 deploy.py
+```
+
+**Windows (PowerShell)**
+
+```powershell
 python deploy.py
 ```
 
@@ -337,6 +443,8 @@ projects/123456789012/locations/us-central1/reasoningEngines/9876543210987654321
 ### Step 7: 프로덕션 원격 인퍼런스 및 Cloud Logging 검증 (`tests/test_remote.py`)
 
 배포된 클라우드 리소스 ID를 통해 원격 질의를 실행하고 응답을 확인합니다.
+
+**모든 OS 동일**
 
 ```python
 # tests/test_remote.py
@@ -370,8 +478,16 @@ print("\n✅ 원격 인퍼런스 테스트 완료!")
 
 #### 원격 테스트 실행
 
+**macOS / Linux**
+
 ```bash
-python tests/test_remote.py
+python3 tests/test_remote.py
+```
+
+**Windows (PowerShell)**
+
+```powershell
+python tests\test_remote.py
 ```
 
 ---
@@ -379,6 +495,8 @@ python tests/test_remote.py
 ## 5. 실행 결과 예시 (Sample Execution Output)
 
 원격 Agent Engine이 최종 생성한 A4 1장 마크다운 보고서 예시입니다:
+
+**모든 OS 동일**
 
 ```markdown
 # Samsung Electronics 비즈니스 전략 보고서 (Executive Brief)
@@ -425,16 +543,41 @@ python tests/test_remote.py
 
 - **원인:** 현재 실행 주체(사용자 또는 서비스 계정)에 `roles/aiplatform.user` 권한이 부여되지 않았습니다.
 - **해결 방법:**
-  ```bash
-  gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
-      --member="user:your-email@example.com" \
-      --role="roles/aiplatform.user"
+
+**macOS / Linux**
+
+```bash
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+    --member="user:your-email@example.com" \
+    --role="roles/aiplatform.user"
+```
+
+**Windows (PowerShell)**
+
+```powershell
+gcloud projects add-iam-policy-binding $env:GCP_PROJECT_ID `
+    --member="user:your-email@example.com" `
+    --role="roles/aiplatform.user"
+```
+
+### Q3. Windows에서 `.\.venv\Scripts\Activate.ps1` 실행 시 "이 시스템에서 스크립트를 실행할 수 없으므로..." 오류가 발생합니다.
+
+- **원인:** PowerShell의 기본 실행 정책(Execution Policy)이 스크립트 실행을 제한하고 있습니다.
+- **해결 방법:**
+  현재 프로세스에 한해 실행 정책을 완화합니다.
+  
+  **Windows (PowerShell)**
+  
+  ```powershell
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  .\.venv\Scripts\Activate.ps1
   ```
 
 ---
 
 ## 7. 실습 완료 체크리스트
 
+- [ ] OS에 맞는 방식으로 Python 가상환경(venv) 생성 및 활성화 완료
 - [ ] GCP 프로젝트 설정 및 Vertex AI / Cloud Build / GCS API 활성화 완료
 - [ ] ADK 기반 `BusinessStrategyAgent` 및 `tools.py` 로컬 구현 완료
 - [ ] `tests/test_local.py`를 통한 로컬 인스턴스 A4 1장 보고서 생성 검증 완료

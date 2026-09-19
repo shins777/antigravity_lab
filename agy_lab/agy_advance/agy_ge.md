@@ -1,5 +1,19 @@
 # Antigravity 기반 Agent Engine과 Gemini Enterprise (GE) 공식 등록 실습 가이드 (agy_ge)
 
+> [!IMPORTANT]
+> **OS별 표기 규칙**
+>
+> 이 문서의 모든 실행 예제는 아래 세 가지 표기 중 하나를 따릅니다. 자신의 환경에 해당하는 블록만 실행하세요.
+>
+> | 표기                     | 의미                                                       |
+> | ------------------------ | ---------------------------------------------------------- |
+> | **macOS / Linux**        | macOS(zsh) 및 Linux(bash) 터미널에서 실행                  |
+> | **Windows (PowerShell)** | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
+> | **모든 OS 동일**         | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
+>
+> - **WSL2 / Git Bash** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
+> - Windows에서는 `python3` → `python`, `curl` → `curl.exe`, `/` → `\` 로 바뀌는 점에 유의하세요.
+
 본 문서는 **Antigravity CLI** 및 `agy_agent` 실습을 통해 **GCP Vertex AI Agent Engine (Reasoning Engine)**에 배포된 **비즈니스 전략 분석 에이전트**를 Google Cloud 공식 문서에 명시된 **Gemini Enterprise (Discovery Engine API / Console)**의 `adkAgentDefinition` 규격을 사용하여 네이티브 커스텀 에이전트로 등록하고, 사내 비즈니스 사용자가 Gemini Enterprise 웹 앱에서 직접 호출하여 A4 1장 전략 리포트를 생성할 수 있도록 연계하는 핸즈온 실습 가이드입니다.
 
 > 💡 **참조 공식 문서:** [Google Cloud - Agent Runtime에서 호스팅되는 ADK 에이전트 등록 및 관리](https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-adk-agent?hl=ko#register_adk_agent-drest)
@@ -61,6 +75,8 @@ sequenceDiagram
 
 Gemini Enterprise 연동에 필요한 GCP 환경 변수를 설정하고 Discovery Engine API를 활성화합니다.
 
+#### macOS / Linux
+
 ```bash
 # 1. 작업 디렉터리 생성 및 이동
 mkdir -p ~/antigravity-lab/lab/agy_ge/scripts
@@ -81,6 +97,32 @@ export REASONING_ENGINE_ID="9876543210987654321"  # agy_agent 실습에서 생�
 
 # 5. Discovery Engine API 활성화
 gcloud services enable discoveryengine.googleapis.com --project=$GCP_PROJECT_ID
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# 1. 작업 디렉터리 생성 및 이동
+$LabPath = "$HOME\antigravity-lab\lab\agy_ge"
+"scripts", "config" | ForEach-Object {
+    New-Item -ItemType Directory -Force -Path "$LabPath\$_" | Out-Null
+}
+Set-Location $LabPath
+
+# 2. GCP 기본 변수 설정
+$env:GCP_PROJECT_ID = "your-project-id"
+$env:GCP_PROJECT_NUMBER = $(gcloud projects describe $env:GCP_PROJECT_ID --format="value(projectNumber)")
+$env:GCP_REGION = "us-central1"
+
+# 3. Discovery Engine API 엔드포인트 위치 설정 (global, us, 또는 eu)
+$env:ENDPOINT_LOCATION = "global"
+
+# 4. Gemini Enterprise 앱 ID 및 배포된 Reasoning Engine 리소스 ID 설정
+$env:APP_ID = "your-gemini-enterprise-app-id"
+$env:REASONING_ENGINE_ID = "9876543210987654321"  # agy_agent 실습에서 생성된 ID
+
+# 5. Discovery Engine API 활성화
+gcloud services enable discoveryengine.googleapis.com --project=$env:GCP_PROJECT_ID
 ```
 
 ---
@@ -118,6 +160,8 @@ curl -X POST \
 ### Step 3: Discovery Engine REST API를 통한 ADK 에이전트 등록 (`scripts/register_adk_agent.sh`)
 
 Google Cloud 공식 규격인 `adkAgentDefinition.provisionedReasoningEngine`을 사용하여 Agent Engine을 Gemini Enterprise에 등록합니다.
+
+#### macOS / Linux
 
 ```bash
 # scripts/register_adk_agent.sh 스크립트 작성
@@ -175,10 +219,63 @@ EOF
 chmod +x scripts/register_adk_agent.sh
 ```
 
+#### Windows (PowerShell)
+
+```powershell
+# scripts\register_adk_agent.ps1 스크립트 작성
+@'
+$ErrorActionPreference = "Stop"
+Write-Host "=== Gemini Enterprise에 ADK Agent Engine 등록 시작 ==="
+
+$ACCESS_TOKEN = gcloud auth print-access-token
+$API_URL = "https://$env:ENDPOINT_LOCATION-discoveryengine.googleapis.com/v1alpha/projects/$env:GCP_PROJECT_ID/locations/global/collections/default_collection/engines/$env:APP_ID/assistants/default_assistant/agents"
+$RESOURCE_PATH = "projects/$env:GCP_PROJECT_ID/locations/$env:GCP_REGION/reasoningEngines/$env:REASONING_ENGINE_ID"
+
+Write-Host ">> 대상 API URL: $API_URL"
+Write-Host ">> 바인딩할 Agent Engine 리소스: $RESOURCE_PATH"
+
+$PAYLOAD = @{
+  displayName = "Business Strategy Analyst"
+  description = "특정 기업명을 입력받아 시장 동향, 핵심 역량, SWOT 분석 및 단기/중장기 전략 제언이 포함된 A4 1장 비즈니스 전략 리포트를 작성하는 전문 AI 에이전트"
+  icon = @{
+    uri = "https://fonts.gstatic.com/s/i/short-term/release/googlex/gemini_sparkle/default/24px.svg"
+  }
+  adkAgentDefinition = @{
+    provisionedReasoningEngine = @{
+      reasoningEngine = $RESOURCE_PATH
+    }
+  }
+} | ConvertTo-Json -Depth 10
+
+try {
+    $response = Invoke-RestMethod -Method Post -Uri $API_URL -Headers @{
+        "Authorization" = "Bearer $ACCESS_TOKEN"
+        "Content-Type" = "application/json"
+        "X-Goog-User-Project" = $env:GCP_PROJECT_ID
+    } -Body $PAYLOAD
+    Write-Host "🎉 에이전트가 성공적으로 Gemini Enterprise에 등록되었습니다!"
+    $response | ConvertTo-Json -Depth 10 | Write-Host
+} catch {
+    Write-Host "❌ 에이전트 등록 실패:"
+    Write-Host $_.Exception.Response.StatusCode.value__
+    Write-Host $_.ErrorDetails.Message
+    exit 1
+}
+'@ | Set-Content -Encoding UTF8 "scripts\register_adk_agent.ps1"
+```
+
 #### 스크립트 실행
+
+**macOS / Linux**
 
 ```bash
 ./scripts/register_adk_agent.sh
+```
+
+**Windows (PowerShell)**
+
+```powershell
+.\scripts\register_adk_agent.ps1
 ```
 
 ---
@@ -186,6 +283,8 @@ chmod +x scripts/register_adk_agent.sh
 ### Step 4: Google Cloud 콘솔(GUI)을 통한 등록 방법
 
 콘솔을 선호하는 경우 아래 절차를 통해 GUI 환경에서 동일하게 등록할 수 있습니다:
+
+**모든 OS 동일**
 
 1. [Google Cloud Console - Gemini Enterprise](https://console.cloud.google.com/gemini-enterprise/?hl=ko) 페이지로 이동합니다.
 2. 에이전트를 등록할 **앱(App)**의 이름을 클릭합니다.
@@ -207,6 +306,8 @@ chmod +x scripts/register_adk_agent.sh
 
 현재 Gemini Enterprise 앱에 연결된 모든 커스텀 에이전트 목록을 조회하여 정상 활성화되었는지 확인합니다.
 
+#### macOS / Linux
+
 ```bash
 # scripts/list_agents.sh 스크립트 작성
 cat << 'EOF' > scripts/list_agents.sh
@@ -224,6 +325,23 @@ chmod +x scripts/list_agents.sh
 ./scripts/list_agents.sh
 ```
 
+#### Windows (PowerShell)
+
+```powershell
+# scripts\list_agents.ps1 스크립트 작성
+@'
+$ACCESS_TOKEN = gcloud auth print-access-token
+$API_URL = "https://$env:ENDPOINT_LOCATION-discoveryengine.googleapis.com/v1alpha/projects/$env:GCP_PROJECT_ID/locations/global/collections/default_collection/engines/$env:APP_ID/assistants/default_assistant/agents"
+
+Invoke-RestMethod -Method Get -Uri $API_URL -Headers @{
+    "Authorization" = "Bearer $ACCESS_TOKEN"
+    "X-Goog-User-Project" = $env:GCP_PROJECT_ID
+} | ConvertTo-Json -Depth 10
+'@ | Set-Content -Encoding UTF8 "scripts\list_agents.ps1"
+
+.\scripts\list_agents.ps1
+```
+
 ---
 
 ### Step 6: 사내 사용자와 에이전트 공유 및 대화형 E2E 실습
@@ -232,10 +350,14 @@ chmod +x scripts/list_agents.sh
 
 #### 1. 에이전트 공유 설정
 
+**모든 OS 동일**
+
 - Google Cloud 콘솔 > Gemini Enterprise > **에이전트** > `Business Strategy Analyst` 선택 > **공유(Share)** 클릭
 - 사내 사용자 또는 '전략기획팀' 그룹 이메일을 추가하고 권한을 부여합니다.
 
 #### 2. Gemini Enterprise 웹 앱에서 질의 테스트
+
+**모든 OS 동일**
 
 1. 브라우저에서 Gemini Enterprise 웹 앱(`https://gemini.google.com/enterprise`)에 접속합니다.
 2. 대화창에 아래와 같이 질의를 입력합니다:
@@ -245,6 +367,8 @@ Tesla의 2026년 비즈니스 전략 리포트를 작성해줘.
 ```
 
 #### 3. 최종 출력 결과 (Gemini Enterprise 웹 화면 렌더링)
+
+**모든 OS 동일**
 
 ```markdown
 # Tesla 비즈니스 전략 보고서 (Executive Brief)

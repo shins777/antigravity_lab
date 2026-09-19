@@ -1,37 +1,83 @@
 
 #  Antigravity 시작
 
+> [!IMPORTANT]
+> **OS별 표기 규칙**
+>
+> 이 문서의 모든 실행 예제는 아래 세 가지 표기 중 하나를 따릅니다. 자신의 환경에 해당하는 블록만 실행하세요.
+>
+> | 표기                     | 의미                                                       |
+> | ------------------------ | ---------------------------------------------------------- |
+> | **macOS / Linux**        | macOS(zsh) 및 Linux(bash) 터미널에서 실행                  |
+> | **Windows (PowerShell)** | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
+> | **모든 OS 동일**         | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
+>
+> - **WSL2 / Git Bash** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
+> - Windows에서는 `python3` → `python`, `curl` → `curl.exe`, `/` → `\` 로 바뀌는 점에 유의하세요.
+
+
 아래 URL에서 antigiravity를 본인의 OS에 맞게 download 합니다.   
 
 https://antigravity.google/product/antigravity-cli
 
-<p align="left">
-  <img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="img/img1.png" width="800" >
-</p>
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/img1.png" width="800" ></p>
 
 위의 사이트에서 다운로드 받은후 Antigravity를 로컬 PC에 설치합니다
 
 Agentigravity CLI 실행은 아래와 같이 합니다. 
 
-> ```
-> agy
->```
+#### macOS / Linux
+
+**모든 OS 동일**
+
+```bash
+agy
+```
 
 아래 내용에서 해당 디렉토리를 신뢰할수 있다면 Yes, I trust this folder 를 선택하고 Enter 를 칩니다.
->```
->Accessing workspace:
->/Users/hangsik/Documents/my_project/antigravity_lab
->Do you trust the contents of this project?
->Antigravity CLI requires permission to read, edit, and execute files here.
-> Yes, I trust this folder
->  No, exit
->  ↑/↓ Navigate · enter Confirm
->                                                                  Gemini 3.6 Flash · low
->```
+**모든 OS 동일**
+
+> ```text
+> Accessing workspace:
+> /Users/hangsik/Documents/my_project/antigravity_lab
+> Do you trust the contents of this project?
+> Antigravity CLI requires permission to read, edit, and execute files here.
+>  Yes, I trust this folder
+>   No, exit
+>   ↑/↓ Navigate · enter Confirm
+>                                                                   Gemini 3.6 Flash · low
+> ```
+
+#### Windows (PowerShell)
+
+**모든 OS 동일**
+
+```powershell
+agy
+```
+
+아래 내용에서 해당 디렉토리를 신뢰할수 있다면 Yes, I trust this folder 를 선택하고 Enter 를 칩니다.
+**모든 OS 동일**
+
+> ```text
+> Accessing workspace:
+> C:\Users\hangsik\Documents\my_project\antigravity_lab
+> Do you trust the contents of this project?
+> Antigravity CLI requires permission to read, edit, and execute files here.
+>  Yes, I trust this folder
+>   No, exit
+>   ↑/↓ Navigate · enter Confirm
+>                                                                   Gemini 3.6 Flash · low
+> ```
 
 아래는 Antigravity 초기화면입니다. 
 
-```
+**모든 OS 동일**
+(단, 프롬프트의 경로 표기는 OS에 따라 다를 수 있습니다)
+
+**모든 OS 동일**
+
+```text
 /Users/hangsik/Documents/my_project/antigravity_lab$ agy
 
 
@@ -145,7 +191,9 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
    * **입력**: `/resume` (또는 `/switch`, `/conversation`)
    * **기대 결과**: 저장된 세션 목록(세션명, 생성일자, 마지막 대화 요약)이 TUI 선택창 형태로 렌더링됨
    * 아래 그럼에서는 current session은 "sum_up" 입니다. 
-```
+**모든 OS 동일**
+
+```text
 ───────────────────────────────────────────────────────────────────────────────────────────────────────
    CLI    Other   (tab to cycle)
 
@@ -186,7 +234,9 @@ Keyboard: ↑/↓ Navigate  ←/→ Page  enter Select  f2 Rename  f4 Delete  ta
      * 아래 키보드로 선택해서 해당 시점으로 되돌립니다.
      * 만일 3개 turn 위로 선택하면 그 이 후에 있던 turn에 실행되었던 정보는 모두 rollback 됩니다.
 
-```
+**모든 OS 동일**
+
+```text
 Rewind Conversation
   generate a python code to sum 1 to given input number.
   if I give 10 to the function, what's the result?
@@ -311,7 +361,9 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
      * 에이전트가 코드를 직접 수정하는 도구(File Write, Bash 실행 등)를 호출하지 않음
      * 리팩토링 목표, 영향받는 파일 목록, 단계별 실행 계획(체크리스트 형태)을 포함한 계획서를 출력함
      * 계획 승인/수정 여부를 묻는 사용자 대기 상태로 전환됨
-```
+**모든 OS 동일**
+
+```text
 > /planning ADK로 에이전트를 만들고 GCP Agent Engine에 배포해주세요.
 
 ● Edit(~/.gemini/antigravity-cli/brain/cb01...1b6cd39/adk_gcp_agent_engine_plan.md) (ctrl+o to expand)
@@ -333,7 +385,9 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
 
 위에서 만들어진 adk_gcp_agent_engine_plan.md  파일 내용을 보면 아래와 같습니다. 
 
-```
+**모든 OS 동일**
+
+```text
 > adk_gcp_agent_engine_plan.md 파일을 보여줘
 
 ● Read(~/.gemini/antigravity-cli/brain/cb01...1b6cd39/adk_gcp_agent_engine_plan.md) (ctrl+o to expand)
@@ -425,7 +479,9 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
 ```
 
 이렇게 생성된 planning 파일을 따로 다른 디렉토리에 추후 재사용을 위해서 저장 해놓을 수 있습니다.
-```
+**모든 OS 동일**
+
+```text
 > 위 파일에 project id 는 ai-hangsik 으로 넣어줘. 그리고 이 파일은 src/plan 디렉토리에 넣어줘
 
 ● Edit(~/Documents/my_project/antigravity_l...rc/plan/adk_gcp_agent_engine_plan.md) (ctrl+o to expand)
@@ -470,12 +526,16 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
      * 모든 테스트가 통과(`exit code 0`)하는 즉시 성공 종료 리포트를 출력하고 루프를 정상 종료함
 
 ❌ 나쁜 예 (일반 프롬프트로 모호하게 지시할 때)
-```
+**모든 OS 동일**
+
+```text
 장바구니 결제 기능 완성해줘.
 ```
 좋은 예 (/goal로 명확한 완료 기준을 주입할 때)
 
-```
+**모든 OS 동일**
+
+```text
 /goal [장바구니 결제 기능 완성]
 1. 목표: 포트원(구 아임포트) 연동 결제 검증 API 구현
 2. 필수 완료 조건(DoD):
@@ -504,7 +564,9 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
 
 /grill-me 실행 예제는 아래와 같습니다. 
 
-```
+**모든 OS 동일**
+
+```text
 > /grill-me llm 토큰 사용량을 보여주는 대쉬보드를 만들고 싶어
 
 ? LLM 토큰 사용량 데이터를 주로 어디에서 수집/가져올 계획이신가요?
@@ -540,7 +602,9 @@ Question 1/1: 대시보드에서 가장 중요하게 시각화하고 싶은 핵�
      * "추론 깊이가 [HIGH/LOW]로 설정되었습니다" 확인 메시지 출력
      * 이후 요청 발생 시 설정된 추론 강도에 맞춰 응답 생성 시간 및 사고 과정(Thinking process) 토큰 사용량이 비례하여 변화함
 
-```
+**모든 OS 동일**
+
+```text
 > 
 ─────────────────────────────────────────────────────────────────────────────────────────────────
 Set Effort
@@ -614,23 +678,37 @@ Set Effort
 
 1. **서브에이전트 만들기**
 * Antigravity에서 Custom Agent를 영구적으로 등록하고 재사용하려면 **YAML Frontmatter를 포함한 Markdown(`.md`) 파일**로 저장해야 합니다.
-   * 1. 저장 위치 (경로)
+   * 1. 저장 위치 (경로) 및 생성
       적용하려는 범위(프로젝트 전용 vs 전체 전역)에 따라 아래 두 경로 중 하나에 저장합니다:
-      * **현재 프로젝트(워크스페이스) 전용으로 사용할 경우:**
-      ```text
-      <프로젝트 루트>/.agents/agents/code-reviewer.md
-      또는
-      <프로젝트 루트>/.agents/agents/code-reviewer/agent.md
-      ```
-      * **모든 프로젝트에서 전역(Global)으로 사용할 경우**:
-      ```text
-      ~/.gemini/config/agents/code-reviewer.md
-      또는
-      ~/.gemini/config/agents/code-reviewer/agent.md
-      ```
+
+**macOS / Linux**
+
+```bash
+# 프로젝트(워크스페이스) 전용으로 사용할 경우:
+mkdir -p .agents/agents
+# 파일: .agents/agents/code-reviewer.md 또는 .agents/agents/code-reviewer/agent.md
+
+# 모든 프로젝트에서 전역(Global)으로 사용할 경우:
+mkdir -p ~/.gemini/config/agents
+# 파일: ~/.gemini/config/agents/code-reviewer.md 또는 ~/.gemini/config/agents/code-reviewer/agent.md
+```
+
+**Windows (PowerShell)**
+
+```powershell
+# 프로젝트(워크스페이스) 전용으로 사용할 경우:
+New-Item -ItemType Directory -Force -Path ".agents\agents" | Out-Null
+# 파일: .agents\agents\code-reviewer.md 또는 .agents\agents\code-reviewer\agent.md
+
+# 모든 프로젝트에서 전역(Global)으로 사용할 경우:
+New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Null
+# 파일: $HOME\.gemini\config\agents\code-reviewer.md 또는 $HOME\.gemini\config\agents\code-reviewer\agent.md
+```
    * 2. 저장할 파일 형식 및 내용 (code-reviewer.md)
       * 파일 이름은 code-reviewer.md 형태로 생성하며, 상단에 메타데이터(YAML Frontmatter)를 작성하고 그 아래에 시스템 프롬프트(마크다운 본문)를 작성합니다.
-      ```
+**모든 OS 동일**
+
+      ```markdown
       ---
       name: code-reviewer
       description: 코드 보안 취약점, 성능 병목, 스타일 가이드 분석 및 리팩토링 제안 전문 에이전트
@@ -668,7 +746,9 @@ Set Effort
 2. **서브에이전트 목록 조회**
    * **입력**: `/agents`  
    * **기대 결과**: 사용 가능한 서브에이전트 목록, 각 에이전트의 역할 설명, 활성 상태가 TUI 뷰로 표시됨  
-   ```
+**모든 OS 동일**
+
+   ```text
       >
       ──────────────────────────────────────────────────────────────────────────────────
       Create New Agents
@@ -686,7 +766,9 @@ Set Effort
    ```
 
 3. **특정 서브에이전트를 호출하여 작업 위임/전환**
-      ```
+**모든 OS 동일**
+
+      ```text
       > @[.agents/agents/code-reviewer.md] check the code that agy generated.
 
       ● Read(~/Documents/my_project/antigravity_lab/.agents/agents/code-reviewer.md)
@@ -748,7 +830,9 @@ Set Effort
 
       아래와 같이 자연어를 통해서 sub agent를 호출할 수도 있습니다. 
 
-      ```
+**모든 OS 동일**
+
+      ```markdown
       > 지금 작성된 code 에 대해서 코드리뷰어를 통해서 리뷰해줘
 
       ● Bash(git status)
@@ -842,7 +926,9 @@ Set Effort
    * **입력**: `/tasks`  
    * **기대 결과**: 활성 태스크 ID, 작업명, 상태(`RUNNING`, `PENDING`), 경과 시간이 테이블 형태로 렌더링됨  
 
-   ```
+**모든 OS 동일**
+
+   ```text
    Tasks
    Agent Backgrounded
    > ● [22:39:00] gcloud services enable aiplatform.googleapis.com artifactregistry.googlea...  completed (exit 0)
@@ -888,6 +974,8 @@ Set Effort
 
    * 3. 실무 예시 시나리오
 
+**모든 OS 동일**
+
       ```text
       [사용자 요청] 
       "신규 배포 전 코드 보안 검사를 수행하고 결과를 슬랙으로 공유해줘."
@@ -911,11 +999,28 @@ Set Effort
 
    1. **Skill 만들기** 
    * 프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를 만들고 SKILL.md 파일을 생성합니다.
+
+**macOS / Linux**
+
+```bash
+mkdir -p .agents/skills/git-commit-helper
+# 전역 경로일 경우: mkdir -p ~/.gemini/config/skills/git-commit-helper
+```
+
+**Windows (PowerShell)**
+
+```powershell
+New-Item -ItemType Directory -Force -Path ".agents\skills\git-commit-helper" | Out-Null
+# 전역 경로일 경우: New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\skills\git-commit-helper" | Out-Null
+```
+
    * 파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-commit-helper/SKILL.md  
-   * 참고 : 스킬에 마크다운 지침 외에 별도 첨부 파일이 필요 없다면 <스킬명>.md 단일 파일로 바로 생성하셔도 정상 인식됩니다. 만일 스킬   실행에 필요한 추가 참조 파일, 실행 스크립트, 예제 데이터 등이 함께 포함되는 경우에는 폴더를 만들어서 그안에 모두 저장해서 사용합니다.  
+   * 참고 : 스킬에 마크다운 지침 외에 별도 첨부 파일이 필요 없다면 `<스킬명>.md` 단일 파일로 바로 생성하셔도 정상 인식됩니다. 만일 스킬 실행에 필요한 추가 참조 파일, 실행 스크립트, 예제 데이터 등이 함께 포함되는 경우에는 폴더를 만들어서 그안에 모두 저장해서 사용합니다.  
 
     * Skill 내용
-      ```
+**모든 OS 동일**
+
+      ```markdown
       ---
       name: git-commit-helper
       description: 현재 스테이징된 git 변경사항(diff)을 분석하여 Conventional Commits 규칙에 맞춘 커밋 메시지를 생성합니다.
@@ -937,7 +1042,9 @@ Set Effort
    1. **등록된 스킬 목록 조회**
       * **입력**: `/skills`   
       * **기대 결과**: 등록된 스킬의 이름, 파라미터 요구사항, 적용 범위(Local/Global)가 나열됨   
-      ```
+**모든 OS 동일**
+
+      ```text
       Skills
       9 skills
 
@@ -966,7 +1073,9 @@ Set Effort
    2. 특정 스킬 로드 및 프롬프트 주입
       * **입력**: `/git-commit-helper push all change code to the repository.`
       * **기대 결과**: 스킬 템플릿에 정의된 워크플로우 지침이 현재 프롬프트 컨텍스트에 즉시 반영되어 후속 작업을 수행함
-      ```
+**모든 OS 동일**
+
+      ```text
       > /git-commit-helper push all change code to the repository.
 
       ─────────────────────────────────────────── Conversation compacted ───────────────────────────────────────────
@@ -1009,7 +1118,9 @@ Set Effort
      * 설정 디렉터리(예: `.antigravity/rules/` 또는 global config)에 해당 규칙 파일이 새로 생성/저장됨
      * "새로운 규칙이 영구 저장되었습니다" 확인 메시지 반환
 
-   ```
+**모든 OS 동일**
+
+   ```text
       > /learn "우리 팀의 커밋 메시지 규칙과 에러 핸들링 패턴을 기억해"
       ● Read(~/Documents/my_project/antigravity_lab/.agents/skills/git-commit-helper/SKILL.md)
       ● Edit(~/.gemini/antigravity-cli/brain/c754a989...1-b038-238910befec4/learning_proposal.md) (ctrl+o to expand)
@@ -1073,39 +1184,88 @@ Set Effort
 
 * **테스트 목적**: Model Context Protocol(MCP) 서버 연결 상태를 점검하고, 툴/리소스 바인딩을 관리하는지 검증
 
-### 1.	기본 프로젝트 설정:
-* 아래는 BigQuery MCP 서버 등록하는 방법을 예를 들어서 설명합니다. 
+### 1. 기본 프로젝트 설정
+* 아래는 BigQuery MCP 서버 등록하는 방법을 예를 들어서 설명합니다.
 
-```
+**macOS / Linux**
+
+```bash
 gcloud config set project <YOUR_GCP_PROJECT_ID>
 ```
+
+**Windows (PowerShell)**
+
+```powershell
+gcloud config set project <YOUR_GCP_PROJECT_ID>
+```
+
 * 연동할 계정에 최소 BigQuery Data Viewer 및 BigQuery Job User(쿼리 실행용) 권한이 부여되어 있어야 합니다.
 
 ### 2. MCP 설정 파일에 BigQuery 서버 등록
 * 프로젝트 전용(.agents/mcp.json) 또는 전역 설정(~/.gemini/config/mcp_config.json) 파일에 BigQuery MCP 서버 구성을 추가합니다.
-* 파일 경로 예시: .agents/mcp_config.json
-   ```
-   {
-   "mcpServers": {
-      "bigquery": {
-         "command": "npx",
-         "args": [
-         "-y",
-         "@modelcontextprotocol/server-bigquery"
-         ],
-         "env": {
-         "BIGQUERY_PROJECT_ID": "<YOUR_GCP_PROJECT_ID>",
-         "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/service-account-key.json"
-         }
+
+#### macOS / Linux
+
+**모든 OS 동일**
+
+```bash
+# 디렉터리 생성
+mkdir -p .agents
+
+# 파일 생성 (npx 또는 uvx 사용)
+cat > .agents/mcp_config.json <<'EOF'
+{
+  "mcpServers": {
+    "bigquery": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-bigquery"
+      ],
+      "env": {
+        "BIGQUERY_PROJECT_ID": "<YOUR_GCP_PROJECT_ID>",
+        "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/service-account-key.json"
       }
-   }
-   }
-   ```
+    }
+  }
+}
+EOF
+```
+
+#### Windows (PowerShell)
+
+**모든 OS 동일**
+
+```powershell
+# 디렉터리 생성
+New-Item -ItemType Directory -Force -Path ".agents" | Out-Null
+
+# 파일 생성 (Windows에서는 npx.cmd 또는 uvx.exe 사용 유의)
+@'
+{
+  "mcpServers": {
+    "bigquery": {
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-bigquery"
+      ],
+      "env": {
+        "BIGQUERY_PROJECT_ID": "<YOUR_GCP_PROJECT_ID>",
+        "GOOGLE_APPLICATION_CREDENTIALS": "C:\path\to\service-account-key.json"
+      }
+    }
+  }
+}
+'@ | Set-Content -Encoding UTF8 ".agents\mcp_config.json"
+```
 
 2. **MCP 서버 연결 상태 및 제공 도구 목록 확인**
    * **입력**: `/mcp`
    * **기대 결과**: 연결된 MCP 서버의 사용할수 있는 지 여부와 해당 서버가 제공하는 툴 목록이 출력됨
-   ```
+**모든 OS 동일**
+
+   ```text
       Plugins (~/.gemini/config/plugins)
       >  ✓ bigquery  Tools: list_dataset_ids, get_dataset_info, list_table_ids, get_table_info, execute_sql_readonly,
                      +1 more
@@ -1118,7 +1278,9 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
    * **입력**: `BigQuery MCP를 사용해서 'bbc_news' 데이터셋의 테이블 목록을 조회해줘.`
    * **기대 결과**: MCP 클라이언트가 해당 서버 연결을 초기화 및 재연결하고 사용 가능한 도구 목록을 갱신함
 
-   ```
+**모든 OS 동일**
+
+   ```text
    > BigQuery MCP를 사용해서 'bbc_news' 데이터셋의 테이블 목록을 조회해줘.
 
    ● bigquery/list_table_ids(List tables in bbc_news dataset) (ctrl+o to expand)
@@ -1141,32 +1303,69 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 가장 실무에서 유용한 "파일 수정 직후 코드 포맷팅(Prettier) 및 린트(ESLint) 자동 실행 Hook" 예제입니다.
 
 ### 1. Hook 설정 파일 생성 (hooks.json)
-프로젝트 워크스페이스(.agents/) 또는 전역 설정(~/.gemini/config/) 폴더 내에 hooks.json 파일을 작성합니다.
-* 파일 경로: .agents/hooks.json
-   ```
-      {
-      "code-formatter-and-linter": {
-         "PostToolUse": [
-            {
-            "matcher": "replace_file_content|write_to_file",
-            "hooks": [
-               {
-                  "type": "command",
-                  "command": "./scripts/format_and_lint.sh",
-                  "timeout": 15
-               }
-            ]
-            }
-         ]
-      }
-      }
+프로젝트 워크스페이스(.agents/) 또는 전역 설정(~/.gemini/config/) 폴더 내에 `hooks.json` 파일을 작성합니다.
 
-   ```
+> [!NOTE]
+> **크로스 플랫폼(Cross-platform) 커맨드 유의사항**
+> Hook 내부에 지정되는 `command` 속성은 OS의 기본 쉘 환경에 종속됩니다.
+> 따라서, macOS/Linux에서는 `sh` 스크립트를, Windows에서는 `ps1` 스크립트를 호출하는 등 OS에 맞는 명령어를 지정해야 정상 동작합니다.
+
+#### macOS / Linux
+
+**모든 OS 동일**
+
+```bash
+cat > .agents/hooks.json <<'EOF'
+{
+  "code-formatter-and-linter": {
+    "PostToolUse": [
+      {
+        "matcher": "replace_file_content|write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/format_and_lint.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
+EOF
+```
+
+#### Windows (PowerShell)
+
+**모든 OS 동일**
+
+```powershell
+@'
+{
+  "code-formatter-and-linter": {
+    "PostToolUse": [
+      {
+        "matcher": "replace_file_content|write_to_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -ExecutionPolicy Bypass -File .\scripts\format_and_lint.ps1",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
+'@ | Set-Content -Encoding UTF8 ".agents\hooks.json"
+```
 
 ### 2. /hook 명령어를 통한 관리 및 등록
 * 대화창에서 /hook 인터랙티브 메뉴 또는 CLI 명령어로 등록 상태를 점검할 수 있습니다.
    * Hook 목록 및 활성 상태 조회:
-   ```
+**모든 OS 동일**
+
+   ```text
       Hooks
       5 hook types
 
@@ -1178,7 +1377,9 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 
    ```
 
-   ```
+**모든 OS 동일**
+
+   ```text
       PostToolUse — Matchers
          After tool execution
 
@@ -1205,13 +1406,17 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 ### 테스트 케이스
 1. **코드 변경 내역 TUI 뷰어 렌더링**
    * **입력**: `/diff`  
-   ```
+**모든 OS 동일**
+
+   ```text
    > diff
    ```
    * **기대 결과**:
      * 터미널 내에 변경된 파일 목록 및 파일별 `+`(추가) / `-`(삭제) 라인이 색상 구분된 인터랙티브 Diff 뷰어로 출력됨  
      * 방향키나 키보드 단축키를 통해 변경된 청크(Hunk) 간 이동이 정상 동작함
-   ```
+**모든 OS 동일**
+
+   ```text
       Diff (git)  All Changes  Per Turn  Commit Tree
       6 file(s) changed
 
@@ -1225,7 +1430,9 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 
    ```
 
-   ```
+**모든 OS 동일**
+
+   ```text
       agy_lab/agy_command.md  +193 -48
 
       >   95 -  | `/browser` | 브라우저 서브에이전트를 구동하여 웹 브라우징/UI 테스트를 수행합니다. | 로컬 웹
@@ -1262,11 +1469,15 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 * **사전 조건**: 소스 코드가 인덱싱되어 있는 다중 파일 프로젝트 워크스페이스  
 
 ### 테스트 케이스
-```
+**모든 OS 동일**
+
+```text
    > /codesearch  A new feature
 ```
 
-```
+**모든 OS 동일**
+
+```text
    Code Search: A new feature
    Found 4 results
    .agents/rules/commit-convention.md
@@ -1289,13 +1500,28 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 * **테스트 목적**: 에이전트가 최근 수정한 파일 목록이나 사용자가 지정한 파일을 외부 기본 에디터(VS Code, Vim 등)로 열어주는지 검증  
 
 ### 테스트 케이스
-```
+**모든 OS 동일**
+
+```text
    > /open hooks.json
    ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-```
+**macOS / Linux**
+
+```text
    > /open .agents/hooks.json
+```
+
+**Windows (PowerShell)**
+
+```text
+   > /open .agents\hooks.json
+```
+
+**모든 OS 동일**
+
+```json
    {
    "code-formatter-and-linter": {
       "SessionStart": null,
@@ -1336,7 +1562,25 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 #### 외부 공통 자산(Skills, Agents, 규칙 문서)의 즉각적 공유:
 개별 프로젝트마다 스킬 파일이나 룰을 복사해 넣지 않고, 중앙 공유 저장소(예: company-shared-agent-rules/)를 /add-dir로 연결해 세션 내에서 즉시 프롬프트 컨텍스트로 활용할 수 있습니다.
 #### 외부 대용량 참조 데이터셋 및 설계 문서 연동:
-코드 레포지토리 내부에 넣기 부담스러운 대용량 로그 디렉터리, 별도 관리되는 기획/설계 문서(Markdown, OpenAPI Spec 등)를 현재 세션의 에이전트 분석 대상으로 포함시킬 때 사용합니다.---
+코드 레포지토리 내부에 넣기 부담스러운 대용량 로그 디렉터리, 별도 관리되는 기획/설계 문서(Markdown, OpenAPI Spec 등)를 현재 세션의 에이전트 분석 대상으로 포함시킬 때 사용합니다.
+
+### 테스트 케이스
+
+외부 절대 경로를 추가할 때 OS별 경로 표기에 유의하여 테스트합니다.
+
+**macOS / Linux**
+
+```bash
+> /add-dir /Users/hangsik/Documents/shared_assets
+```
+
+**Windows (PowerShell)**
+
+```powershell
+> /add-dir C:\Users\hangsik\Documents\shared_assets
+```
+
+---
 
 ## 5. `/artifact`
 
@@ -1373,7 +1617,9 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
    * **기대 결과**:
      * 현재 사용 중인 총 토큰 수와 최대 지원 컨텍스트 한도 대비 백분율(%)이 프로그레스 바 형태로 시각화되어 표시됨
      * 대화 기록, 시스템 프롬프트, 첨부된 파일/도구 정의별 토큰 점유율 세부 분석 데이터가 출력됨
-      ```
+**모든 OS 동일**
+
+      ```text
          ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
          └ Context Usage
          ◉ ◉ ◉ ◉ ◉ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □ □     Gemini 3.6 Flash (Low) · 16.3k/1.0M tokens
@@ -1396,13 +1642,15 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
          └ .agents/skills/
          └ .agents/agents/
          └ .agents/hooks.json
-      ```     
+      ```
 2. **임계치 도달 경고 검증**
    * **상태**: 컨텍스트 사용량이 90%를 초과한 상태
    * **입력**: `/context`
    * **기대 결과**: 컨텍스트 정리가 필요함을 알리는 경고(Warning) 뱃지가 함께 표시되며, `/clear` 또는 컨텍스트 축소 방안을 제안함
 
-      ```
+**모든 OS 동일**
+
+      ```text
          >/clear
          >
          ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1439,7 +1687,9 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 
 * **테스트 목적**: 추론 엔진으로 사용할 기본 모델(예: Gemini 3.5 flash)을 정상 조회하고 전환할 수 있는지 검증 
 
-```
+**모든 OS 동일**
+
+```text
    > /model
    ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
    Switch Model
@@ -1470,10 +1720,14 @@ gcloud config set project <YOUR_GCP_PROJECT_ID>
 * 추천 상황: 팀 단위 프로젝트에서 "이 명령어는 누구나 승인 없이 실행 가능", "이 폴더는 누구든 수정 금지" 같은 팀 표준 보안 정책을 Git으로 공유할 때 선택합니다.
 ### 3. Global (전역 사용자 설정)
 * 적용 범위: 내 컴퓨터에서 agy로 여는 모든 프로젝트에 전역적으로 적용됩니다.
-* 저장 위치: ~/.gemini/config/settings.json (홈 디렉터리)
+* 저장 위치: 
+  * **macOS / Linux**: `~/.gemini/config/settings.json`
+  * **Windows (PowerShell)**: `%USERPROFILE%\.gemini\config\settings.json`
 * 추천 상황: 프로젝트와 무관하게 "기본적으로 모든 읽기 작업은 항상 승인 없이 허용"과 같은 개인 선호 환경을 일괄 적용할 때 선택합니다.
 
-```
+**모든 OS 동일**
+
+```text
 Permission Config Editor
 
 Select a config scope to edit:
@@ -1494,14 +1748,18 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 ## 3. `/config` (`/settings`)
 
 * **테스트 목적**: CLI의 통합 환경설정 패널(출력 상세도, 테마, 프록시 등)을 호출하고 설정값을 갱신할 수 있는지 검증  
-* **사전 조건**: 설정 파일(`config.json` 등)이 로컬에 존재하는 상태
+* **사전 조건**: 설정 파일이 로컬에 존재하는 상태
+  * **macOS / Linux**: `~/.gemini/antigravity-cli/config.json`
+  * **Windows (PowerShell)**: `%USERPROFILE%\.gemini\antigravity-cli\config.json`
 
 ### 테스트 케이스
 1. **환경설정 TUI 패널 호출 및 수정**
    * **입력**: `/config` (또는 `/settings`)
    * **기대 결과**: 대화형 환경설정 패널이 열리며, 출력 상세도(`verbosity`) 또는 테마 변경 후 저장 시 설정 파일에 즉시 영속 반영됨   
 
-   ```
+**모든 OS 동일**
+
+   ```text
       >
       ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
       Settings
@@ -1533,7 +1791,7 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 ## 4. `/keybindings`
 
 * **테스트 목적**: 대화형 단축키 에디터를 열어 TUI 키 매핑을 커스텀하고 정상 저장하는지 검증   
-* **사전 조건**: CLI TUI 환경 실행 중
+* **사전 조건**: CLI TUI 환경 실행 중 (설정 파일 위치: macOS/Linux는 `~/.gemini/antigravity-cli/keybindings.json`, Windows는 `%USERPROFILE%\.gemini\antigravity-cli\keybindings.json`)
 
 ### 테스트 케이스
 1. **키 매핑 커스텀 및 충돌 검증**
@@ -1545,9 +1803,11 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 ## 5. `/statusline`
 
 * **테스트 목적**: 터미널 하단 상태 표시줄의 표시 여부(ON/OFF) 및 모듈(토큰, 브랜치, 모델명) 커스텀 설정을 검증
-* **사전 조건**: 상태 표시줄이 렌더링 가능한 터미널 뷰 상태
+* **사전 조건**: 상태 표시줄이 렌더링 가능한 터미널 뷰 상태 (설정 파일 위치: macOS/Linux는 `~/.gemini/antigravity-cli/statusline.json`, Windows는 `%USERPROFILE%\.gemini\antigravity-cli\statusline.json`)
 
-```
+**모든 OS 동일**
+
+```text
    > /statusline
    ⎿  Statusline off. Run /statusline to re-enable.
 
@@ -1627,6 +1887,9 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
    * **입력**: `/logout`
    * **기대 결과**:
      * 로컬 키체인/인증 파일에서 세션 토큰이 파기됨
+       * **macOS**: Keychain Access 에서 자격 증명 제거
+       * **Linux**: libsecret (Secret Service API) 에서 자격 증명 제거
+       * **Windows**: Windows Credential Manager 에서 자격 증명 제거
      * "성공적으로 로그아웃되었습니다" 메시지와 함께 인증 필요(Unauthenticated) 상태로 전환됨
 
 ---
