@@ -219,3 +219,23 @@ __marimo__/
 
 # Gemini (AGY)환경파일
 .gemini
+
+# --- Secrets & credentials -------------------------------------------------
+# NOTE: a bare `.env` entry does NOT match `.env.local` / `.env.production`
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+client_secret*.json
+service-account*.json
+application_default_credentials.json
+gha-creds-*.json
+id_rsa
+id_ed25519
+*.tfvars
+
+# macOS
+.DS_Store
