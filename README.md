@@ -21,16 +21,11 @@ antigravity_lab/
 │   │   ├── agy_command.md                   # CLI 슬래시(/) 명령어 완벽 가이드
 │   │   ├── agy_webapp.md                    # 로컬 웹앱 2종 제작 실습 (대시보드 · 테트리스)
 │   │   └── resources/setup/                 # 가이드용 스크린샷 이미지
-│   │
-│   ├── agy_advance/                         # 심화 과정
-│   │   ├── agy_everything.md                # Antigravity CLI 전체 기능 종합 실습 (Lab 0~21)
-│   │   ├── agy_features.md                  # Agent · Skill · Rule · MCP · Plugin 확장
-│   │   └── agy_ge.md                        # Gemini Enterprise 등록 및 연동
-│   │
-│   ├── build_agent/                         # 에이전트 구축 과정
-│   │   └── custom_agent.md                  # Ch1 ADK 멀티 에이전트 개발 + Ch2 Agent Engine 배포
-│   │
-│   └── build_mcp/                           # (준비 중) MCP 서버 구축 과정
+│   └── agy_advance/                         # 심화 과정
+│       ├── agy_everything.md                # Antigravity CLI 전체 기능 종합 실습 (Lab 0~21)
+│       ├── agy_features.md                  # Agent · Skill · Rule · MCP · Plugin 확장
+│       ├── build_agent.md                   # Ch1 ADK 멀티 에이전트 개발 + Ch2 Agent Engine 배포
+│       └── agy_ge.md                        # Gemini Enterprise 등록 및 연동
 │
 ├── lab/                                     # 🧪 실습 코드 디렉터리
 │   ├── agy_command/                         # Lab: CLI 명령어 및 에이전트 개발 실습
@@ -72,15 +67,10 @@ antigravity_lab/
 | :----: | :--------------------------------------------------------- | ------: | :-------------------------------------------------------------------------------------------------------------- |
 | **04** | [agy_everything.md](agy_lab/agy_advance/agy_everything.md) | 3,401줄 | Lab 0~21 종합 실습 — TUI, 설정, 권한 엔진, 샌드박스, 서브에이전트, 스킬, 플러그인, 훅, MCP, 헤드리스 CI, 캡스톤 |
 | **05** | [agy_features.md](agy_lab/agy_advance/agy_features.md)     |   547줄 | Agent 페르소나 정의, Skill 바인딩, Rule 가드레일, MCP 서버 연동, Plugin 확장                                    |
-| **06** | [agy_ge.md](agy_lab/agy_advance/agy_ge.md)                 |   427줄 | 배포된 Agent Engine을 Gemini Enterprise(Discovery Engine) 커스텀 에이전트로 등록 및 연동                        |
+| **06** | [build_agent.md](agy_lab/agy_advance/build_agent.md)       | 3,460줄 | Ch1 ADK 멀티 에이전트 로컬 개발 + Ch2 Vertex AI Agent Engine 클라우드 배포                                      |
+| **07** | [agy_ge.md](agy_lab/agy_advance/agy_ge.md)                 |   427줄 | 배포된 Agent Engine을 Gemini Enterprise(Discovery Engine) 커스텀 에이전트로 등록 및 연동                        |
 
-### 2.3 에이전트 구축 과정 (`agy_lab/build_agent/`)
-
-|  단계  | 가이드 문서                                            |  분량 | 주요 학습 내용                                                                      |
-| :----: | :----------------------------------------------------- | ----: | :---------------------------------------------------------------------------------- |
-| **07** | [remote_agent.md](agy_lab/build_agent/remote_agent.md) | 585줄 | ADK 기반 비즈니스 전략 리포트 에이전트 개발 및 GCP Vertex AI Agent Engine 원격 배포 |
-
-### 2.4 실습 코드 프로젝트 (`lab/`)
+### 2.3 실습 코드 프로젝트 (`lab/`)
 
 | 프로젝트             | 작업 디렉터리                                                                      | 문서                                                         | 주요 학습 내용                                                                       |
 | :------------------- | :--------------------------------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------------------------------- |

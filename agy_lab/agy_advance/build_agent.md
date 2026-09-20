@@ -1,4 +1,4 @@
-# Antigravity + ADK 커스텀 에이전트 개발·배포 실습 가이드 (custom_agent)
+# Antigravity + ADK 커스텀 에이전트 개발·배포 실습 가이드 (build_agent)
 
 본 문서는 **Antigravity CLI(`agy`)** 와 **Google ADK(Agent Development Kit, Python)** 를 사용하여
 **부동산 리포트 멀티 에이전트**를 직접 만들고(Chapter 1), 이를 **GCP Vertex AI Agent Engine** 에 배포(Chapter 2)하는
@@ -239,8 +239,8 @@ Cloud Shell 에는 `localhost` 로 직접 접속할 수 없습니다. **웹 미�
    adk web --allow_origins "*"
    ```
 
-2. 위의 명령어 실행 후 Cloud Shell 내에서 나타난 http://127.0.0.1:8000 을 클릭하면 새로운 탭에 ADK Web UI 가 열립니다.
-   현재는 아무런 개발과 설정이 안되어 있어서 에이전트를 볼수 없습니다.
+2. 위 명령어 실행 후 터미널에 표시된 `http://127.0.0.1:8000` 링크를 클릭(또는 상단 웹 미리보기 포트 8000 열기)하면 새 브라우저 탭에 ADK Web UI가 열립니다.
+   현재는 아직 에이전트 코드를 구현하기 전이므로 목록에 에이전트가 표시되지 않는 것이 정상입니다.
 
 > [!TIP]
 > Cloud Shell 은 브라우저가 `*.cloudshell.dev` 도메인으로 접속하므로,
@@ -420,24 +420,19 @@ adk --version
 
 ### 1-4.3 ✍️ 패키지 뼈대 생성
 
-ADK는 **패키지 폴더 안의 `root_agent`** 를 찾습니다. 아래 구조를 먼저 만듭니다.
-먼저 아래 디렉토리로 이동한 후
+ADK는 **패키지 폴더 안의 `root_agent`** 를 탐색합니다. 아래와 같은 구조를 먼저 구성합니다.
 
-```
+먼저 작업 디렉터리로 이동합니다:
+
+```bash
 cd ~/antigravity-lab/custom_agent/
 ```
 
-Antigravity를 실행합니다.
+Antigravity CLI(`agy`) 프롬프트 창에 다음과 같이 요청하여 디렉터리와 패키지 기본 뼈대 생성을 지시할 수 있습니다:
 
-```
-agy
-```
-
-아래와 같이 Antigravity 실행창에 아래와 같은 명령어로 전체적인 디렉토리 구조를 만들어주세요. 아래 내용은 반드시 Antigravity를 위한 명령어입니다. 주의하세요.
-
-```
-~/antigravity-lab/custom_agent/ 디렉토리 내에 아래와 같은 구조의 디렉토리와 파일을 만들어주세요.
-이미 있는 파일은 그대로 놔두세요.
+```text
+~/antigravity-lab/custom_agent/ 디렉터리 내에 아래와 같은 구조의 디렉터리와 파일을 만들어줘.
+이미 있는 파일은 그대로 유지해줘.
 
 ├── .venv/
 ├── realestate_agent/                   ← 에이전트 패키지
@@ -449,7 +444,7 @@ agy
 └── .gitignore
 ```
 
-위와 같이 디렉토리 구조를 완성했다면 아래 명령어를 실행합니다.
+터미널에서 쉘 명령어로 직접 패키지 뼈대를 생성할 경우 아래와 같이 실행합니다:
 
 **macOS / Linux**
 
@@ -2197,7 +2192,7 @@ sequenceDiagram
 | Cloud Logging 로그    | `resource.type="aiplatform.googleapis.com/ReasoningEngine"`   | 무료 한도 내 |
 
 > [!IMPORTANT]
-> 이 배포본은 다음 실습 [agy_ge.md](../agy_advance/agy_ge.md) 에서 **Gemini Enterprise 에 연결할 때 그대로 사용**합니다.
+> 이 배포본은 다음 실습 [agy_ge.md](agy_ge.md) 에서 **Gemini Enterprise 에 연결할 때 그대로 사용**합니다.
 > 따라서 실습 직후에는 **삭제하지 마세요.** 다만 배포된 상태로 오래 두면 비용이 발생할 수 있으니,
 > 전체 과정을 마친 뒤 **[2-9. 배포본 유지 / 정리](#2-9-배포본-유지--정리)** 의 안내에 따라 정리하세요.
 
@@ -2224,7 +2219,7 @@ sequenceDiagram
 
 ### 2-2.2 필요한 IAM 역할
 
-본인 계정에 아래 역할이 있어야 합니다. 아래 권한은 이미 사용자들에게 부여되었습니다. 혹시 없다고 에러가 나면, **프로젝트 관리자에게 요청**하세요.
+본인 계정에 아래 역할이 부여되어 있어야 합니다. (교육 및 실습 환경에서는 사전에 일괄 부여되어 있는 것이 일반적입니다. 혹시 권한 부족 오류가 발생하면 **프로젝트 관리자에게 문의**하세요.)
 
 | 역할                 | ID                                        | 용도                      |
 | :------------------- | :---------------------------------------- | :------------------------ |
@@ -2433,8 +2428,8 @@ gcloud auth application-default set-quota-project <YOUR_PROJECT_ID>
 - credentials.refresh(google.auth.transport.requests.Request()) 를 호출해 토큰 발급 가능 여부만 확인한다.
   토큰 값은 절대 출력하지 말고 "토큰 발급 성공 (길이 N)" 형태로만 출력한다.
 - google.cloud.storage 클라이언트로 버킷 목록을 1개만 조회해 스토리지 권한을 확인한다.
-- DefaultCredentialsError 는 잡아서 "ADC 미설정: gcloud auth application-default login 을 실행하세요" 메시지와 함께 재-raise 한다.
-- 다른 예외도 삼키지 말고 원인을 출력한 뒤 재-raise 한다.
+- DefaultCredentialsError 는 잡아서 "ADC 미설정: gcloud auth application-default login 을 실행하세요" 메시지와 함께 다시 발생(re-raise)시킨다.
+- 다른 예외도 삼키지 말고 원인을 출력한 뒤 다시 발생(re-raise)시킨다.
 ```
 
 ### 2-4.4 ✍️ 인증 확인
@@ -2565,7 +2560,7 @@ def require(name: str) -> str:
     """.env.deploy 의 필수 값을 읽는다. 없으면 즉시 실패한다."""
     value = os.getenv(name, "").strip()
     if not value:
-        raise ValueError(f"{name} 이(가) .env.deploy 에 없습니다. 3.2 절을 확인하세요.")
+        raise ValueError(f"{name} 이(가) .env.deploy 에 없습니다. 2-3.2 절을 확인하세요.")
     return value
 
 
@@ -2738,7 +2733,7 @@ fi
 source .venv/bin/activate
 
 if [ ! -f ".env.deploy" ]; then
-  echo "[오류] .env.deploy 가 없습니다. custom_agent.md 2-3.2 절을 참고하세요." >&2
+  echo "[오류] .env.deploy 가 없습니다. build_agent.md 2-3.2 절을 참고하세요." >&2
   exit 1
 fi
 
@@ -2770,7 +2765,7 @@ if (-not (Test-Path ".venv")) {
 . .\.venv\Scripts\Activate.ps1
 
 if (-not (Test-Path ".env.deploy")) {
-    Write-Error "[오류] .env.deploy 가 없습니다. custom_agent.md 2-3.2 절을 참고하세요."
+    Write-Error "[오류] .env.deploy 가 없습니다. build_agent.md 2-3.2 절을 참고하세요."
     exit 1
 }
 
@@ -2876,7 +2871,7 @@ flowchart LR
 6) 최종 리포트를 reports_remote/<타임스탬프>.md 로 저장하고 경로를 출력한다.
    (원격 컨테이너의 /tmp 파일은 휘발되므로 로컬에 저장한다)
 7) 질의는 명령행 인자를 합쳐서 쓰고, 없으면 기본 질의를 사용한다.
-8) 예외는 삼키지 말고 타입과 메시지를 출력한 뒤 재-raise 한다.
+8) 예외는 삼키지 말고 타입과 메시지를 출력한 뒤 다시 발생(re-raise)시킨다.
 ```
 
 ### 2-7.2 👀 생성된 코드 확인 (직접 작성하지 않습니다)
@@ -3041,7 +3036,7 @@ python test_remote.py "마포구 아현동 전용 84㎡ 매매 리포트"
   · delete : --name 이 없으면 deployed_agent.txt 를 사용하고,
              삭제 전에 리소스명을 보여준 뒤 "DELETE" 를 그대로 입력받아야만 진행한다.
              force=True 로 삭제하고, 성공 시 deployed_agent.txt 를 지운다.
-- 예외는 삼키지 말고 타입과 메시지를 출력한 뒤 재-raise 한다.
+- 예외는 삼키지 말고 타입과 메시지를 출력한 뒤 다시 발생(re-raise)시킨다.
 ```
 
 **✍️ 실행**
@@ -3145,7 +3140,7 @@ https://console.cloud.google.com/traces/list?project=<YOUR_PROJECT_ID>
 | 기존 업데이트 | `agent_engines.update(...)` | 리소스명 유지. 세션도 유지                       |
 
 > [!IMPORTANT]
-> **다음 실습([agy_ge.md](../agy_advance/agy_ge.md))까지 이어서 진행한다면 `update` 방식을 권장합니다.**
+> **다음 실습([agy_ge.md](agy_ge.md))까지 이어서 진행한다면 `update` 방식을 권장합니다.**
 > Gemini Enterprise 는 `projects/.../reasoningEngines/<ID>` **경로로 바인딩**하므로,
 > 새로 배포해서 ID가 바뀌면 Gemini Enterprise 쪽 등록도 다시 해야 합니다.
 >
@@ -3168,7 +3163,7 @@ agent_engines.update(resource_name, agent_engine=app, requirements=..., extra_pa
 
 > [!IMPORTANT]
 > **이 실습의 배포본은 삭제하지 말고 그대로 두세요.**
-> 다음 실습 [agy_ge.md](../agy_advance/agy_ge.md) 에서 **이 Agent Engine 리소스를 Gemini Enterprise 에 바인딩**합니다.
+> 다음 실습 [agy_ge.md](agy_ge.md) 에서 **이 Agent Engine 리소스를 Gemini Enterprise 에 바인딩**합니다.
 > 삭제하면 처음부터 다시 배포(5~10분)해야 합니다.
 
 ### 2-9.1 ✍️ 다음 실습에 넘길 값 확인하기
@@ -3376,7 +3371,7 @@ https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 **다음 실습 인계 (기본)**
 
 - [ ] 배포본을 **삭제하지 않고 유지**했다
-- [ ] `GCP_PROJECT_ID` / `GCP_REGION` / `REASONING_ENGINE_ID` 세 값을 메모했다 (9.1 절)
+- [ ] `GCP_PROJECT_ID` / `GCP_REGION` / `REASONING_ENGINE_ID` 세 값을 메모했다 (2-9.1 절)
 - [ ] `manage.py list` 에 남아 있는 배포본이 **필요한 것 하나뿐**이다
 
 **정리 (전체 과정을 끝낸 경우에만)**
@@ -3416,7 +3411,7 @@ https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 ## 2-13. 다음 단계
 
 > [!IMPORTANT]
-> **바로 이어서 [agy_ge.md](../agy_advance/agy_ge.md) 로 진행하세요.**
+> **바로 이어서 [agy_ge.md](agy_ge.md) 로 진행하세요.**
 > 2-9.1 절에서 메모한 세 값을 그대로 사용합니다.
 >
 > | 이 실습에서 얻은 값    | `agy_ge.md` 에서 쓰는 환경변수 |
@@ -3425,8 +3420,8 @@ https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 > | 배포 리전              | `GCP_REGION`                   |
 > | 리소스 경로의 맨 뒤 ID | `REASONING_ENGINE_ID`          |
 
-- [agy_ge.md](../agy_advance/agy_ge.md) — 배포한 Agent Engine 을 **Gemini Enterprise** 에 커스텀 에이전트로 등록하기
-- [agy_features.md](../agy_advance/agy_features.md) — Antigravity 의 Agent · Skill · Rule · MCP 확장
+- [agy_ge.md](agy_ge.md) — 배포한 Agent Engine 을 **Gemini Enterprise** 에 커스텀 에이전트로 등록하기
+- [agy_features.md](agy_features.md) — Antigravity 의 Agent · Skill · Rule · MCP 확장
 - [agy_command.md](../agy_basic/agy_command.md) — `/planning`, `/diff`, `/tasks` 등 Antigravity 명령어 상세
 - **Chapter 1로 되돌아가기** — 에이전트 로직을 개선한 뒤 [2-8. 재배포](#2-8-step-5-선택-코드-수정-후-재배포) 의 `update` 방식으로 **리소스명을 유지한 채** 다시 배포
 
