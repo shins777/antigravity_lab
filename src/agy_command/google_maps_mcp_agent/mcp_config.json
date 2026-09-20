@@ -3,7 +3,7 @@
     "google-maps": {
       "command": "python",
       "args": [
-        "${workspaceFolder}/lab/agy_command/google_maps_mcp_agent/mcp_server.py"
+        "${workspaceFolder}/src/agy_command/google_maps_mcp_agent/mcp_server.py"
       ],
       "env": {
         "GOOGLE_MAPS_API_KEY": "${env:GOOGLE_MAPS_API_KEY}"

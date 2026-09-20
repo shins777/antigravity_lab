@@ -41,10 +41,10 @@ sequenceDiagram
 
 ## 3. Location & File Structure
 
-Target directory: `/Users/hangsik/Documents/my_project/antigravity_lab/lab/agy_command/adk_search_agent/`
+Target directory: `/Users/hangsik/Documents/my_project/antigravity_lab/src/agy_command/adk_search_agent/`
 
 ```text
-lab/agy_command/adk_search_agent/
+src/agy_command/adk_search_agent/
 ├── __init__.py
 ├── agent.py               # Core ADK WebSearchAgent class (set_up, query)
 ├── tools.py               # Web search tool definitions & helpers
@@ -57,7 +57,7 @@ lab/agy_command/adk_search_agent/
 
 ## 4. Proposed File Details
 
-#### `lab/agy_command/adk_search_agent/requirements.txt`
+#### `src/agy_command/adk_search_agent/requirements.txt`
 
 - `google-cloud-aiplatform>=1.60.0`
 - `pydantic>=2.0.0`
@@ -65,7 +65,7 @@ lab/agy_command/adk_search_agent/
 
 ---
 
-#### `lab/agy_command/adk_search_agent/tools.py`
+#### `src/agy_command/adk_search_agent/tools.py`
 
 Defines search tool schemas and functions:
 
@@ -81,7 +81,7 @@ class SearchResultItem(BaseModel):
 
 ---
 
-#### `lab/agy_command/adk_search_agent/agent.py`
+#### `src/agy_command/adk_search_agent/agent.py`
 
 ADK-compliant Agent class compatible with Vertex AI Reasoning Engine:
 
@@ -121,7 +121,7 @@ class WebSearchAgent:
 
 ---
 
-#### `lab/agy_command/adk_search_agent/main.py`
+#### `src/agy_command/adk_search_agent/main.py`
 
 CLI runner for querying the ADK Web Search Agent:
 
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 ### Automated & Unit Tests
 
 1. **Dependency Check**: Ensure dependencies in `requirements.txt` are installed.
-2. **Execution Test**: Execute `python lab/agy_command/adk_search_agent/main.py "Python 3.12 new features"` and verify:
+2. **Execution Test**: Execute `python src/agy_command/adk_search_agent/main.py "Python 3.12 new features"` and verify:
    - Live website grounding is triggered.
    - Output contains formatted text, citations, and source URLs.
 

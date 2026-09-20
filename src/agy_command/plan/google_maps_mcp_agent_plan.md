@@ -48,7 +48,7 @@ sequenceDiagram
 ## 3. Directory Layout
 
 ```text
-lab/agy_command/google_maps_mcp_agent/
+src/agy_command/google_maps_mcp_agent/
 ├── __init__.py                  # Package exports
 ├── agent.py                     # Vertex AI Reasoning Engine Agent class
 ├── http_mcp_server.py           # Streamable HTTP MCP Server (FastAPI + SSE + JSON-RPC)
@@ -74,17 +74,17 @@ lab/agy_command/google_maps_mcp_agent/
 
 1. **Run Tests Locally**:
    ```bash
-   python3 -m unittest lab/agy_command/google_maps_mcp_agent/tests/test_mcp_agent.py
+   python3 -m unittest src/agy_command/google_maps_mcp_agent/tests/test_mcp_agent.py
    ```
 2. **Deploy MCP Server to Cloud Run**:
    ```bash
-   ./lab/agy_command/google_maps_mcp_agent/deploy_cloud_run.sh
+   ./src/agy_command/google_maps_mcp_agent/deploy_cloud_run.sh
    ```
 3. **Deploy ADK Agent to Vertex AI Agent Engine**:
    ```bash
-   python3 lab/agy_command/google_maps_mcp_agent/deploy_agent_engine.py
+   python3 src/agy_command/google_maps_mcp_agent/deploy_agent_engine.py
    ```
 4. **Test Remote Inference**:
    ```bash
-   python3 lab/agy_command/google_maps_mcp_agent/test_remote_agent_engine.py --resource="<RESOURCE_NAME>"
+   python3 src/agy_command/google_maps_mcp_agent/test_remote_agent_engine.py --resource="<RESOURCE_NAME>"
    ```

@@ -16,7 +16,7 @@ Google Cloud **ADK (Agent Development Kit)** 및 **Vertex AI Gemini Search Groun
 ## 2. 디렉터리 구조
 
 ```text
-lab/agy_command/adk_search_agent/
+src/agy_command/adk_search_agent/
 ├── __init__.py           # 패키지 진입점
 ├── agent.py              # ADK WebSearchAgent 클래스 구현
 ├── tools.py              # 검색 스키마 및 출처 포맷팅 유틸리티
@@ -40,7 +40,7 @@ lab/agy_command/adk_search_agent/
 2. **의존성 패키지 설치**:
 
    ```bash
-   pip install -r lab/agy_command/adk_search_agent/requirements.txt
+   pip install -r src/agy_command/adk_search_agent/requirements.txt
    ```
 
 3. **Google Cloud 인증 (ADC)**:
@@ -52,7 +52,7 @@ lab/agy_command/adk_search_agent/
 
 4. **환경 변수 설정 (선택 사항)**:
    ```bash
-   cp lab/agy_command/adk_search_agent/.env.example lab/agy_command/adk_search_agent/.env
+   cp src/agy_command/adk_search_agent/.env.example src/agy_command/adk_search_agent/.env
    ```
 
 ---
@@ -62,7 +62,7 @@ lab/agy_command/adk_search_agent/
 ### 1) 단일 질의 실행 (CLI Argument)
 
 ```bash
-python lab/agy_command/adk_search_agent/main.py "Google Antigravity latest features and tutorials"
+python src/agy_command/adk_search_agent/main.py "Google Antigravity latest features and tutorials"
 ```
 
 ### 2) 대화형 모드 (Interactive Mode)
@@ -70,7 +70,7 @@ python lab/agy_command/adk_search_agent/main.py "Google Antigravity latest featu
 인자 없이 실행하면 연속해서 질문할 수 있는 대화형 프롬프트가 실행됩니다:
 
 ```bash
-python lab/agy_command/adk_search_agent/main.py
+python src/agy_command/adk_search_agent/main.py
 ```
 
 ```text
@@ -82,7 +82,7 @@ python lab/agy_command/adk_search_agent/main.py
 ### 3) 사용자 지정 옵션 사용
 
 ```bash
-python lab/agy_command/adk_search_agent/main.py \
+python src/agy_command/adk_search_agent/main.py \
   --project="ai-hangsik" \
   --location="us-central1" \
   --model="gemini-1.5-pro-002" \
@@ -94,7 +94,7 @@ python lab/agy_command/adk_search_agent/main.py \
 ## 5. 핵심 코드 사용 예시 (Python Code)
 
 ```python
-from lab.agy_command.adk_search_agent import WebSearchAgent
+from src.agy_command.adk_search_agent import WebSearchAgent
 
 # 1. 에이전트 인스턴스 생성
 agent = WebSearchAgent(

@@ -45,7 +45,7 @@ sequenceDiagram
 ## 3. 디렉터리 구성 (Directory Structure)
 
 ```text
-lab/agy_command/google_maps_mcp_agent/
+src/agy_command/google_maps_mcp_agent/
 ├── __init__.py                  # 패키지 진입점
 ├── agent.py                     # ADK / Vertex AI Reasoning Engine 에이전트 클래스
 ├── http_mcp_server.py           # Streamable HTTP (FastAPI + SSE + JSON-RPC) MCP 서버
@@ -72,7 +72,7 @@ lab/agy_command/google_maps_mcp_agent/
 1. **템플릿 복사하여 `.env` 파일 생성**:
 
    ```bash
-   cp lab/agy_command/google_maps_mcp_agent/.env.example lab/agy_command/google_maps_mcp_agent/.env
+   cp src/agy_command/google_maps_mcp_agent/.env.example src/agy_command/google_maps_mcp_agent/.env
    ```
 
 2. **`.env` 파일에 Google Maps API Key 및 GCP 프로젝트 설정**:
@@ -98,17 +98,17 @@ lab/agy_command/google_maps_mcp_agent/
 
 ```bash
 # 1) 단위 테스트 전체 실행 (Stdio, HTTP RPC, Health check)
-python -m unittest lab/agy_command/google_maps_mcp_agent/tests/test_mcp_agent.py
+python -m unittest src/agy_command/google_maps_mcp_agent/tests/test_mcp_agent.py
 
 # 2) 로컬 MCP 서버 독립 진단
-python lab/agy_command/google_maps_mcp_agent/main.py --test-mcp
+python src/agy_command/google_maps_mcp_agent/main.py --test-mcp
 ```
 
 ### Step 2: GCP Cloud Run에 Streamable HTTP MCP Server 배포
 
 ```bash
 # Cloud Run 배포 스크립트 실행
-./lab/agy_command/google_maps_mcp_agent/deploy_cloud_run.sh
+./src/agy_command/google_maps_mcp_agent/deploy_cloud_run.sh
 ```
 
 배포 완료 시 출력되는 Cloud Run URL (예: `https://google-maps-mcp-server-xxxx-uc.a.run.app`)을 확인하고 `.env`의 `MCP_SERVER_URL`에 저장합니다.
@@ -116,7 +116,7 @@ python lab/agy_command/google_maps_mcp_agent/main.py --test-mcp
 ### Step 3: GCP Vertex AI Agent Engine (Reasoning Engine)에 에이전트 배포
 
 ```bash
-python lab/agy_command/google_maps_mcp_agent/deploy_agent_engine.py
+python src/agy_command/google_maps_mcp_agent/deploy_agent_engine.py
 ```
 
 배포 성공 시 다음과 같은 리소스 이름이 발급됩니다:
@@ -128,7 +128,7 @@ Resource Name: projects/123456789/locations/us-central1/reasoningEngines/9876543
 ### Step 4: 원격 배포된 Agent Engine 테스트
 
 ```bash
-python lab/agy_command/google_maps_mcp_agent/test_remote_agent_engine.py \
+python src/agy_command/google_maps_mcp_agent/test_remote_agent_engine.py \
   --resource="projects/<PROJECT_ID>/locations/us-central1/reasoningEngines/<ENGINE_ID>" \
   "서울역에서 여의도까지 대중교통 이동 방법 및 소요 시간 알려줘"
 ```

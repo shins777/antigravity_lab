@@ -26,7 +26,7 @@
 ## 2. 디렉터리 구성
 
 ```text
-lab/cpu_dashboard/
+src/cpu_dashboard/
 ├── app.py           # Streamlit 메인 대시보드 애플리케이션
 ├── metrics.py       # psutil 기반 시스템 및 프로세스 메트릭 수집 모듈
 ├── run.sh           # 대시보드 실행 쉘 스크립트
@@ -41,17 +41,17 @@ lab/cpu_dashboard/
 ### 1) 의존성 패키지 설치
 
 ```bash
-pip install -r lab/cpu_dashboard/requirements.txt
+pip install -r src/cpu_dashboard/requirements.txt
 ```
 
 ### 2) 대시보드 실행
 
 ```bash
 # 방법 1: 쉘 스크립트 실행
-./lab/cpu_dashboard/run.sh
+./src/cpu_dashboard/run.sh
 
 # 방법 2: 직접 streamlit 실행
-streamlit run lab/cpu_dashboard/app.py
+streamlit run src/cpu_dashboard/app.py
 ```
 
 실행 후 브라우저가 자동으로 열리거나 `http://localhost:8501`에 접속하여 확인할 수 있습니다.
