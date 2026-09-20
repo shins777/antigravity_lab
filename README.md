@@ -28,8 +28,7 @@ antigravity_lab/
 │   │   └── agy_ge.md                        # Gemini Enterprise 등록 및 연동
 │   │
 │   ├── build_agent/                         # 에이전트 구축 과정
-│   │   ├── remote_agent.md                  # ADK 에이전트 개발 및 Agent Engine 원격 배포
-│   │   └── local_agent.md                   # (준비 중)
+│   │   └── custom_agent.md                  # Ch1 ADK 멀티 에이전트 개발 + Ch2 Agent Engine 배포
 │   │
 │   └── build_mcp/                           # (준비 중) MCP 서버 구축 과정
 │
