@@ -219,8 +219,11 @@ __marimo__/
 
 # Gemini (AGY)환경파일
 .gemini
+.gemini/
 .agents
 .agents/
+GEMINI.md
+AGENTS.md
 
 # --- Secrets & credentials -------------------------------------------------
 # NOTE: a bare `.env` entry does NOT match `.env.local` / `.env.production`
