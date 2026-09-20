@@ -55,14 +55,27 @@ flowchart LR
 
 ### 0.3 OS별 표기 규칙
 
-| 표기                     | 의미                                                       |
-| :----------------------- | :--------------------------------------------------------- |
-| **macOS / Linux**        | macOS(zsh) 및 Linux(bash) 터미널에서 실행                  |
-| **Windows (PowerShell)** | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
-| **모든 OS 동일**         | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
+| 표기                            | 의미                                                       |
+| :------------------------------ | :--------------------------------------------------------- |
+| **macOS / Linux / Cloud Shell** | macOS(zsh) 및 Linux(bash) 터미널 및 Cloud Shell에서 실행   |
+| **Windows (PowerShell)**        | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
+| **모든 OS 동일**                | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
 
-- **WSL2 / Git Bash / GCP Cloud Shell** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
+- **WSL2 / Git Bash** 사용자도 `macOS / Linux / Cloud Shell` 블록을 그대로 사용하세요.
 - Windows에서는 `python3` → `python`, `curl` → `curl.exe`, `/` → `\` 로 바뀌는 점에 유의하세요.
+
+### 0.4 다중 사용자 및 교육 환경 식별자 규칙 (USER_ID)
+
+> [!IMPORTANT]
+> **공용 GCP 프로젝트 환경에서의 자원 충돌 방지**
+> 여러 개발자 또는 교육생이 동일한 GCP 프로젝트(`PROJECT_ID`)를 공유하는 교육/워크숍 환경에서는 동일한 이름의 에이전트, Cloud Storage 버킷, 세션 ID를 사용하면 자원이 덮어써지거나 배포 충돌이 발생할 수 있습니다.
+>
+> - 본 실습에서는 각 개발자별 고유 식별자 **`USER_ID`**(예: `user001`, `user002`, 또는 본인의 영문 이니셜)를 정의하여 모든 자원 명명에 접미사로 사용합니다.
+> - **에이전트 이름**: `realestate_report_pipeline_${USER_ID}` (예: `realestate_report_pipeline_user001`)
+> - **배포 디스플레이명**: `realestate-report-agent-${USER_ID}` (예: `realestate-report-agent-user001`)
+> - **GCS 버킷명**: `gs://${PROJECT_ID}-${USER_ID}-agent-staging`
+> - **세션 사용자 ID**: `user_id = os.getenv("USER_ID", "user001")`
+> - **환경변수 설정**: `.env` 및 `.env.deploy` 파일에 `USER_ID=<YOUR_USER_ID>` (예: `user001`)를 지정해 두면 스크립트와 배포 도구가 자동으로 이를 반영합니다.
 
 ---
 
@@ -473,6 +486,7 @@ GOOGLE_GENAI_USE_VERTEXAI=TRUE
 GOOGLE_CLOUD_PROJECT=<YOUR_PROJECT_ID>
 GOOGLE_CLOUD_LOCATION=global
 REPORT_MODEL=gemini-3.8-flash
+USER_ID=<YOUR_USER_ID>
 EOF
 
 cat realestate_agent/.env
@@ -487,12 +501,13 @@ GOOGLE_GENAI_USE_VERTEXAI=TRUE
 GOOGLE_CLOUD_PROJECT=<YOUR_PROJECT_ID>
 GOOGLE_CLOUD_LOCATION=global
 REPORT_MODEL=gemini-3.8-flash
+USER_ID=<YOUR_USER_ID>
 "@ | Set-Content -Encoding ascii realestate_agent\.env
 
 Get-Content realestate_agent\.env
 ```
 
-`<YOUR_PROJECT_ID>` 를 자신의 GCP 프로젝트 ID로 바꾸고, ADC가 설정되어 있는지 확인합니다.
+`<YOUR_PROJECT_ID>` 를 자신의 GCP 프로젝트 ID로, `<YOUR_USER_ID>` 는 본인에게 할당된 식별자(예: `user001`, `user002`, 본인 이니셜 등)로 변경합니다. 그리고 ADC가 설정되어 있는지 확인합니다.
 
 **macOS / Linux / Cloud Shell**
 
@@ -584,7 +599,7 @@ agy
 2) .gitignore — .venv/, __pycache__/, *.pyc, .env, **/.env, reports/ 를 포함한다.
 
 3) realestate_agent/.env.example — realestate_agent/.env 와 같은 키를 두되
-   값은 모두 <YOUR_PROJECT_ID> 같은 placeholder 로 비워 둔다. 실제 값은 절대 넣지 마.
+   값은 모두 <YOUR_PROJECT_ID>, <YOUR_USER_ID> 같은 placeholder 로 비워 둔다. 실제 값은 절대 넣지 마.
 ```
 
 > [!CAUTION]
@@ -625,6 +640,7 @@ agy
 - google_search 도구 하나만 가진 LlmAgent 를 root_agent 라는 이름으로 정의한다.
 - 이름은 market_searcher, 역할은 한국 부동산 시세·거래 동향 검색.
 - 모델은 .env 의 REPORT_MODEL 을 읽고, 기본값은 gemini-3.8-flash.
+- 사용자 ID는 .env 의 USER_ID 를 읽고, 기본값은 user001.
 - generate_content_config 는 ThinkingConfig(thinking_level="MEDIUM") 만 설정한다.
 - instruction 에는 다음 규칙을 넣는다:
   · google_search 를 최소 3회, 서로 다른 키워드로 사용할 것
@@ -656,6 +672,7 @@ from google.adk.tools import google_search
 from google.genai import types
 
 MODEL = os.getenv("REPORT_MODEL", "gemini-3.8-flash")
+USER_ID = os.getenv("USER_ID", "user001")
 
 MARKET_INSTRUCTION = """
 당신은 한국 부동산 시세·거래 동향 조사 담당자다.
@@ -796,7 +813,7 @@ flowchart LR
    - market_searcher(google_search 단독, output_key="market_findings", thinking_level MEDIUM)
    - report_writer(LlmAgent, 도구 없음, output_key="final_report", thinking_level HIGH)
    - root_agent 를 SequentialAgent 로 바꾸고 위 3개를 순서대로 sub_agents 에 넣는다.
-     이름은 realestate_report_pipeline, before_agent_callback=init_state.
+     이름은 realestate_report_pipeline_${USER_ID} (예: .env 의 USER_ID 를 읽어 realestate_report_pipeline_user001 로 명명), before_agent_callback=init_state.
 ```
 
 ### 1-6.2 👀 생성된 코드 확인 (직접 작성하지 않습니다)
@@ -893,6 +910,7 @@ from google.genai import types
 from . import prompts
 
 MODEL = os.getenv("REPORT_MODEL", "gemini-3.8-flash")
+USER_ID = os.getenv("USER_ID", "user001")
 
 
 def gen_cfg(level: str) -> types.GenerateContentConfig:
@@ -937,7 +955,7 @@ report_writer = LlmAgent(
 )
 
 root_agent = SequentialAgent(
-    name="realestate_report_pipeline",
+    name=f"realestate_report_pipeline_{USER_ID}",
     description="부동산 리포트를 조사·작성하는 파이프라인",
     sub_agents=[planner, market_searcher, report_writer],
     before_agent_callback=init_state,
@@ -975,7 +993,7 @@ adk web
 > [!TIP]
 > **Cloud Shell 리마인더:** Cloud Shell 에서는 브라우저 교차 출처 세션 차단(`403 Forbidden`)을 방지하기 위해 매번 **`--allow_origins "*"`** 플래그를 붙여 실행하세요.
 
-브라우저 ADK Web UI 좌측 상단 드롭다운에서 **`realestate_report_pipeline`** 을 선택하고, 아래 질문을 전송합니다.
+브라우저 ADK Web UI 좌측 상단 드롭다운에서 **`realestate_report_pipeline_user001`** (또는 `.env` 에 설정한 본인의 USER_ID 가 붙은 에이전트명)을 선택하고, 아래 질문을 전송합니다.
 
 **테스트 권장 질의 (추천 질문)**
 
@@ -1043,7 +1061,7 @@ flowchart LR
    검색 에이전트 생성을 공통화한다.
 
 4) 검색 에이전트 4개를 ParallelAgent(name="research_team") 로 묶고,
-   root_agent 의 sub_agents 를 [planner, research_team, report_writer] 로 바꾼다.
+   root_agent 의 sub_agents 를 [planner, research_team, report_writer] 로 바꾸며 기존 root_agent 이름(realestate_report_pipeline_${USER_ID})을 유지한다.
 
 주의: ParallelAgent 하위 에이전트의 output_key 는 절대 겹치면 안 된다.
 ```
@@ -1110,7 +1128,7 @@ research_team = ParallelAgent(
 )
 
 root_agent = SequentialAgent(
-    name="realestate_report_pipeline",
+    name=f"realestate_report_pipeline_{USER_ID}",
     description="부동산 리포트를 조사·작성하는 파이프라인",
     sub_agents=[planner, research_team, report_writer],
     before_agent_callback=init_state,
@@ -1226,7 +1244,7 @@ flowchart LR
    gap_filler 는 make_searcher 로 만들고 output_key="gap_findings".
    두 에이전트를 LoopAgent(name="refinement_loop", max_iterations=2) 로 묶는다.
 
-4) root_agent 의 sub_agents 를 [planner, research_team, refinement_loop, report_writer] 로 바꾼다.
+4) root_agent 의 sub_agents 를 [planner, research_team, refinement_loop, report_writer] 로 바꾸며 기존 root_agent 이름(realestate_report_pipeline_${USER_ID})을 유지한다.
 5) WRITER 프롬프트 근거 자료에 [보완] {gap_findings?} 를 추가한다.
 
 주의: critic 은 google_search 를 갖지 않는다. 검색 도구와 function tool 을 섞으면 안 된다.
@@ -1317,7 +1335,7 @@ refinement_loop = LoopAgent(
 )
 
 root_agent = SequentialAgent(
-    name="realestate_report_pipeline",
+    name=f"realestate_report_pipeline_{USER_ID}",
     description="부동산 리포트를 조사·검증·작성하는 파이프라인",
     sub_agents=[planner, research_team, refinement_loop, report_writer],
     before_agent_callback=init_state,
@@ -1603,7 +1621,7 @@ Step 5까지 오면 아래 구조가 완성됩니다. 지금 만든 것이 무�
 flowchart TD
     U["사용자 요청"] --> ROOT
 
-    subgraph ROOT["realestate_report_pipeline (SequentialAgent) · root_agent"]
+    subgraph ROOT["realestate_report_pipeline_${USER_ID} (SequentialAgent) · root_agent"]
       direction TB
       P["planner (LlmAgent, 도구 없음)<br/>→ research_plan"]
       RT["research_team (ParallelAgent)"]
@@ -1646,6 +1664,7 @@ flowchart TD
 프로젝트 루트에 run_local.py 를 만들어줘.
 
 - dotenv 로 realestate_agent/.env 를 로드한다.
+- user_id 는 .env 의 USER_ID(기본값 user001)를 읽어 세션을 생성하고 실행한다.
 - google.adk.runners.Runner 와 InMemorySessionService 를 사용한다.
 - 명령행 인자를 합쳐 질의로 쓰고, 인자가 없으면 기본 질의를 사용한다.
 - runner.run_async 로 이벤트를 순회하며 최종 응답만 [에이전트명] 접두어와 함께 앞 400자를 출력한다.
@@ -1665,6 +1684,7 @@ flowchart TD
 
 ```python
 import asyncio
+import os
 import sys
 
 from dotenv import load_dotenv
@@ -1681,19 +1701,20 @@ APP = "realestate_report"
 
 
 async def main(query: str) -> None:
+    user_id = os.getenv("USER_ID", "user001")
     svc = InMemorySessionService()
     runner = Runner(agent=root_agent, app_name=APP, session_service=svc)
-    session = await svc.create_session(app_name=APP, user_id="local")
+    session = await svc.create_session(app_name=APP, user_id=user_id)
     msg = types.Content(role="user", parts=[types.Part(text=query)])
 
     async for ev in runner.run_async(
-        user_id="local", session_id=session.id, new_message=msg
+        user_id=user_id, session_id=session.id, new_message=msg
     ):
         if ev.is_final_response() and ev.content and ev.content.parts:
             text = ev.content.parts[0].text or ""
             print(f"\n[{ev.author}] {text[:400]}")
 
-    final = await svc.get_session(app_name=APP, user_id="local", session_id=session.id)
+    final = await svc.get_session(app_name=APP, user_id=user_id, session_id=session.id)
     print("\n저장 위치:", final.state.get("report_path"))
 
 
@@ -1963,6 +1984,7 @@ from google.genai import types
 from . import prompts
 
 MODEL = os.getenv("REPORT_MODEL", "gemini-3.8-flash")
+USER_ID = os.getenv("USER_ID", "user001")
 REPORT_DIR = pathlib.Path(os.getenv("REPORT_DIR", "reports"))
 
 
@@ -2096,7 +2118,7 @@ report_writer = LlmAgent(
 )
 
 root_agent = SequentialAgent(
-    name="realestate_report_pipeline",
+    name=f"realestate_report_pipeline_{USER_ID}",
     description="부동산 리포트를 조사·검증·작성하는 파이프라인",
     sub_agents=[planner, research_team, refinement_loop, report_writer],
     before_agent_callback=init_state,
@@ -2202,7 +2224,7 @@ sequenceDiagram
 
 ### 2-2.2 필요한 IAM 역할
 
-본인 계정에 아래 역할이 있어야 합니다. 없다면 **프로젝트 관리자에게 요청**하세요.
+본인 계정에 아래 역할이 있어야 합니다. 아래 권한은 이미 사용자들에게 부여되었습니다. 혹시 없다고 에러가 나면, **프로젝트 관리자에게 요청**하세요.
 
 | 역할                 | ID                                        | 용도                      |
 | :------------------- | :---------------------------------------- | :------------------------ |
@@ -2213,35 +2235,23 @@ sequenceDiagram
 > [!TIP]
 > 삭제(`agent_engines.delete`)까지 하려면 `roles/aiplatform.admin` 이 있으면 편합니다.
 
-### 2-2.3 API 활성화
+### 2-2.3 배포 리전 (us-central1 고정) 및 모델 엔드포인트 위치
 
-✍️ 1-3 절에서 이미 활성화했다면 건너뜁니다. (**모든 OS 동일**)
-
-```bash
-cd ~/antigravity-lab/custom_agent
-gcloud services enable aiplatform.googleapis.com storage.googleapis.com
-```
-
-🌐 콘솔에서 확인하거나 활성화하려면 아래 링크에서 **[사용 설정]** 을 클릭합니다.
-
-| API               | 콘솔 링크                                                                                           |
-| :---------------- | :-------------------------------------------------------------------------------------------------- |
-| Vertex AI API     | `https://console.cloud.google.com/apis/library/aiplatform.googleapis.com?project=<YOUR_PROJECT_ID>` |
-| Cloud Storage API | `https://console.cloud.google.com/apis/library/storage.googleapis.com?project=<YOUR_PROJECT_ID>`    |
+| 구분                           | 환경변수명              | 설정값                   | 설명                                                     |
+| :----------------------------- | :---------------------- | :----------------------- | :------------------------------------------------------- |
+| **Agent Engine 호스팅 리전**   | `AGENT_ENGINE_LOCATION` | **`us-central1`** (고정) | 컨테이너 및 세션 인프라가 배포되는 위치 (`global` 불가)  |
+| **Gemini 모델 API 엔드포인트** | `GOOGLE_CLOUD_LOCATION` | **`global`**             | 에이전트가 `gemini-3.8-flash` 모델을 호출하는 엔드포인트 |
+| 한국 리전 참고                 | -                       | `asia-northeast3` (서울) | GCP 서울 리전 표기 참고                                  |
 
 > [!NOTE]
-> 배포 중 `cloudbuild` / `artifactregistry` 관련 오류가 나면 같은 방식으로 추가 활성화하세요.
-
-### 2-2.4 배포 리전 선택
-
-| 항목             | 값                                                                           |
-| :--------------- | :--------------------------------------------------------------------------- |
-| 권장 리전        | `us-central1` (기본) 또는 `asia-northeast1`                                  |
-| **사용 불가 값** | `global` ← Chapter 1 `.env` 에서 쓰던 값이지만 **Agent Engine 은 리전 필수** |
+> **인프라 위치와 모델 호출 위치의 분리 (핵심 설계)**
+>
+> 1. **Agent Engine 인프라**: Google Cloud의 한국 리전은 **`asia-northeast3` (서울)** 이지만, Vertex AI Agent Engine의 최신 기능 지원 및 안정적인 배포 환경을 위해 인프라 배포 리전은 **`us-central1` 로 고정**합니다. (`global` 리전은 인프라 배포를 지원하지 않습니다.)
+> 2. **Gemini 모델 호출**: 컨테이너 안에서 동작하는 에이전트가 로컬과 동일하게 최신 `gemini-3.8-flash` 모델을 사용하려면 모델 호출 엔드포인트(`GOOGLE_CLOUD_LOCATION`)를 **`global`** 로 지정하여 컨테이너 환경변수에 주입해야 합니다.
 
 > [!WARNING]
-> Chapter 1 `realestate_agent/.env` 의 `GOOGLE_CLOUD_LOCATION=global` 을 그대로 쓰면 배포가 실패합니다.
-> 배포용 설정 파일(`.env.deploy`)에서는 반드시 **리전 값**을 사용합니다.
+> `.env.deploy` 에서 `AGENT_ENGINE_LOCATION=global` 을 쓰면 배포 자체가 실패합니다.
+> Agent Engine 인프라 리전은 반드시 **`us-central1`** 을 사용하고, 모델 엔드포인트(`GOOGLE_CLOUD_LOCATION`)에만 **`global`** 을 사용하세요.
 
 ---
 
@@ -2251,7 +2261,7 @@ gcloud services enable aiplatform.googleapis.com storage.googleapis.com
 
 ### 2-3.1 ✍️ 패키지 설치
 
-**macOS / Linux**
+**macOS / Linux / Cloud Shell**
 
 ```bash
 cd ~/antigravity-lab/custom_agent
@@ -2281,15 +2291,17 @@ python -c "import vertexai; from vertexai import agent_engines; print('SDK OK', 
 
 로컬 실행용 `realestate_agent/.env` 와 **분리**합니다. (리전 값이 다르기 때문)
 
-**macOS / Linux**
+**macOS / Linux / Cloud Shell**
 
 ```bash
 cd ~/antigravity-lab/custom_agent
 cat > .env.deploy <<'EOF'
 GOOGLE_CLOUD_PROJECT=<YOUR_PROJECT_ID>
 AGENT_ENGINE_LOCATION=us-central1
-STAGING_BUCKET=gs://<YOUR_PROJECT_ID>-agent-staging
-AGENT_DISPLAY_NAME=realestate-report-agent
+GOOGLE_CLOUD_LOCATION=global
+USER_ID=<YOUR_USER_ID>
+STAGING_BUCKET=gs://<YOUR_PROJECT_ID>-<YOUR_USER_ID>-agent-staging
+AGENT_DISPLAY_NAME=realestate-report-agent-<YOUR_USER_ID>
 REPORT_MODEL=gemini-3.8-flash
 EOF
 
@@ -2303,15 +2315,17 @@ Set-Location "$HOME\antigravity-lab\custom_agent"
 @"
 GOOGLE_CLOUD_PROJECT=<YOUR_PROJECT_ID>
 AGENT_ENGINE_LOCATION=us-central1
-STAGING_BUCKET=gs://<YOUR_PROJECT_ID>-agent-staging
-AGENT_DISPLAY_NAME=realestate-report-agent
+GOOGLE_CLOUD_LOCATION=global
+USER_ID=<YOUR_USER_ID>
+STAGING_BUCKET=gs://<YOUR_PROJECT_ID>-<YOUR_USER_ID>-agent-staging
+AGENT_DISPLAY_NAME=realestate-report-agent-<YOUR_USER_ID>
 REPORT_MODEL=gemini-3.8-flash
 "@ | Set-Content -Encoding ascii .env.deploy
 
 Get-Content .env.deploy
 ```
 
-`<YOUR_PROJECT_ID>` 를 실제 프로젝트 ID로 바꿉니다. **버킷은 미리 만들지 않아도 됩니다** — `deploy.py` 가 없으면 만들어 줍니다.
+`<YOUR_PROJECT_ID>` 를 실제 프로젝트 ID로, `<YOUR_USER_ID>` 는 본인의 식별자(예: `user001`, `user002`, 본인 이니셜 등)로 변경합니다. `STAGING_BUCKET` 과 `AGENT_DISPLAY_NAME` 의 `<YOUR_USER_ID>` 부분도 동일하게 맞춰주면 다른 교육생/개발자와 자원이 충돌하지 않습니다. **버킷은 미리 만들지 않아도 됩니다** — `deploy.py` 가 없으면 만들어 줍니다.
 
 > [!CAUTION]
 > `.env.deploy` 에는 프로젝트 ID가 들어갑니다. **`.gitignore` 에 반드시 추가**하세요. (3.3에서 처리)
@@ -2329,8 +2343,8 @@ deployed_agent.txt
 service-account*.json
 
 그리고 프로젝트 루트에 .env.deploy.example 을 만들어줘.
-.env.deploy 와 같은 키를 두되 값은 <YOUR_PROJECT_ID> 같은 placeholder 로만 채운다.
-실제 프로젝트 ID 는 절대 넣지 마.
+.env.deploy 와 같은 키를 두되 값은 <YOUR_PROJECT_ID>, <YOUR_USER_ID> 같은 placeholder 로만 채운다.
+실제 프로젝트 ID 나 사용자 식별자는 절대 넣지 마.
 ```
 
 ✅ **Step 0 확인**
@@ -2471,10 +2485,13 @@ ADC 프로젝트  : my-gcp-project
 
 1) 설정 로드
    - python-dotenv 로 .env.deploy 를 로드한다.
-   - GOOGLE_CLOUD_PROJECT 와 STAGING_BUCKET 은 필수. 없으면 ValueError 를 raise 한다.
+   - USER_ID 기본값 user001.
+   - GOOGLE_CLOUD_PROJECT 는 필수. 없으면 ValueError 를 raise 한다.
+   - STAGING_BUCKET 기본값 gs://<PROJECT_ID>-<USER_ID>-agent-staging (환경변수에 있으면 그것을 사용).
    - AGENT_ENGINE_LOCATION 기본값 us-central1, 값이 "global" 이면 ValueError 를 raise 한다.
-     (Agent Engine 은 리전만 지원)
-   - AGENT_DISPLAY_NAME 기본값 realestate-report-agent.
+     (Agent Engine 인프라는 리전만 지원)
+   - GOOGLE_CLOUD_LOCATION 기본값 global (원격 컨테이너 내부 모델 호출용)
+   - AGENT_DISPLAY_NAME 기본값 realestate-report-agent-<USER_ID>.
 
 2) 스테이징 버킷 보장
    - google.cloud.storage 로 버킷 존재를 확인하고, NotFound 면 리전에 생성한다.
@@ -2488,14 +2505,14 @@ ADC 프로젝트  : my-gcp-project
 4) 배포
    - vertexai.init(project, location, staging_bucket) 호출.
    - from vertexai.agent_engines import AdkApp 로 AdkApp(agent=root_agent, enable_tracing=True) 생성.
-   - os.chdir(".deploy_build") 후 vertexai.agent_engines.create(
+   - from vertexai import agent_engines 를 임포트하고, os.chdir(".deploy_build") 후 agent_engines.create(
        app,
        requirements=["google-cloud-aiplatform[adk,agent-engines]>=1.112.0", "google-adk>=1.0.0"],
        extra_packages=["realestate_agent"],
-       env_vars={"REPORT_MODEL": ..., "REPORT_DIR": "/tmp/reports"},
+       env_vars={"USER_ID": user_id, "REPORT_MODEL": model, "GOOGLE_CLOUD_LOCATION": model_location, "REPORT_DIR": "/tmp/reports"},
        display_name=..., description=...)
      를 호출한다.
-   - GOOGLE_CLOUD_PROJECT / GOOGLE_CLOUD_LOCATION 은 런타임이 자동 주입하므로 env_vars 에 넣지 않는다.
+   - GOOGLE_CLOUD_LOCATION 은 .env.deploy 의 값(기본값 global)을 env_vars 로 컨테이너에 전달하여 원격에서도 gemini-3.8-flash 모델을 정상 호출할 수 있게 한다.
 
 5) 결과 출력
    - resource_name 을 프로젝트 루트 deployed_agent.txt 에 저장한다.
@@ -2557,7 +2574,7 @@ def resolve_location() -> str:
     if location == "global":
         raise ValueError(
             "Agent Engine 은 'global' 리전을 지원하지 않습니다. "
-            "us-central1 또는 asia-northeast1 을 사용하세요."
+            "us-central1 을 사용하세요."
         )
     return location
 
@@ -2605,15 +2622,19 @@ def main() -> None:
     from vertexai import agent_engines
     from vertexai.agent_engines import AdkApp
 
+    user_id = os.getenv("USER_ID", "user001").strip()
     project_id = require("GOOGLE_CLOUD_PROJECT")
-    bucket_uri = require("STAGING_BUCKET")
+    bucket_uri = os.getenv("STAGING_BUCKET", f"gs://{project_id}-{user_id}-agent-staging").strip()
     location = resolve_location()
-    display_name = os.getenv("AGENT_DISPLAY_NAME", "realestate-report-agent")
+    display_name = os.getenv("AGENT_DISPLAY_NAME", f"realestate-report-agent-{user_id}")
     model = os.getenv("REPORT_MODEL", "gemini-3.8-flash")
+    model_location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
 
     print("=" * 70)
+    print(f"사용자 ID : {user_id}")
     print(f"프로젝트 : {project_id}")
-    print(f"리전     : {location}")
+    print(f"인프라리전: {location}")
+    print(f"모델위치 : {model_location} ({model})")
     print(f"버킷     : {bucket_uri}")
     print(f"표시이름 : {display_name}")
     print("배포에는 보통 5~10분이 걸립니다. 터미널을 닫지 마세요.")
@@ -2632,7 +2653,9 @@ def main() -> None:
         requirements=REQUIREMENTS,
         extra_packages=[PACKAGE],
         env_vars={
+            "USER_ID": user_id,
             "REPORT_MODEL": model,
+            "GOOGLE_CLOUD_LOCATION": model_location,  # 컨테이너 내 global 모델 호출용
             "REPORT_DIR": "/tmp/reports",  # Agent Engine 은 /tmp 만 쓰기 가능
         },
         display_name=display_name,
@@ -2669,7 +2692,7 @@ if __name__ == "__main__":
 > 1. **`extra_packages=["realestate_agent"]`** — 이 폴더가 통째로 업로드되어 런타임에서 import 됩니다.
 >    그래서 `.deploy_build` 로 **`.env` 를 제외한 사본**을 만든 뒤 그 폴더에서 배포합니다.
 > 2. **`env_vars`** — `.env` 를 올리지 않는 대신 필요한 값만 런타임 환경변수로 전달합니다.
->    `GOOGLE_CLOUD_PROJECT` / `GOOGLE_CLOUD_LOCATION` 은 **런타임이 자동 주입**하므로 넣지 않습니다.
+>    `GOOGLE_CLOUD_PROJECT` 는 **런타임이 자동 주입**하지만, `GOOGLE_CLOUD_LOCATION=global` 은 **`us-central1` 에 배포된 컨테이너 내부에서 `global` 엔드포인트의 `gemini-3.8-flash` 모델을 호출하기 위해 명시적으로 전달**합니다.
 > 3. **`REPORT_DIR=/tmp/reports`** — 컨테이너에서 쓰기 가능한 경로는 `/tmp` 뿐입니다.
 >    원격 리포트 파일은 휘발되므로, **최종 리포트는 응답 스트림으로 받아 로컬에 저장**합니다(Step 4).
 
@@ -2699,7 +2722,7 @@ if __name__ == "__main__":
 
 ### 2-6.2 👀 생성된 스크립트 확인
 
-`deploy.sh` — **macOS / Linux**
+`deploy.sh` — **macOS / Linux / Cloud Shell**
 
 ```bash
 #!/usr/bin/env bash
@@ -2766,7 +2789,7 @@ python deploy.py @args
 
 ### 2-6.3 ✍️ 실행
 
-**macOS / Linux**
+**macOS / Linux / Cloud Shell**
 
 ```bash
 cd ~/antigravity-lab/custom_agent
@@ -2785,13 +2808,15 @@ Set-Location "$HOME\antigravity-lab\custom_agent"
 
 ```text
 ======================================================================
+사용자 ID : user001
 프로젝트 : my-gcp-project
-리전     : us-central1
-버킷     : gs://my-gcp-project-agent-staging
-표시이름 : realestate-report-agent
+인프라리전: us-central1
+모델위치 : global (gemini-3.8-flash)
+버킷     : gs://my-gcp-project-user001-agent-staging
+표시이름 : realestate-report-agent-user001
 배포에는 보통 5~10분이 걸립니다. 터미널을 닫지 마세요.
 ======================================================================
-[1/4] 스테이징 버킷 생성    : gs://my-gcp-project-agent-staging (us-central1)
+[1/4] 스테이징 버킷 생성    : gs://my-gcp-project-user001-agent-staging (us-central1)
 [2/4] 패키지 스테이징 완료  : .../.deploy_build/realestate_agent (.env 제외)
 [3/4] 업로드 및 빌드 시작...
 Identified the following requirements: ...
@@ -2839,11 +2864,13 @@ flowchart LR
    (배포가 아니므로 staging_bucket 은 필요 없다)
 2) 리소스 이름은 환경변수 AGENT_ENGINE_RESOURCE_NAME 을 먼저 보고,
    없으면 deployed_agent.txt 를 읽는다. 둘 다 없으면 FileNotFoundError 를 raise 한다.
-3) vertexai.agent_engines.get(resource_name) 으로 원격 에이전트를 가져온다.
-4) remote.create_session(user_id="lab-user") 로 세션을 만든다.
+3) from vertexai import agent_engines 로 명시적 임포트하고 agent_engines.get(resource_name) 으로 원격 에이전트를 가져온다.
+   (주의: vertexai 최상위 모듈은 agent_engines 를 자동 노출하지 않으므로 반드시 from vertexai import agent_engines 로 임포트한다)
+4) user_id = os.getenv("USER_ID", "user001") 로 사용자 식별자를 읽고, remote.create_session(user_id=user_id) 로 세션을 만든다.
    반환값이 dict 면 session["id"], 객체면 session.id 를 쓰도록 헬퍼로 처리한다.
-5) remote.stream_query(user_id=..., session_id=..., message=질의) 로 이벤트를 순회한다.
-   - 각 이벤트의 author 와 content.parts[].text 를 꺼낸다.
+5) remote.stream_query(user_id=user_id, session_id=..., message=질의) 로 이벤트를 순회한다.
+   - event 에 error_message 가 있으면 즉시 "[원격 오류] <error_code>: <error_message>" 를 출력한다.
+   - content = event.get("content") or {} 로 안전하게 꺼낸 뒤 parts 안의 text 를 추출한다.
    - author 가 바뀔 때마다 "── <author> ──" 구분선을 출력하고 텍스트는 앞 300자만 출력한다.
    - author 가 report_writer 인 텍스트는 전부 모아 최종 리포트로 보관한다.
 6) 최종 리포트를 reports_remote/<타임스탬프>.md 로 저장하고 경로를 출력한다.
@@ -2859,6 +2886,7 @@ flowchart LR
 >
 > > [!TIP]
 > > **핵심 포인트:** agy가 작성한 `test_remote.py` 코드가 아래 예시와 **완전히 똑같지 않아도 됩니다.**
+> > 단, `vertexai` 패키지는 `agent_engines` 서브모듈을 최상위 네임스페이스에서 자동 노출하지 않으므로, **`from vertexai import agent_engines` 명시적 임포트**가 포함되어 있어야 `AttributeError` 가 발생하지 않습니다.
 > > 배포된 리소스 이름 조회(`deployed_agent.txt`), 원격 세션 생성(`create_session`), 스트리밍 질의(`stream_query`), 결과 파일 저장 흐름이 **대략적으로 비슷하면 정상**이므로 코드를 억지로 똑같이 수정하려 하지 말고 **그대로 실행(2-7.3 절)으로 넘어가세요.**
 
 `test_remote.py` — **모든 OS 동일**
@@ -2908,20 +2936,25 @@ def main(query: str) -> None:
     vertexai.init(project=project_id, location=location)
 
     resource_name = resolve_resource_name()
-    print(f"대상 : {resource_name}")
-    print(f"질의 : {query}\n")
+    user_id = os.getenv("USER_ID", "user001")
+    print(f"대상   : {resource_name}")
+    print(f"사용자 : {user_id}")
+    print(f"질의   : {query}\n")
 
     remote = agent_engines.get(resource_name)
-    session = remote.create_session(user_id="lab-user")
+    session = remote.create_session(user_id=user_id)
     sid = session_id_of(session)
-    print(f"세션 : {sid}\n")
+    print(f"세션   : {sid}\n")
 
     report_parts: list[str] = []
     last_author = None
 
-    for event in remote.stream_query(user_id="lab-user", session_id=sid, message=query):
+    for event in remote.stream_query(user_id=user_id, session_id=sid, message=query):
+        if event.get("error_message"):
+            print(f"\n[원격 오류] {event.get('error_code')}: {event.get('error_message')}")
         author = event.get("author", "unknown")
-        for part in event.get("content", {}).get("parts", []):
+        content = event.get("content") or {}
+        for part in content.get("parts", []):
             text = part.get("text")
             if not text:
                 continue
@@ -2970,10 +3003,11 @@ python test_remote.py "마포구 아현동 전용 84㎡ 매매 리포트"
 출력 예시
 
 ```text
-대상 : projects/123.../locations/us-central1/reasoningEngines/789...
-질의 : 마포구 아현동 전용 84㎡ 매매 리포트
+대상   : projects/123.../locations/us-central1/reasoningEngines/789...
+사용자 : user001
+질의   : 마포구 아현동 전용 84㎡ 매매 리포트
 
-세션 : 4e1f...
+세션   : 4e1f...
 
 ── planner ────────────────────────────────
 ## 대상
@@ -2999,9 +3033,10 @@ python test_remote.py "마포구 아현동 전용 84㎡ 매매 리포트"
 프로젝트 루트에 manage.py 를 만들어줘. 배포된 Agent Engine 을 관리하는 간단한 CLI 다.
 
 - python-dotenv 로 .env.deploy 를 로드하고 vertexai.init(project, location) 을 호출한다.
+- from vertexai import agent_engines 로 임포트한다. (vertexai 최상위 모듈이 agent_engines 를 자동 노출하지 않으므로 명시적 임포트)
 - 서브커맨드 3개를 argparse 로 만든다.
-  · list   : vertexai.agent_engines.list() 로 표시이름, 리소스명, 생성시각을 표로 출력
-  · info   : deployed_agent.txt(또는 --name 인자)의 에이전트를 get 해서
+  · list   : agent_engines.list() 로 표시이름, 리소스명, 생성시각을 표로 출력
+  · info   : deployed_agent.txt(또는 --name 인자)의 에이전트를 agent_engines.get(...) 해서
              display_name, resource_name, create_time, operation_schemas 의 메서드 이름 목록 출력
   · delete : --name 이 없으면 deployed_agent.txt 를 사용하고,
              삭제 전에 리소스명을 보여준 뒤 "DELETE" 를 그대로 입력받아야만 진행한다.
@@ -3032,8 +3067,8 @@ python manage.py info
 출력 예시
 
 ```text
-DISPLAY NAME               RESOURCE NAME                                          CREATED
-realestate-report-agent    projects/123.../reasoningEngines/789...                2025-09-20 10:05
+DISPLAY NAME                    RESOURCE NAME                                          CREATED
+realestate-report-agent-user001 projects/123.../reasoningEngines/789...                2025-09-20 10:05
 ```
 
 `info` 출력에서 **사용 가능한 원격 메서드**를 확인할 수 있습니다.
@@ -3123,7 +3158,7 @@ https://console.cloud.google.com/traces/list?project=<YOUR_PROJECT_ID>
 ```text
 deploy.py 에 --update 옵션을 추가해줘.
 --update 가 주어지면 deployed_agent.txt 의 resource_name 을 읽어
-vertexai.agent_engines.update(resource_name, agent_engine=app, requirements=..., extra_packages=..., env_vars=...)
+agent_engines.update(resource_name, agent_engine=app, requirements=..., extra_packages=..., env_vars=...)
 를 호출하고, 없으면 기존처럼 create 를 호출한다.
 ```
 
@@ -3146,7 +3181,7 @@ projects/<GCP_PROJECT_ID>/locations/<GCP_REGION>/reasoningEngines/<REASONING_ENG
 
 `deployed_agent.txt` 에 저장된 전체 경로에서 값을 꺼내 메모해 둡니다.
 
-**macOS / Linux**
+**macOS / Linux / Cloud Shell**
 
 ```bash
 cd ~/antigravity-lab/custom_agent
@@ -3255,7 +3290,7 @@ python manage.py delete
 https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 ```
 
-`<PROJECT_ID>-agent-staging` 버킷의 `agent_engine/` 폴더를 삭제하거나 버킷 자체를 삭제합니다.
+`<PROJECT_ID>-<USER_ID>-agent-staging` (예: `<PROJECT_ID>-user001-agent-staging`) 버킷의 `agent_engine/` 폴더를 삭제하거나 버킷 자체를 삭제합니다.
 
 ✅ **정리 확인**
 
@@ -3279,7 +3314,7 @@ https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 | 증상                                                                     | 원인 / 조치                                                                                           |
 | :----------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
 | `DefaultCredentialsError: Could not automatically determine credentials` | ADC 없음. `gcloud auth application-default login` 실행 (2-4 절)                                       |
-| `403 PERMISSION_DENIED (aiplatform.googleapis.com)`                      | API 미활성화 또는 `roles/aiplatform.user` 없음. 2-2.2 / 2-2.3 확인                                    |
+| `403 PERMISSION_DENIED (aiplatform.googleapis.com)`                      | API 미활성화 또는 `roles/aiplatform.user` 없음. 2-2.2 확인                                            |
 | `403` on `storage.buckets.create`                                        | `roles/storage.admin` 없음. 관리자에게 버킷을 대신 만들어 달라고 요청 후 `.env.deploy` 에 이름만 기입 |
 | `Your default credentials has no project`                                | `.env.deploy` 의 `GOOGLE_CLOUD_PROJECT` 오타 확인. 또는 `gcloud config set project <ID>` 후 재시도    |
 | `Reauthentication is needed` / `invalid_grant`                           | ADC 토큰 만료. `gcloud auth application-default login` 을 다시 실행                                   |
@@ -3287,25 +3322,26 @@ https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 
 ### 2-10.2 배포 단계
 
-| 증상                                                | 원인 / 조치                                                                                                  |
-| :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| `Location 'global' is not supported`                | `.env.deploy` 의 `AGENT_ENGINE_LOCATION` 을 `us-central1` 로 변경                                            |
-| `ModuleNotFoundError: realestate_agent` (배포 로그) | `extra_packages` 누락 또는 `.deploy_build` 경로에서 실행되지 않음. `deploy.py` 의 `os.chdir(BUILD_DIR)` 확인 |
-| `업로드 대상에 비밀 파일이 포함되었습니다`          | 의도된 안전장치입니다. `realestate_agent/` 안의 `.env` 를 제외하도록 `IGNORE` 패턴 확인                      |
-| `Failed to create AgentEngine` + Cloud Build 오류   | `cloudbuild.googleapis.com`, `artifactregistry.googleapis.com` 를 콘솔에서 추가 활성화                       |
-| 의존성 해석이 오래 걸리거나 충돌                    | `REQUIREMENTS` 를 최소화. 로컬 `pip freeze` 전체를 넣지 말 것                                                |
-| 배포가 10분 넘게 진행 중                            | 정상일 수 있음. 콘솔 Agent Engine 목록에서 생성 중인지 확인                                                  |
+| 증상                                                | 원인 / 조치                                                                                                                                                                          |
+| :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Location 'global' is not supported`                | Agent Engine 인프라는 `global` 에 생성할 수 없음. `.env.deploy` 의 `AGENT_ENGINE_LOCATION` 은 `us-central1` 로 설정하고, 모델 엔드포인트(`GOOGLE_CLOUD_LOCATION`)만 `global` 로 사용 |
+| `ModuleNotFoundError: realestate_agent` (배포 로그) | `extra_packages` 누락 또는 `.deploy_build` 경로에서 실행되지 않음. `deploy.py` 의 `os.chdir(BUILD_DIR)` 확인                                                                         |
+| `업로드 대상에 비밀 파일이 포함되었습니다`          | 의도된 안전장치입니다. `realestate_agent/` 안의 `.env` 를 제외하도록 `IGNORE` 패턴 확인                                                                                              |
+| `Failed to create AgentEngine` + Cloud Build 오류   | `cloudbuild.googleapis.com`, `artifactregistry.googleapis.com` 를 콘솔에서 추가 활성화                                                                                               |
+| 의존성 해석이 오래 걸리거나 충돌                    | `REQUIREMENTS` 를 최소화. 로컬 `pip freeze` 전체를 넣지 말 것                                                                                                                        |
+| 배포가 10분 넘게 진행 중                            | 정상일 수 있음. 콘솔 Agent Engine 목록에서 생성 중인지 확인                                                                                                                          |
 
 ### 2-10.3 호출 단계
 
-| 증상                                | 원인 / 조치                                                                                                                                                      |
-| :---------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `report_writer 응답이 없습니다`     | Cloud Logging 에서 런타임 예외 확인. 대개 import 오류 또는 모델 접근 권한 문제                                                                                   |
-| `404 Publisher Model ... not found` | 선택한 리전에 해당 모델이 없음. 리전을 `us-central1` 로 바꾸거나 `REPORT_MODEL` 변경 후 재배포                                                                   |
-| `429 RESOURCE_EXHAUSTED`            | 병렬 검색 4개로 호출량 급증. 검색 에이전트 수를 줄이거나 `thinking_level` 하향 후 재배포                                                                         |
-| 출처 부록이 응답에 없음             | 정상입니다. 부록은 `save_report` 콜백이 **파일**에 붙이는데 원격은 `/tmp` 라 휘발됩니다. 필요하면 출처를 `final_report` 텍스트에 포함하도록 콜백을 수정해 재배포 |
-| `stream_query` 가 중간에 끊김       | 네트워크 타임아웃. 다시 실행. 반복되면 `thinking_level` 을 낮춰 응답 시간 단축                                                                                   |
-| 한글 깨짐 (Windows)                 | `chcp 65001` 및 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`                                                                                       |
+| 증상                                                                 | 원인 / 조치                                                                                                                                                      |
+| :------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AttributeError: module 'vertexai' has no attribute 'agent_engines'` | `vertexai` 패키지에서 `agent_engines` 서브모듈이 자동 임포트되지 않음. `from vertexai import agent_engines` 로 명시적 임포트 후 `agent_engines.get(...)` 사용    |
+| `report_writer 응답이 없습니다`                                      | Cloud Logging 에서 런타임 예외 확인. 대개 import 오류 또는 모델 접근 권한 문제                                                                                   |
+| `404 Publisher Model ... not found`                                  | 모델 엔드포인트 위치 오류. `.env.deploy` 에 `GOOGLE_CLOUD_LOCATION=global` 이 설정되어 있고 `deploy.py` 의 `env_vars` 로 전달되는지 확인 후 재배포               |
+| `429 RESOURCE_EXHAUSTED`                                             | 병렬 검색 4개로 호출량 급증. 검색 에이전트 수를 줄이거나 `thinking_level` 하향 후 재배포                                                                         |
+| 출처 부록이 응답에 없음                                              | 정상입니다. 부록은 `save_report` 콜백이 **파일**에 붙이는데 원격은 `/tmp` 라 휘발됩니다. 필요하면 출처를 `final_report` 텍스트에 포함하도록 콜백을 수정해 재배포 |
+| `stream_query` 가 중간에 끊김                                        | 네트워크 타임아웃. 다시 실행. 반복되면 `thinking_level` 을 낮춰 응답 시간 단축                                                                                   |
+| 한글 깨짐 (Windows)                                                  | `chcp 65001` 및 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`                                                                                       |
 
 > [!TIP]
 > **가장 빠른 디버깅 방법**
