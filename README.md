@@ -11,7 +11,7 @@ Google Antigravity CLI 기반 개발 환경 구축, 핵심 기능 확장, Model 
 
 ## 1. 저장소 디렉터리 구조 (Repository Structure)
 
-학습 **가이드 문서**는 `agy_lab/` 아래에 난이도별로, 실제 **실습 코드**는 `src/` 아래에 모듈별로 격리되어 있습니다.
+학습 **가이드 문서**는 `agy_lab/` 아래에 난이도별로, 실제 **실습 소스 코드**는 `src/` 아래에 모듈별로 격리되어 있습니다.
 
 ```text
 antigravity_lab/
@@ -28,7 +28,7 @@ antigravity_lab/
 │       └── agy_ge.md                        # Gemini Enterprise 등록 및 연동
 │
 ├── src/                                     # 🧪 실습 코드 디렉터리
-│   ├── agy_command/                         # Lab: CLI 명령어 및 에이전트 개발 실습
+│   ├── agy_command/                         # CLI 명령어 및 에이전트 개발 실습
 │   │   ├── adk_search_agent/                # 🔍 Vertex AI Search Grounding 기반 검색 에이전트
 │   │   ├── google_maps_mcp_agent/           # 🗺️ Streamable HTTP MCP Server (Cloud Run) & Agent Engine
 │   │   └── plan/                            # 실습 구현 계획 문서 모음
@@ -38,13 +38,15 @@ antigravity_lab/
 │       ├── metrics.py                       # psutil 기반 메트릭 수집기
 │       └── run.sh                           # 원클릭 실행 스크립트
 │
-└── .agents/                                 # ⚙️ Antigravity 설정 및 커스텀 확장 자산
-    ├── agents/                              # 서브에이전트 정의 (code-reviewer.md)
-    ├── rules/                               # 프로젝트 규칙 및 가드레일
-    ├── skills/                              # 가이드 생성 및 개발 보조 Skill
-    ├── scripts/                             # 훅에서 호출하는 보조 스크립트
-    ├── hooks.json                           # 라이프사이클 훅 (파일 수정 후 자동 포맷·린트)
-    └── mcp_config.json                      # 프로젝트 MCP 서버 연동 설정
+├── .agents/                                 # ⚙️ (로컬 전용 / .gitignore) Antigravity 확장 자산
+│   ├── agents/                              # 서브에이전트 정의 (code-reviewer.md)
+│   ├── rules/                               # 코딩 컨벤션 및 안전 가드레일 (commit, error, secret, local-guard)
+│   ├── skills/                              # 실습 가이드 생성 및 개발 보조 Skill
+│   ├── scripts/                             # 라이프사이클 훅 보조 스크립트
+│   ├── hooks.json                           # 라이프사이클 훅 설정
+│   └── mcp_config.json                      # 프로젝트 MCP 서버 연동 설정
+│
+└── GEMINI.md                                # 🔒 (로컬 전용 / .gitignore) 워크스페이스 전역 규칙 및 환경 가드레일
 ```
 
 ---
@@ -73,7 +75,7 @@ antigravity_lab/
 | 프로젝트             | 작업 디렉터리                                                                      | 문서                                                         | 주요 학습 내용                                                                       |
 | :------------------- | :--------------------------------------------------------------------------------- | :----------------------------------------------------------- | :----------------------------------------------------------------------------------- |
 | **google_maps_mcp**  | [`src/agy_command/google_maps_mcp_agent/`](src/agy_command/google_maps_mcp_agent/) | [README.md](src/agy_command/google_maps_mcp_agent/README.md) | Streamable HTTP (SSE) MCP 서버 구현, GCP Cloud Run 배포, Vertex AI Agent Engine 배포 |
-| **adk_search_agent** | [`src/agy_command/adk_search_agent/`](src/agy_command/adk_search_agent/)           | —                                                            | Vertex AI Search Grounding 기반 웹 검색 에이전트                                     |
+| **adk_search_agent** | [`src/agy_command/adk_search_agent/`](src/agy_command/adk_search_agent/)           | [README.md](src/agy_command/adk_search_agent/README.md)      | Vertex AI Search Grounding 기반 웹 검색 에이전트                                     |
 | **cpu_dashboard**    | [`src/cpu_dashboard/`](src/cpu_dashboard/)                                         | [README.md](src/cpu_dashboard/README.md)                     | `psutil` + `Streamlit` + `Plotly` 기반 시스템 자원 실시간 모니터링                   |
 
 ---
@@ -138,8 +140,18 @@ python src\agy_command\adk_search_agent\main.py "Antigravity CLI 최신 업데�
 
 ---
 
-## 4. 저장소 관리 자산
+## 4. 로컬 개발 환경 및 Antigravity 관리 자산 (Local Assets)
 
+> [!NOTE]
+> **로컬 전용 파일 격리 정책**:
+> 본 저장소의 `.agents/`, `.gemini/`, `GEMINI.md`, `AGENTS.md` 등 Antigravity CLI 환경 설정 파일은 개발자의 로컬 환경에서만 유지되며, `.gitignore`에 등록되어 원격 저장소(GitHub)에는 업로드되지 않습니다.
+
+- **`GEMINI.md`**: 워크스페이스 최상위 전역 규칙 파일 (로컬 전용 파일 가드레일, 커밋 규격, 보안 규칙)
+- **`.agents/rules/`**: 프로젝트 코딩 컨벤션 및 안전 가드레일
+  - `commit-convention.md`: Conventional Commits 규격 강제 (`feat`, `fix`, `refactor`, `docs`, `chore`)
+  - `error-handling.md`: 예외 처리 및 로깅 표준 (silent exception swallowing 금지)
+  - `secret-safety.md`: API 키·토큰·인증 정보의 커밋/푸시 차단 가드레일
+  - `local-env-guard.md`: 로컬 환경 파일(.agents, .gemini, GEMINI.md) 격리 및 원격 커밋 차단 가드레일
 - **`.agents/skills/`**: 실습 가이드 생성 및 개발 보조를 위한 Antigravity 전용 Skill 모듈
   - `agy-lab`: Antigravity CLI 전체 핸즈온 가이드 생성 모듈
   - `agy_setting`: 환경 구성 가이드 생성 모듈
@@ -149,20 +161,19 @@ python src\agy_command\adk_search_agent\main.py "Antigravity CLI 최신 업데�
   - `agy_ge`: Gemini Enterprise 연동 실습 모듈
   - `agy_vscode`: VS Code 연동 지원 모듈
   - `git-commit-helper`: Conventional Commits 규격 커밋 지원 모듈
-- **`.agents/rules/`**: 프로젝트 코딩 컨벤션 및 가드레일
-  - `commit-convention.md`: Conventional Commits 규격 강제
-  - `error-handling.md`: 예외 처리 및 로깅 표준 (silent exception swallowing 금지)
-  - `secret-safety.md`: API 키·토큰·인증 정보의 커밋/푸시 차단 가드레일
 - **`.agents/agents/`**: 서브에이전트 정의 (`code-reviewer.md`)
 - **`.agents/hooks.json`** + **`.agents/scripts/`**: 파일 수정(`write_to_file`, `replace_file_content`) 직후 자동 포맷·린트를 수행하는 `PostToolUse` 훅
 - **`.agents/mcp_config.json`**: 프로젝트 MCP 서버 연동 설정
 
 ---
 
-## 5. 보안 주의사항
+## 5. 보안 및 환경 격리 주의사항
 
 > [!CAUTION]
-> API 키, 액세스 토큰, 서비스 계정 JSON 등 **인증 정보는 절대 커밋하지 마세요.**
-> 실제 값은 `.env` 에 두고, 저장소에는 `.env.example` 템플릿만 커밋합니다.
-> `.gitignore` 에 `.env`, `.env.*`, `*.pem`, `*.key`, `service-account*.json` 등이 등록되어 있는지 확인하세요.
-> 상세 규칙은 [`.agents/rules/secret-safety.md`](.agents/rules/secret-safety.md) 를 참고하세요.
+>
+> 1. API 키, 액세스 토큰, 서비스 계정 JSON 등 **인증 정보는 절대 커밋하지 마세요.**
+>    - 실제 값은 `.env` 에 두고, 저장소에는 `.env.example` 템플릿만 커밋합니다.
+>    - `.gitignore` 에 `.env`, `.env.*`, `*.pem`, `*.key`, `service-account*.json` 등이 등록되어 있는지 확인하세요.
+> 2. **로컬 전용 환경 파일 격리**:
+>    - `.agents/`, `.gemini/`, `GEMINI.md`, `AGENTS.md` 등은 로컬 전용으로 관리되며 원격 저장소에 커밋 또는 푸시되지 않습니다.
+>    - 상세 규칙은 워크스페이스 루트의 `GEMINI.md` 및 [`.agents/rules/secret-safety.md`](.agents/rules/secret-safety.md)를 참고하세요.
