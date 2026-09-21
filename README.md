@@ -47,7 +47,7 @@ antigravity_lab/
 
 |  단계  | 가이드 문서                                        |    분량 | 주요 학습 내용                                                                               |
 | :----: | :------------------------------------------------- | ------: | :------------------------------------------------------------------------------------------- |
-| **01** | [agy_basic.md](agy_lab/agy_basic/agy_basic.md)     |   717줄 | Cloud Shell 환경 설정, Antigravity CLI 검증, Rule·Agent·Skill 구성, `.gemini`/`.agents` 구조 |
+| **01** | [agy_basic.md](agy_lab/agy_basic/agy_basic.md)     |   909줄 | Cloud Shell 환경 설정, Antigravity CLI 검증, Rule·Agent·Skill 구성, `.gemini`/`.agents` 구조 |
 | **02** | [agy_command.md](agy_lab/agy_basic/agy_command.md) | 1,906줄 | 슬래시(`/`) 명령어 전체 가이드 — 세션 관리, 계획·실행 제어, 서브에이전트, MCP, 훅, 환경 설정 |
 | **03** | [agy_webapp.md](agy_lab/agy_basic/agy_webapp.md)   | 1,445줄 | agy로 로컬 웹앱 2종 제작 — 실시간 시스템 대시보드(FastAPI+SSE), 웹 테트리스(Express+Canvas)  |
 
