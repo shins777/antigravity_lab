@@ -2,7 +2,7 @@
 
 > **대상:** Antigravity CLI(`agy`) 설치 및 로그인을 마친 개발자
 > **목표:** `agy` 에이전트와 함께 **로컬에서 바로 뜨는 웹 애플리케이션 2개**를 완성한다.
-> **전제 조건:** [agy_setup.md](./agy_setup.md) 의 설치·로그인 단계를 완료한 상태
+> **전제 조건:** [agy_basic.md](./agy_basic.md) 의 설치·로그인 단계를 완료한 상태
 
 | Lab   | 만드는 것                                             | 스택                            | 포트 |
 | ----- | ----------------------------------------------------- | ------------------------------- | ---- |
@@ -37,7 +37,7 @@
 
 ### 1-1. 작업공간 생성
 
-[agy_setup.md](./agy_setup.md) 에서 사용한 워크스페이스 루트(`~/antigravity-lab`) 아래에 이번 랩 전용 폴더를 만듭니다.
+[agy_basic.md](./agy_basic.md) 에서 사용한 워크스페이스 루트(`~/antigravity-lab`) 아래에 이번 랩 전용 폴더를 만듭니다.
 
 **macOS / Linux**
 
@@ -1048,5 +1048,5 @@ git status --short
 
 ## 부록 B. 다음 단계
 
-- [agy_setup.md](./agy_setup.md) — Antigravity CLI 설치 및 환경 구성
+- [agy_basic.md](./agy_basic.md) — Antigravity CLI 환경 구성 및 기본 실습
 - [agy_command.md](./agy_command.md) — 슬래시 명령어 전체 가이드 및 단축키 치트시트 (`/planning`, `/diff`, `/tasks`, `/skills`, `/mcp`, `/hooks` 등 상세)

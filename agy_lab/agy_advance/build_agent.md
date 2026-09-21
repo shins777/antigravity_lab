@@ -4,7 +4,7 @@
 **부동산 리포트 멀티 에이전트**를 직접 만들고(Chapter 1), 이를 **GCP Vertex AI Agent Engine** 에 배포(Chapter 2)하는
 엔드투엔드 핸즈온 실습 가이드입니다.
 
-> **전제 조건:** [agy_setup.md](../agy_basic/agy_setup.md) 의 Antigravity CLI 설치·로그인 완료
+> **전제 조건:** [agy_basic.md](../agy_basic/agy_basic.md) 의 Antigravity CLI 설치·로그인 완료
 
 ---
 
@@ -126,7 +126,7 @@ flowchart LR
 | :-------------- | :-------------------------------------------------------------- | :------------------------------------------------------ |
 | **실행 환경**   | 로컬 PC(macOS · Linux · Windows 10/11) **또는** GCP Cloud Shell | **[1-3](#1-3-실습-환경-선택-경로-a--경로-b) 에서 선택** |
 | **Python**      | 3.10 이상                                                       | 3.11 / 3.12 권장 (Cloud Shell 은 기본 제공)             |
-| **Antigravity** | `agy` 설치 및 로그인 완료                                       | [agy_setup.md](../agy_basic/agy_setup.md)               |
+| **Antigravity** | `agy` 설치 및 로그인 완료                                       | [agy_basic.md](../agy_basic/agy_basic.md)               |
 | **인증**        | GCP 프로젝트 + **ADC** (경로 A·B 공통)                          | API 키는 사용하지 않음 → 1-3 참조                       |
 | **필수 패키지** | `google-adk`, `google-genai`, `python-dotenv`                   | Step 0에서 설치                                         |
 | **브라우저**    | Chrome 등 최신 브라우저                                         | `adk web` UI 확인용                                     |
@@ -222,7 +222,7 @@ gcloud auth application-default login
 
 #### ✍️ 3) Antigravity CLI 확인
 
-Cloud Shell 에서의 `agy` 설치·로그인은 [agy_setup.md](../agy_basic/agy_setup.md) 의 **Step 1-B / Step 3 / Step 4** 를 따릅니다.
+Cloud Shell 에서의 `agy` 설치·로그인은 [agy_basic.md](../agy_basic/agy_basic.md) 의 가이드를 따릅니다.
 
 ```bash
 agy --version
@@ -360,7 +360,7 @@ gcloud services list --enabled --filter="aiplatform OR storage" --format="value(
 
 ### 1-4.1 ✍️ 작업 디렉터리 생성
 
-[agy_setup.md](../agy_basic/agy_setup.md) 에서 만든 워크스페이스 루트(`~/antigravity-lab`) 아래에 이번 실습 폴더를 만듭니다.
+[agy_basic.md](../agy_basic/agy_basic.md) 에서 만든 워크스페이스 루트(`~/antigravity-lab`) 아래에 이번 실습 폴더를 만듭니다.
 
 **macOS / Linux**
 
