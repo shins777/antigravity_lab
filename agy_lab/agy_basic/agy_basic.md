@@ -14,6 +14,7 @@
 - **Antigravity CLI 설치**: Cloud Shell 환경에 Antigravity CLI 바이너리를 배치하고 시스템 경로(PATH)를 설정합니다.
 - **Google 계정 및 라이선스 인증**: 브라우저 기반 헤드리스 OAuth 인증을 통해 Google 계정을 연동하고 Gemini 라이선스를 선택합니다.
 - **초기 실행 검증**: 워크스페이스 신뢰 설정 및 첫 TUI 세션 진입, 기본 명령어(`/help`, `/model`, `/config`)와 코드 생성을 검증합니다.
+- **`/plan` 기반 점진적 개발 워크플로우**: 코드를 무작정 작성하지 않고 `/plan`으로 구조적 계획을 수립한 뒤, 피드백을 통해 점차적으로 설계를 개선하여 완성도 높은 결과물을 구현하는 방법을 익힙니다.
 - **환경 아키텍처 이해**: 전역 설정(`.gemini`) 및 프로젝트 커스터마이징(`.agents`) 디렉터리 구조를 파악합니다.
 
 ---
@@ -907,11 +908,170 @@ Antigravity 세션(`agy`)에서 `/hooks` 명령어를 실행하여 등록된 5�
 
 ---
 
-## 4. Cloud Shell 환경 디렉터리 구조 및 설정 파일 상세 가이드
+## 4. Antigravity /plan 기반 점진적 업무 개발(Plan-Driven Implementation) 핸즈온 가이드
+
+비즈니스 업무(기획, PM, 운영, 보고서 작성 등)에서 AI를 활용할 때 가장 흔히 겪는 문제는 **"무작정 바로 써달라고 했다가 뻔하고 어색한 결과물이 나와서 수정하느라 시간을 다 보내는 것"**입니다.
+
+Antigravity의 `/plan` 슬래시 명령어는 코드를 바로 작성하지 않고, **먼저 전체적인 업무 계획과 구조(Implementation Plan)를 세운 뒤, 대화형 피드백을 통해 점차적으로 품질을 개선한 후 최종 승인을 거쳐 구현**하는 강력한 엔지니어링 워크플로우를 제공합니다.
+
+### 4.1 비즈니스 유저를 위한 `/plan`의 핵심 가치
+
+```text
+[일반적인 즉각 요청 방식 (Direct)]
+사용자: "주간 보고서 스크립트 써줘" ───> AI가 생각나는 대로 즉시 코드 작성 ───> 요구사항 누락, 형식 불일치로 재작업 반복 ❌
+
+[/plan 점진적 계획 주도 방식 (Plan-Driven)]
+1. 1차 계획 (/plan) ───> 2. 피드백으로 점진적 개선 (Refine) ───> 3. 최종 승인 (Proceed) ───> 4. 완벽한 일괄 구현 및 검증 ✅
+```
+
+- **예측 가능성**: 어떤 파일이 어떻게 생성될지 사전에 눈으로 확인하고 진행할 수 있습니다.
+- **점진적 품질 개선**: 복잡한 비즈니스 요구사항(KPI 지표, 임원 요약, 지연 경고 등)을 계획 단계에서 쉽게 추가하고 다듬을 수 있습니다.
+- **실수 없는 자동 구현**: 사람이 계획을 최종 승인(`Proceed`)하기 전까지는 실제 파일이나 코드를 건드리지 않아 안전합니다.
+
+---
+
+### 4.2 [Step 1] 1차 업무 계획 수립 요청 (`/plan`)
+
+실습 시나리오: 팀원들의 한 주간 업무 데이터를 입력받아 깔끔한 마크다운 보고서로 변환해 주는 **주간 비즈니스 업무 보고서 자동 생성기 (`weekly_report_generator`)** 를 구축합니다.
+
+Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 계획 수립을 요청합니다.
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+```text
+> /plan 팀원들의 한 주 업무 데이터를 입력하면 정돈된 마크다운 보고서로 만들어주는 weekly_report 생성기 계획을 세워줘.
+```
+
+#### 에이전트의 반응 및 계획 아티팩트 확인
+
+에이전트는 코드를 즉시 작성하지 않고, 화면 우측/하단에 **Implementation Plan** 아티팩트(`implementation_plan.md`)를 생성하여 보여줍니다:
+
+```text
+# Implementation Plan: Weekly Business Report Generator
+
+## Goal Description
+팀원들의 주간 업무 데이터를 읽어 마크다운(Markdown) 보고서로 가공하는 Python 스크립트 생성
+
+## Proposed Changes
+- [NEW] weekly_report.py : 업무 데이터를 마크다운 보고서로 변환하는 생성기 스크립트
+- [NEW] sample_tasks.json : 테스트용 샘플 팀원 업무 데이터
+
+## Verification Plan
+- sample_tasks.json 데이터를 사용해 weekly_report.py 실행
+- weekly_report_output.md 생성 확인
+```
+
+> [!NOTE]
+> 에이전트 화면 하단에 **`Proceed` (승인)** 버튼과 입력창이 대기 상태로 나타납니다. 하지만 바로 승인하지 않고, 비즈니스 요구사항을 추가하여 계획을 점진적으로 개선해 봅니다.
+
+---
+
+### 4.3 [Step 2] 대화형 점진적 계획 개선 (Interactive Plan Refinement)
+
+회사의 실제 보고서 양식에 맞추어 **"임원용 3줄 요약"**과 **"KPI 목표 달성률 표"**, 그리고 **"지연 프로젝트 경고(⚠️)"** 표시 기능을 계획에 추가하도록 피드백을 전달합니다.
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+```text
+> 계획을 보완해줘. 임원 보고용 '3줄 핵심 요약(Executive Summary)'과 'KPI 목표 달성률 표' 항목을 추가하고, 일정 지연(DELAY) 항목에는 ⚠️ 경고 표시가 눈에 띄게 나타나도록 계획을 업데이트해줘.
+```
+
+#### 계획 아티팩트의 실시간 업데이트 확인
+
+에이전트는 피드백을 반영하여 `Implementation Plan` 아티팩트를 실시간으로 갱신(Diff)합니다:
+
+- **Goal Description**: 임원 보고용 요약 및 KPI 달성률, 지연 경고 기능 추가 반영
+- **Proposed Changes**:
+  - `sample_tasks.json`: 프로젝트명, 담당자, 진척률(%), 상태(`COMPLETED`, `IN_PROGRESS`, `DELAY`) 필드 포함
+  - `weekly_report.py`: 데이터 파싱, KPI 달성률 집계 및 ⚠️ 지연 마크다운 서식 렌더링 로직 포함
+- **Verification Plan**: 지연 상태가 포함된 샘플 데이터 실행 검증
+
+> [!TIP]
+> 이처럼 `/plan` 모드에서는 사용자가 원하는 비즈니스 디테일이 계획에 온전히 담길 때까지 자연어로 피드백을 주며 **점진적으로 계획을 고도화(Refinement)** 할 수 있습니다.
+
+---
+
+### 4.4 [Step 3] 계획 승인(Proceed) 및 자동 구현 관찰
+
+업데이트된 계획이 마음에 든다면, 최종 승인하여 에이전트가 코드를 구현하도록 명령합니다.
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+- 화면의 **`Proceed`** 버튼을 클릭하거나, 프롬프트에 직접 입력합니다:
+
+```text
+> 계획을 승인합니다. 진행해주세요.
+```
+
+#### 에이전트의 자동 실행 과정
+
+승인이 떨어지면 에이전트가 순서대로 도구를 실행하여 파일을 생성합니다:
+1. `write_file` 도구로 `sample_tasks.json` 샘플 데이터 생성
+2. `write_file` 도구로 `weekly_report.py` 보고서 생성 스크립트 작성
+3. `run_command` 도구로 스크립트를 실행하여 테스트 검증
+
+---
+
+### 4.5 [Step 4] 실행 검증 및 최종 보고서 확인
+
+실제로 생성된 주간 보고서 도구가 잘 작동했는지 터미널에서 직접 실행하고 결과를 확인합니다.
+
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 또는 일반 bash 셸)**
+
+```bash
+# 1. 생성된 파일 확인
+cd ~/antigravity-lab
+ls -la sample_tasks.json weekly_report.py
+
+# 2. 주간 보고서 생성 스크립트 직접 실행
+python3 weekly_report.py
+
+# 3. 생성된 주간 보고서 결과물(Markdown) 출력 확인
+cat weekly_report_output.md
+```
+
+#### 기대되는 최종 보고서 결과 (`weekly_report_output.md`)
+
+```markdown
+# 📊 주간 비즈니스 업무 실적 보고서
+
+## 📌 Executive Summary (임원 보고용 3줄 요약)
+1. 2분기 주요 마케팅 캠페인 런칭이 성공적으로 완료되었습니다 (진척률 100%).
+2. 결제 시스템 연동 작업 중 PG사 심사 일정으로 인해 일부 지연(⚠️)이 발생하여 긴급 대응 중입니다.
+3. 신규 모바일 앱 기획안은 팀 내 리뷰를 거쳐 차주 초 최종 확정 예정입니다.
+
+## 🎯 KPI 목표 대비 달성률 현황
+| 프로젝트명 | 담당자 | 진척률 | 진행 상태 |
+| :--- | :--- | :---: | :---: |
+| 2분기 신규 프로모션 런칭 | 김마케터 | 100% | ✅ 완료 (COMPLETED) |
+| 글로벌 결제 모듈 연동 | 박개발 | 65% | ⚠️ 지연 (DELAY) |
+| 신규 고객 온보딩 플로우 개선 | 이기획 | 90% | 🔄 진행중 (IN_PROGRESS) |
+
+## ⚠️ 지연 프로젝트 긴급 조치 계획
+- **글로벌 결제 모듈 연동 (박개발)**: PG사 추가 서류 제출 완료, 익일 오전 10시 담당자 유선 미팅을 통해 심사 일정 2일 단축 추진.
+```
+
+> [!NOTE]
+> 계획 단계에서 요청했던 **임원 보고용 요약**, **KPI 달성률 표**, **⚠️ 지연 경고**가 누락 없이 완벽하게 반영되어 단 한 번에 비즈니스 수준의 보고서 도구가 완성되었습니다.
+
+---
+
+### 4.6 비즈니스 유저를 위한 `/plan` 3대 실무 꿀팁
+
+1. **"대화형으로 요구사항을 쪼개서 보완하세요"**:
+   처음부터 완벽한 프롬프트를 작성할 필요가 없습니다. 1차 계획을 받아보고 부족한 점(예: "표 서식을 넣어줘", "예외 상황도 고려해줘")을 한두 마디 피드백으로 보완하는 것이 훨씬 빠르고 정확합니다.
+2. **사내 표준 서식이 있다면 계획 단계에서 공유하세요**:
+   `> 우리 팀 보고서 양식 템플릿(template.md)을 참고해서 계획을 세워줘`와 같이 기존 양식을 연결해 주면 사내 표준에 맞춘 계획이 수립됩니다.
+3. **결과 검증 방식을 계획에 꼭 포함하세요**:
+   계획을 세울 때 "테스트할 샘플 데이터도 함께 만들어줘"라고 지시하면, 에이전트가 완성 직후 실제 테스트까지 스스로 마친 후 검증 결과(Walkthrough)를 전달해 줍니다.
+
+---
+
+## 5. Cloud Shell 환경 디렉터리 구조 및 설정 파일 상세 가이드
 
 Antigravity는 사용자 홈 디렉터리의 **전역 설정(`.gemini/`)** 과 프로젝트 디렉터리의 **워크스페이스 자산(`.agents/`)** 으로 구성됩니다.
 
-### 4.1 전체 디렉터리 구조
+### 5.1 전체 디렉터리 구조
 
 ```text
 ├── ~/.gemini/                               # [전역] 사용자 홈 기반 전역 설정 및 런타임 데이터
@@ -942,7 +1102,7 @@ Antigravity는 사용자 홈 디렉터리의 **전역 설정(`.gemini/`)** 과 �
     └── .gitignore                           # 시크릿(.env) 및 임시 파일 제외 설정
 ```
 
-### 4.2 주요 설정 파일 예시
+### 5.2 주요 설정 파일 예시
 
 #### 1. 전역 설정 (`~/.gemini/antigravity-cli/settings.json`)
 
@@ -1130,7 +1290,7 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 
 ---
 
-## 5. Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)
+## 6. Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)
 
 ### Q1. `agy: command not found` 오류가 발생합니다.
 
@@ -1197,7 +1357,7 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 
 ---
 
-## 6. 실습 완료 체크리스트
+## 7. 실습 완료 체크리스트
 
 - [ ] GCP Console 접속 및 Cloud Shell 터미널 / Cloud Shell Editor 활성화 완료
 - [ ] 실습 워크스페이스(`~/antigravity-lab`) 생성 및 `.venv` 가상환경 활성화 완료
@@ -1207,13 +1367,15 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 - [ ] (선택) GCP ADC 설정 완료 (`gcloud auth application-default login --no-launch-browser`)
 - [ ] `.agents` 커스터마이징 디렉터리 구성 및 Rule, Agent, Skill 예제 작성 완료
 - [ ] `/help`, `/model` (Gemini 3.8 Flash Medium 설정), `/config`, `/skills`, `/agents` 실행 및 도구 호출 검증 완료
+- [ ] `/plan` 명령어 기반 주간 업무 보고서 계획 수립, 피드백 점진적 개선 및 최종 자동 구현 검증 완료
 - [ ] Cloud Shell 환경에서의 `.gemini` 및 `.agents` 디렉터리 역할 이해 완료
 
 ---
 
-## 7. 다음 단계
+## 8. 다음 단계
 
 Cloud Shell 환경 구성과 초기 검증이 완료되었다면 다음 실습 가이드를 진행하세요:
 
 - [agy_command.md](./agy_command.md) — Antigravity CLI 기본 명령어 및 TUI 조작 실습
 - [agy_webapp.md](./agy_webapp.md) — Antigravity를 활용한 웹 애플리케이션 개발 실습
+- [agy_intermediate.md](./agy_intermediate.md) — 중급 개발자를 위한 Progressive Skill, Lifecycle Hook 및 플러그인 핸즈온 실습

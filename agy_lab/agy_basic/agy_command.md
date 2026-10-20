@@ -1,107 +1,231 @@
 
-#  Antigravity 시작
+# Antigravity CLI 및 TUI 명령어 전체 실습 가이드 (agy_command)
 
-> [!IMPORTANT]
-> **OS별 표기 규칙**
->
-> 이 문서의 모든 실행 예제는 아래 세 가지 표기 중 하나를 따릅니다. 자신의 환경에 해당하는 블록만 실행하세요.
->
-> | 표기                     | 의미                                                       |
-> | ------------------------ | ---------------------------------------------------------- |
-> | **macOS / Linux**        | macOS(zsh) 및 Linux(bash) 터미널에서 실행                  |
-> | **Windows (PowerShell)** | Windows PowerShell 5.1+ 또는 PowerShell 7.x 에서 실행      |
-> | **모든 OS 동일**         | agy TUI 내부 입력·프롬프트·파일 내용 등 OS와 무관하게 동일 |
->
-> - **WSL2 / Git Bash** 사용자는 `macOS / Linux` 블록을 그대로 사용하세요.
-> - Windows에서는 `python3` → `python`, `curl` → `curl.exe`, `/` → `\` 로 바뀌는 점에 유의하세요.
+본 문서는 **Antigravity CLI(`agy`)**의 **터미널 셸(Shell) 명령어**, **헤드리스 비대화형 파이프라인 옵션**, **5대 확장 아키텍처(Agents, Skills, Rules, MCP, Hooks)**, 그리고 대화형 TUI에서 사용하는 **전체 슬래시(`/`) 명령어**를 하나로 통합한 **종합 실습 가이드이자 표준 레퍼런스 매뉴얼**입니다.
 
+> [!NOTE]
+> **통합 안내**:  
+> 본 문서는 기존의 개별 분산되어 있던 CLI 실행 옵션, TUI 슬래시 명령어 레퍼런스, 그리고 5대 확장 기능(Features) 디렉터리 구성 체계를 실제 `agy` 명령어 관점에서 유기적으로 결합하여 구성되었습니다.
 
-아래 URL에서 antigiravity를 본인의 OS에 맞게 download 합니다.   
+---
 
-https://antigravity.google/product/antigravity-cli
+## 1. 개요 및 학습 목표
 
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/img1.png" width="800" ></p>
+```mermaid
+flowchart TD
+    subgraph P1["Part 1: 터미널 셸 CLI 명령어"]
+        A1["agy TUI 진입 & Trust"] --> A2["헤드리스 실행 (agy -p)"]
+        A2 --> A3["세션 복원 (agy -s / -r)"]
+        A3 --> A4["구조화 출력 (--json / --json-schema)"]
+    end
 
-위의 사이트에서 다운로드 받은후 Antigravity를 로컬 PC에 설치합니다
+    subgraph P2["Part 2: 5대 확장 아키텍처"]
+        B1["Rules (행동 규정)"]
+        B2["Agents (전문 비서)"]
+        B3["Skills (표준 절차)"]
+        B4["MCP (외부 도구)"]
+        B5["Hooks (가드레일)"]
+        B6["우선순위: Workspace > Global > Built-in"]
+    end
 
-Agentigravity CLI 실행은 아래와 같이 합니다. 
+    subgraph P3["Part 3: TUI 슬래시(/) 명령어"]
+        C1["세션/대화 관리 (/resume, /rewind, /fork)"]
+        C2["계획/실행 제어 (/planning, /fast, /goal)"]
+        C3["에이전트/도구 (/agents, /skills, /mcp, /hooks)"]
+        C4["작업공간/코드 (/diff, /codesearch, /artifact)"]
+        C5["설정/시스템 (/model, /permissions, /config)"]
+    end
 
-#### macOS / Linux
+    P1 --> P2 --> P3
+```
 
-**모든 OS 동일**
+- **학습 목표**:
+  1. **터미널 셸 실행 제어**: 대화형 TUI뿐만 아니라 CI/CD 파이프라인에서 자동화할 수 있는 비대화형 헤드리스(`-p`, `--json`, `--json-schema`) 명령어를 마스터합니다.
+  2. **5대 확장 체계 이해**: `.agents/` 워크스페이스와 `~/.gemini/` 전역 설정 간의 로딩 우선순위(Precedence)와 점진적 공개(Progressive Disclosure) 메커니즘을 파악합니다.
+  3. **TUI 슬래시 명령어 완벽 숙지**: 일상 개발에서 생산성을 극대화하는 38개 핵심 슬래시 명령어의 실제 동작과 화면 결과를 체계적으로 실습합니다.
+
+---
+
+## 2. 사전 준비 사항 (Prerequisites)
+
+| 구분 | 요구사항 | 비고 |
+| :--- | :--- | :--- |
+| **운영체제** | GCP Cloud Shell (Debian Linux) 또는 Linux 환경 (bash/zsh) | Linux 환경 기준 실습 |
+| **Antigravity CLI** | 최신 버전 설치 및 Google 계정 인증 완료 | `agy --version` 확인 |
+| **Python 환경** | Python 3.10 이상 | `.venv` 가상환경 활성화 |
+| **Node.js** | Node.js 18.x 이상 및 `npx` | MCP 서버 연동 테스트용 |
+| **실습 경로** | `~/antigravity-lab` | 워크스페이스 최상위 루트 |
+
+### 실행 환경 표기 안내
+
+- `> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**`: 리눅스 기본 명령 및 `agy` 셸 명령어 실행
+- `> 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**`: Antigravity 대화 세션 프롬프트(`> `)에서 입력하는 슬래시(`/`) 명령어
+
+---
+
+## 3. 터미널 셸(Shell) CLI 명령어 및 헤드리스 자동화
+
+Antigravity는 터미널 프롬프트에서 직접 다양한 플래그(Flags)를 주어 대화형 세션 진입, 일회성 헤드리스 실행, 이전 세션 복원, CI/CD JSON 파이프라인 등을 제어할 수 있습니다.
+
+### 3.1 agy 기본 실행 및 워크스페이스 신뢰(Trust) 프로세스
+
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
 
 ```bash
+cd ~/antigravity-lab
 agy
 ```
 
-아래 내용에서 해당 디렉토리를 신뢰할수 있다면 Yes, I trust this folder 를 선택하고 Enter 를 칩니다.
-**모든 OS 동일**
+처음 프로젝트 디렉터리에서 실행 시 아래와 같이 워크스페이스 신뢰 여부를 묻는 보안 프롬프트가 표시됩니다:
 
-> ```text
-> Accessing workspace:
-> /Users/hangsik/Documents/my_project/antigravity_lab
-> Do you trust the contents of this project?
-> Antigravity CLI requires permission to read, edit, and execute files here.
->  Yes, I trust this folder
->   No, exit
->   ↑/↓ Navigate · enter Confirm
->                                                                   Gemini 3.6 Flash · low
-> ```
-
-#### Windows (PowerShell)
-
-**모든 OS 동일**
-
-```powershell
-agy
+```text
+Accessing workspace:
+/Users/hangsik/Documents/my_project/antigravity_lab
+Do you trust the contents of this project?
+Antigravity CLI requires permission to read, edit, and execute files here.
+ Yes, I trust this folder
+  No, exit
+  ↑/↓ Navigate · enter Confirm
+                                                                  Gemini 3.8 Flash · low
 ```
 
-아래 내용에서 해당 디렉토리를 신뢰할수 있다면 Yes, I trust this folder 를 선택하고 Enter 를 칩니다.
-**모든 OS 동일**
-
-> ```text
-> Accessing workspace:
-> C:\Users\hangsik\Documents\my_project\antigravity_lab
-> Do you trust the contents of this project?
-> Antigravity CLI requires permission to read, edit, and execute files here.
->  Yes, I trust this folder
->   No, exit
->   ↑/↓ Navigate · enter Confirm
->                                                                   Gemini 3.6 Flash · low
-> ```
-
-아래는 Antigravity 초기화면입니다. 
-
-**모든 OS 동일**
-(단, 프롬프트의 경로 표기는 OS에 따라 다를 수 있습니다)
-
-**모든 OS 동일**
+**`Yes, I trust this folder`** 를 선택하고 **Enter**를 누르면 TUI 대화 화면으로 진입합니다:
 
 ```text
 /Users/hangsik/Documents/my_project/antigravity_lab$ agy
 
-
-      ▄▀▀▄        Antigravity CLI 1.1.13
-     ▀▀▀▀▀▀       admin@hangsik.altostrat.com (Agent Platform)
-    ▀▀▀▀▀▀▀▀      Gemini 3.6 Flash (Low)
+      ▄▀▀▄        Antigravity CLI 1.2.0
+     ▀▀▀▀▀▀       admin@hangsik.altostrat.com
+    ▀▀▀▀▀▀▀▀      Gemini 3.8 Flash (Low)
    ▄▀▀    ▀▀▄     ~/Documents/my_project/antigravity_lab
   ▄▀▀      ▀▀▄
 
 ───────────────────────────────────────────────────────────────────────────────────────────────────
 >
 ───────────────────────────────────────────────────────────────────────────────────────────────────
-? for shortcuts                                                              Gemini 3.6 Flash · low
+? for shortcuts                                                              Gemini 3.8 Flash · low
 ```
-
-Antigravity Cli 사용시 / 명령어로 볼수 있는 command는 아래와 같습니다.
-
-# Antigravity CLI 슬래시(/) 명령어 전체 가이드
-
-Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용할 수 있는 전체 명령어 목록과 각 기능의 상세 활용 가이드입니다.
 
 ---
 
-## 1. 세션 및 대화 관리 (Conversation & Session)
+### 3.2 헤드리스 비대화형 단발 실행 (`agy -p`)
+
+TUI 대화창에 들어가지 않고, 셸 스크립트나 터미널에서 즉시 에이전트에게 1회성 작업을 지시하고 결과를 표준 출력(stdout)으로 받을 때 사용합니다.
+
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
+
+```bash
+# 단발 프롬프트 실행 후 즉시 종료
+agy -p "현재 프로젝트의 git status를 확인하고 요약해줘"
+
+# 특정 파일 분석 후 요약
+agy -p "requirements.txt 파일의 의존성 패키지 목록을 한 줄로 정리해줘"
+```
+
+---
+
+### 3.3 세션 제어 및 복원 플래그 (`agy -s`, `agy -r`)
+
+| 플래그 | 설명 | 사용 예시 |
+| :--- | :--- | :--- |
+| `-s, --session <ID>` | 특정 대화 세션 ID를 직접 지정하여 해당 세션을 재개 | `agy -s 8f3b2c1a` |
+| `-r, --resume` | 가장 최근에 작업하던 대화 세션을 즉시 복원하여 실행 | `agy -r` |
+
+```bash
+# 가장 최근 작업 세션으로 바로 복귀
+agy -r
+```
+
+---
+
+### 3.4 CI/CD 파이프라인 연계 및 구조화 출력 (`--json`, `--json-schema`)
+
+자동화 스크립트나 GitHub Actions 등에서 출력을 파싱해야 할 때 JSON 형태로 결과를 받습니다.
+
+```bash
+# 1. JSON 스트리밍 출력 (실시간 이벤트 및 도구 호출 로그 파싱용)
+agy -p "코드 무결성 점검" --stream-json
+
+# 2. 구조화된 JSON 스키마 강제 출력 (Structured Output)
+agy -p "버그 리포트 생성" --json-schema '{"type":"object","properties":{"severity":{"type":"string"},"summary":{"type":"string"}},"required":["severity","summary"]}'
+```
+
+---
+
+### 3.5 터미널 CLI 주요 옵션 종합 레퍼런스
+
+| 옵션 / 플래그 | 타입 | 설명 |
+| :--- | :--- | :--- |
+| `-p, --prompt <text>` | string | 대화형 TUI 없이 비대화형으로 1회 실행 후 종료 |
+| `-s, --session <id>` | string | 특정 세션 ID 지정 실행 |
+| `-r, --resume` | boolean | 최근 활성 세션 자동 복원 |
+| `--model <name>` | string | 세션 실행 시 사용할 모델 명시 (예: `gemini-3.8-flash`) |
+| `--json` | boolean | 최종 결과를 단일 JSON 객체로 출력 |
+| `--stream-json` | boolean | 에이전트의 사고 및 도구 호출 이벤트를 JSONL로 스트리밍 |
+| `--version, -v` | boolean | Antigravity CLI 현재 바이너리 버전 출력 |
+| `--help, -h` | boolean | 사용 가능한 터미널 CLI 옵션 도움말 출력 |
+
+---
+
+## 4. Antigravity 5대 확장 아키텍처 및 우선순위 체계 (Features & Precedence)
+
+Antigravity의 강력함은 단순한 모델 호출이 아니라, **프로젝트 로컬(`.agents/`)** 과 **시스템 전역(`~/.gemini/`)** 에 정의된 5대 핵심 확장 자산을 유기적으로 조합하는 데서 나옵니다.
+
+### 4.1 5대 핵심 확장 자산
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Antigravity 5대 확장 자산                       │
+├─────────────────┬──────────────────────────────────────────────────────┤
+│ 1. Rules        │ 항상 준수해야 할 코딩 스타일, 어조, 보안 가드레일 규정   │
+│ 2. Agents       │ 전문 역할(시니어 리뷰어, 보안 감사관 등) 특화 페르소나  │
+│ 3. Skills       │ 점진적 공개(Progressive Disclosure) 기반 표준 업무 절차│
+│ 4. MCP Servers  │ 사내 DB, GitHub, 외부 API를 연결하는 오픈 표준 도구   │
+│ 5. Hooks        │ 도구 호출 전/후, 세션 시작/종료 시 가로채는 0-토큰 가드레일│
+└─────────────────┴──────────────────────────────────────────────────────┘
+```
+
+### 4.2 디렉터리 구성 및 탐색 우선순위 (Precedence)
+
+Antigravity는 자산을 검색할 때 **가장 구체적인 프로젝트 로컬 설정(Workspace)** 을 시스템 전역 설정보다 우선 적용합니다.
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                       커스터마이징 우선순위 (Precedence)                 │
+│                                                                        │
+│  [1순위] Workspace Project (.agents/)  ──> 프로젝트 루트 (최우선 적용)   │
+│     ├── rules/                        ──> 프로젝트 로컬 규칙            │
+│     ├── skills/                       ──> 프로젝트 로컬 스킬            │
+│     ├── agents/                       ──> 프로젝트 로컬 에이전트        │
+│     ├── scripts/                      ──> 자동화 헬퍼 스크립트          │
+│     ├── hooks.json                    ──> 프로젝트 라이프사이클 훅       │
+│     └── mcp_config.json               ──> 프로젝트 MCP 서버 설정        │
+│                                                                        │
+│  [2순위] Global User Configuration (~/.gemini/config/)                 │
+│     ├── rules/, skills/, agents/      ──> 머신 전체 공통 자산          │
+│     ├── plugins/                      ──> 설치된 전역 플러그인 번들     │
+│     └── mcp_config.json               ──> 머신 전체 MCP 설정            │
+│                                                                        │
+│  [3순위] Antigravity CLI Built-in     ──> CLI 내장 기본 자산 및 도구   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### 4.3 점진적 노출(Progressive Disclosure)과 컨텍스트 최적화
+
+- **상시 로딩 (`Rules`, `AGENTS.md`)**: 매 대화 턴마다 시스템 프롬프트에 포함되므로, 수천 줄을 작성하면 토큰이 낭비됩니다. 전역 원칙만 간결하게 유지합니다.
+- **점진적 노출 (`Skills`)**: 평소에는 50토큰 미만의 메타데이터(이름, 설명)만 포함되며, 사용자의 질문 의도(Intent)가 일치할 때만 본문을 로드하여 컨텍스트 윈도우를 최장 시간 보존합니다.
+
+---
+
+## 5. Antigravity TUI 슬래시(/) 명령어 전체 가이드 및 실습
+
+TUI 세션(`agy`) 프롬프트에서 `/`를 입력했을 때 사용할 수 있는 전체 명령어 목록과 각 기능의 상세 활용 가이드입니다.
+
+### 5.1 슬래시 명령어 5대 카테고리 종합 요약표
+
+---
+
+#### 5.1.1 세션 및 대화 관리 (Conversation & Session)
 
 | 명령어 (Aliases) | 기능 설명 | 주요 사용 상황 |
 | :--- | :--- | :--- |
@@ -115,7 +239,7 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 
 ---
 
-## 2. 계획 및 실행 제어 (Planning & Execution)
+#### 5.1.2 계획 및 실행 제어 (Planning & Execution)
 
 | 명령어 | 기능 설명 | 주요 사용 상황 |
 | :--- | :--- | :--- |
@@ -128,7 +252,7 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 
 ---
 
-## 3. 서브에이전트, 툴 및 확장성 (Agents & Tools)
+#### 5.1.3 서브에이전트, 툴 및 확장성 (Agents & Tools)
 
 | 명령어 | 기능 설명 | 주요 사용 상황 |
 | :--- | :--- | :--- |
@@ -141,7 +265,7 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 
 ---
 
-## 4. 작업 공간 및 코드 유틸리티 (Workspace & Code)
+#### 5.1.4 작업 공간 및 코드 유틸리티 (Workspace & Code)
 
 | 명령어 | 기능 설명 | 주요 사용 상황 |
 | :--- | :--- | :--- |
@@ -154,7 +278,7 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 
 ---
 
-## 5. 환경 설정 및 시스템 관리 (Configuration & System)
+#### 5.1.5 환경 설정 및 시스템 관리 (Configuration & System)
 
 | 명령어 (Aliases) | 기능 설명 | 주요 사용 상황 |
 | :--- | :--- | :--- |
@@ -172,12 +296,12 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
 | `/exit`<br>`(/quit)` | Antigravity CLI 세션을 종료합니다. | 터미널 세션을 안전하게 닫고 나갈 때 |
 
 ---
-<br>
-<br>
 
-# 1. Antigravity CLI 세션 및 대화 관리 명령어 단위 테스트 시나리오
+### 5.2 세션 및 대화 관리 명령어 실습 및 테스트 시나리오
 
-본 문서는 **1. 세션 및 대화 관리 (Conversation & Session)** 영역에 속한 7개 명령어의 동작 검증을 위한 단위 테스트 시나리오 명세서입니다.
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
+
+본 절에서는 대화 기록 복원, 체크포인트 롤백, 브랜치 분기 등 세션 생명주기를 제어하는 7개 명령어의 실제 동작과 화면 결과를 검증합니다.
 
 ---
 
@@ -191,8 +315,6 @@ Antigravity CLI의 프롬프트 입력창에서 `/`를 입력했을 때 사용�
    * **입력**: `/resume` (또는 `/switch`, `/conversation`)
    * **기대 결과**: 저장된 세션 목록(세션명, 생성일자, 마지막 대화 요약)이 TUI 선택창 형태로 렌더링됨
    * 아래 그럼에서는 current session은 "sum_up" 입니다. 
-**모든 OS 동일**
-
 ```text
 ───────────────────────────────────────────────────────────────────────────────────────────────────────
    CLI    Other   (tab to cycle)
@@ -233,8 +355,6 @@ Keyboard: ↑/↓ Navigate  ←/→ Page  enter Select  f2 Rename  f4 Delete  ta
      * CLI에 아래와 같이 되돌릴수 있는 Turn을 출력합니다. 
      * 아래 키보드로 선택해서 해당 시점으로 되돌립니다.
      * 만일 3개 turn 위로 선택하면 그 이 후에 있던 turn에 실행되었던 정보는 모두 rollback 됩니다.
-
-**모든 OS 동일**
 
 ```text
 Rewind Conversation
@@ -334,12 +454,12 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
      * CLI 하단에 "마지막 응답이 클립보드에 복사되었습니다" 알림 표시
      * OS 클립보드에 에이전트의 마지막 답변 텍스트(마크다운/코드 서식 포함)가 정확히 저장되어 다른 에디터에 붙여넣기(Paste) 가능함
 ---
-<br>
-<br>
 
-# 2. Antigravity CLI 계획 및 실행 제어 명령어 단위 테스트 시나리오
+### 5.3 계획 및 실행 제어 명령어 실습 및 테스트 시나리오
 
-본 문서는 **2. 계획 및 실행 제어 (Planning & Execution)** 영역에 속한 6개 명령어의 동작 검증을 위한 단위 테스트 시나리오 명세서입니다.
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
+
+본 절에서는 사전 계획 수립(`/planning`), 즉시 실행(`/fast`), 자율 완결 루프(`/goal`), 심층 인터뷰(`/grill-me`), 추론 노력 조절(`/effort`), 반복 스케줄링(`/schedule`) 등 작업 실행 방식을 제어하는 6개 명령어를 실습합니다.
 
 ---
 
@@ -361,8 +481,6 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
      * 에이전트가 코드를 직접 수정하는 도구(File Write, Bash 실행 등)를 호출하지 않음
      * 리팩토링 목표, 영향받는 파일 목록, 단계별 실행 계획(체크리스트 형태)을 포함한 계획서를 출력함
      * 계획 승인/수정 여부를 묻는 사용자 대기 상태로 전환됨
-**모든 OS 동일**
-
 ```text
 > /planning ADK로 에이전트를 만들고 GCP Agent Engine에 배포해주세요.
 
@@ -384,8 +502,6 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
 ```
 
 위에서 만들어진 adk_gcp_agent_engine_plan.md  파일 내용을 보면 아래와 같습니다. 
-
-**모든 OS 동일**
 
 ```text
 > adk_gcp_agent_engine_plan.md 파일을 보여줘
@@ -479,8 +595,6 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
 ```
 
 이렇게 생성된 planning 파일을 따로 다른 디렉토리에 추후 재사용을 위해서 저장 해놓을 수 있습니다.
-**모든 OS 동일**
-
 ```text
 > 위 파일에 project id 는 ai-hangsik 으로 넣어줘. 그리고 이 파일은 src/plan 디렉토리에 넣어줘
 
@@ -526,14 +640,10 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
      * 모든 테스트가 통과(`exit code 0`)하는 즉시 성공 종료 리포트를 출력하고 루프를 정상 종료함
 
 ❌ 나쁜 예 (일반 프롬프트로 모호하게 지시할 때)
-**모든 OS 동일**
-
 ```text
 장바구니 결제 기능 완성해줘.
 ```
 좋은 예 (/goal로 명확한 완료 기준을 주입할 때)
-
-**모든 OS 동일**
 
 ```text
 /goal [장바구니 결제 기능 완성]
@@ -563,8 +673,6 @@ Keyboard: ↑/↓ Navigate  enter Select  esc Cancel
      * 사용자의 답변을 취합한 후 최종 합의된 기능 요구사항 명세(Spec)를 요약 출력함
 
 /grill-me 실행 예제는 아래와 같습니다. 
-
-**모든 OS 동일**
 
 ```text
 > /grill-me llm 토큰 사용량을 보여주는 대쉬보드를 만들고 싶어
@@ -602,8 +710,6 @@ Question 1/1: 대시보드에서 가장 중요하게 시각화하고 싶은 핵�
      * "추론 깊이가 [HIGH/LOW]로 설정되었습니다" 확인 메시지 출력
      * 이후 요청 발생 시 설정된 추론 강도에 맞춰 응답 생성 시간 및 사고 과정(Thinking process) 토큰 사용량이 비례하여 변화함
 
-**모든 OS 동일**
-
 ```text
 > 
 ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -635,12 +741,12 @@ Set Effort
 
 
 ---
-<br>
-<br>
 
-# 3. Antigravity CLI 서브에이전트, 툴 및 확장성 명령어 단위 테스트 시나리오
+### 5.4 서브에이전트, 툴 및 확장성 명령어 실습 및 테스트 시나리오
 
-본 문서는 **3. 서브에이전트, 툴 및 확장성 (Agents & Tools)** 영역에 속한 8개 명령어의 동작 검증을 위한 단위 테스트 시나리오 명세서입니다.
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
+
+본 절에서는 Antigravity의 내장 툴(`built-in tools`), 커스텀 서브에이전트(`/agents`), 비동기 태스크(`/tasks`), 점진적 공개 스킬(`/skills`), 자율 규칙 학습(`/learn`), 외부 MCP 서버 연동(`/mcp`), 그리고 결정론적 이벤트 훅(`/hooks`)의 실습을 다룹니다.
 
 ## 1. built-in tools
 
@@ -681,8 +787,6 @@ Set Effort
    * 1. 저장 위치 (경로) 및 생성
       적용하려는 범위(프로젝트 전용 vs 전체 전역)에 따라 아래 두 경로 중 하나에 저장합니다:
 
-**macOS / Linux**
-
 ```bash
 # 프로젝트(워크스페이스) 전용으로 사용할 경우:
 mkdir -p .agents/agents
@@ -692,21 +796,8 @@ mkdir -p .agents/agents
 mkdir -p ~/.gemini/config/agents
 # 파일: ~/.gemini/config/agents/code-reviewer.md 또는 ~/.gemini/config/agents/code-reviewer/agent.md
 ```
-
-**Windows (PowerShell)**
-
-```powershell
-# 프로젝트(워크스페이스) 전용으로 사용할 경우:
-New-Item -ItemType Directory -Force -Path ".agents\agents" | Out-Null
-# 파일: .agents\agents\code-reviewer.md 또는 .agents\agents\code-reviewer\agent.md
-
-# 모든 프로젝트에서 전역(Global)으로 사용할 경우:
-New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Null
-# 파일: $HOME\.gemini\config\agents\code-reviewer.md 또는 $HOME\.gemini\config\agents\code-reviewer\agent.md
-```
    * 2. 저장할 파일 형식 및 내용 (code-reviewer.md)
       * 파일 이름은 code-reviewer.md 형태로 생성하며, 상단에 메타데이터(YAML Frontmatter)를 작성하고 그 아래에 시스템 프롬프트(마크다운 본문)를 작성합니다.
-**모든 OS 동일**
 
       ```markdown
       ---
@@ -746,8 +837,6 @@ New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Nu
 2. **서브에이전트 목록 조회**
    * **입력**: `/agents`  
    * **기대 결과**: 사용 가능한 서브에이전트 목록, 각 에이전트의 역할 설명, 활성 상태가 TUI 뷰로 표시됨  
-**모든 OS 동일**
-
    ```text
       >
       ──────────────────────────────────────────────────────────────────────────────────
@@ -766,8 +855,6 @@ New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Nu
    ```
 
 3. **특정 서브에이전트를 호출하여 작업 위임/전환**
-**모든 OS 동일**
-
       ```text
       > @[.agents/agents/code-reviewer.md] check the code that agy generated.
 
@@ -829,8 +916,6 @@ New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Nu
       ```
 
       아래와 같이 자연어를 통해서 sub agent를 호출할 수도 있습니다. 
-
-**모든 OS 동일**
 
       ```markdown
       > 지금 작성된 code 에 대해서 코드리뷰어를 통해서 리뷰해줘
@@ -926,8 +1011,6 @@ New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Nu
    * **입력**: `/tasks`  
    * **기대 결과**: 활성 태스크 ID, 작업명, 상태(`RUNNING`, `PENDING`), 경과 시간이 테이블 형태로 렌더링됨  
 
-**모든 OS 동일**
-
    ```text
    Tasks
    Agent Backgrounded
@@ -974,8 +1057,6 @@ New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Nu
 
    * 3. 실무 예시 시나리오
 
-**모든 OS 동일**
-
       ```text
       [사용자 요청] 
       "신규 배포 전 코드 보안 검사를 수행하고 결과를 슬랙으로 공유해줘."
@@ -1000,25 +1081,15 @@ New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\agents" | Out-Nu
    1. **Skill 만들기** 
    * 프로젝트 워크스페이스(.agents/skills/) 또는 전역 경로(~/.gemini/config/skills/)에 디렉터리를 만들고 SKILL.md 파일을 생성합니다.
 
-**macOS / Linux**
-
 ```bash
 mkdir -p .agents/skills/git-commit-helper
 # 전역 경로일 경우: mkdir -p ~/.gemini/config/skills/git-commit-helper
-```
-
-**Windows (PowerShell)**
-
-```powershell
-New-Item -ItemType Directory -Force -Path ".agents\skills\git-commit-helper" | Out-Null
-# 전역 경로일 경우: New-Item -ItemType Directory -Force -Path "$HOME\.gemini\config\skills\git-commit-helper" | Out-Null
 ```
 
    * 파일 경로: .agents/skills/git-commit-helper/SKILL.md 또는 ~/.gemini/config/skills/git-commit-helper/SKILL.md  
    * 참고 : 스킬에 마크다운 지침 외에 별도 첨부 파일이 필요 없다면 `<스킬명>.md` 단일 파일로 바로 생성하셔도 정상 인식됩니다. 만일 스킬 실행에 필요한 추가 참조 파일, 실행 스크립트, 예제 데이터 등이 함께 포함되는 경우에는 폴더를 만들어서 그안에 모두 저장해서 사용합니다.  
 
     * Skill 내용
-**모든 OS 동일**
 
       ```markdown
       ---
@@ -1042,8 +1113,6 @@ New-Item -ItemType Directory -Force -Path ".agents\skills\git-commit-helper" | O
    1. **등록된 스킬 목록 조회**
       * **입력**: `/skills`   
       * **기대 결과**: 등록된 스킬의 이름, 파라미터 요구사항, 적용 범위(Local/Global)가 나열됨   
-**모든 OS 동일**
-
       ```text
       Skills
       9 skills
@@ -1073,8 +1142,6 @@ New-Item -ItemType Directory -Force -Path ".agents\skills\git-commit-helper" | O
    2. 특정 스킬 로드 및 프롬프트 주입
       * **입력**: `/git-commit-helper push all change code to the repository.`
       * **기대 결과**: 스킬 템플릿에 정의된 워크플로우 지침이 현재 프롬프트 컨텍스트에 즉시 반영되어 후속 작업을 수행함
-**모든 OS 동일**
-
       ```text
       > /git-commit-helper push all change code to the repository.
 
@@ -1117,8 +1184,6 @@ New-Item -ItemType Directory -Force -Path ".agents\skills\git-commit-helper" | O
      * 에이전트가 대화 기록을 분석하여 핵심 규칙을 요약 생성함
      * 설정 디렉터리(예: `.antigravity/rules/` 또는 global config)에 해당 규칙 파일이 새로 생성/저장됨
      * "새로운 규칙이 영구 저장되었습니다" 확인 메시지 반환
-
-**모든 OS 동일**
 
    ```text
       > /learn "우리 팀의 커밋 메시지 규칙과 에러 핸들링 패턴을 기억해"
@@ -1185,28 +1250,16 @@ New-Item -ItemType Directory -Force -Path ".agents\skills\git-commit-helper" | O
 * **테스트 목적**: Model Context Protocol(MCP) 서버 연결 상태를 점검하고, 툴/리소스 바인딩을 관리하는지 검증
 
 ### 1. 기본 프로젝트 설정
-* 아래는 BigQuery MCP 서버 등록하는 방법을 예를 들어서 설명합니다.
-
-**macOS / Linux**
+* 아래는 BigQuery MCP 서버 등록하는 방법을 예를 들어 설명합니다:
 
 ```bash
-gcloud config set project <YOUR_GCP_PROJECT_ID>
-```
-
-**Windows (PowerShell)**
-
-```powershell
 gcloud config set project <YOUR_GCP_PROJECT_ID>
 ```
 
 * 연동할 계정에 최소 BigQuery Data Viewer 및 BigQuery Job User(쿼리 실행용) 권한이 부여되어 있어야 합니다.
 
 ### 2. MCP 설정 파일에 BigQuery 서버 등록
-* 프로젝트 전용(.agents/mcp.json) 또는 전역 설정(~/.gemini/config/mcp_config.json) 파일에 BigQuery MCP 서버 구성을 추가합니다.
-
-#### macOS / Linux
-
-**모든 OS 동일**
+* 프로젝트 전용(`.agents/mcp_config.json`) 또는 전역 설정(`~/.gemini/config/mcp_config.json`) 파일에 BigQuery MCP 서버 구성을 추가합니다:
 
 ```bash
 # 디렉터리 생성
@@ -1232,39 +1285,9 @@ cat > .agents/mcp_config.json <<'EOF'
 EOF
 ```
 
-#### Windows (PowerShell)
-
-**모든 OS 동일**
-
-```powershell
-# 디렉터리 생성
-New-Item -ItemType Directory -Force -Path ".agents" | Out-Null
-
-# 파일 생성 (Windows에서는 npx.cmd 또는 uvx.exe 사용 유의)
-@'
-{
-  "mcpServers": {
-    "bigquery": {
-      "command": "npx.cmd",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-bigquery"
-      ],
-      "env": {
-        "BIGQUERY_PROJECT_ID": "<YOUR_GCP_PROJECT_ID>",
-        "GOOGLE_APPLICATION_CREDENTIALS": "C:\path\to\service-account-key.json"
-      }
-    }
-  }
-}
-'@ | Set-Content -Encoding UTF8 ".agents\mcp_config.json"
-```
-
 2. **MCP 서버 연결 상태 및 제공 도구 목록 확인**
    * **입력**: `/mcp`
    * **기대 결과**: 연결된 MCP 서버의 사용할수 있는 지 여부와 해당 서버가 제공하는 툴 목록이 출력됨
-**모든 OS 동일**
-
    ```text
       Plugins (~/.gemini/config/plugins)
       >  ✓ bigquery  Tools: list_dataset_ids, get_dataset_info, list_table_ids, get_table_info, execute_sql_readonly,
@@ -1277,8 +1300,6 @@ New-Item -ItemType Directory -Force -Path ".agents" | Out-Null
 3. **특정 MCP 서버 재연결/갱신**
    * **입력**: `BigQuery MCP를 사용해서 'bbc_news' 데이터셋의 테이블 목록을 조회해줘.`
    * **기대 결과**: MCP 클라이언트가 해당 서버 연결을 초기화 및 재연결하고 사용 가능한 도구 목록을 갱신함
-
-**모든 OS 동일**
 
    ```text
    > BigQuery MCP를 사용해서 'bbc_news' 데이터셋의 테이블 목록을 조회해줘.
@@ -1303,16 +1324,7 @@ New-Item -ItemType Directory -Force -Path ".agents" | Out-Null
 가장 실무에서 유용한 "파일 수정 직후 코드 포맷팅(Prettier) 및 린트(ESLint) 자동 실행 Hook" 예제입니다.
 
 ### 1. Hook 설정 파일 생성 (hooks.json)
-프로젝트 워크스페이스(.agents/) 또는 전역 설정(~/.gemini/config/) 폴더 내에 `hooks.json` 파일을 작성합니다.
-
-> [!NOTE]
-> **크로스 플랫폼(Cross-platform) 커맨드 유의사항**
-> Hook 내부에 지정되는 `command` 속성은 OS의 기본 쉘 환경에 종속됩니다.
-> 따라서, macOS/Linux에서는 `sh` 스크립트를, Windows에서는 `ps1` 스크립트를 호출하는 등 OS에 맞는 명령어를 지정해야 정상 동작합니다.
-
-#### macOS / Linux
-
-**모든 OS 동일**
+프로젝트 워크스페이스(`.agents/`) 또는 전역 설정(`~/.gemini/config/`) 폴더 내에 `hooks.json` 파일을 작성합니다:
 
 ```bash
 cat > .agents/hooks.json <<'EOF'
@@ -1335,35 +1347,9 @@ cat > .agents/hooks.json <<'EOF'
 EOF
 ```
 
-#### Windows (PowerShell)
-
-**모든 OS 동일**
-
-```powershell
-@'
-{
-  "code-formatter-and-linter": {
-    "PostToolUse": [
-      {
-        "matcher": "replace_file_content|write_to_file",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell.exe -ExecutionPolicy Bypass -File .\scripts\format_and_lint.ps1",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  }
-}
-'@ | Set-Content -Encoding UTF8 ".agents\hooks.json"
-```
-
 ### 2. /hook 명령어를 통한 관리 및 등록
 * 대화창에서 /hook 인터랙티브 메뉴 또는 CLI 명령어로 등록 상태를 점검할 수 있습니다.
    * Hook 목록 및 활성 상태 조회:
-**모든 OS 동일**
 
    ```text
       Hooks
@@ -1377,8 +1363,6 @@ EOF
 
    ```
 
-**모든 OS 동일**
-
    ```text
       PostToolUse — Matchers
          After tool execution
@@ -1390,12 +1374,11 @@ EOF
 
 ---
 
-<br>
-<br>
+### 5.5 작업 공간 및 코드 유틸리티 명령어 실습 및 테스트 시나리오
 
-# 4. Antigravity CLI 작업 공간 및 코드 유틸리티 명령어 단위 테스트 시나리오
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
 
-본 문서는 **4. 작업 공간 및 코드 유틸리티 (Workspace & Code)** 영역에 속한 6개 명령어의 동작 검증을 위한 단위 테스트 시나리오 명세서입니다.
+본 절에서는 변경 사항 검토(`/diff`), 코드베이스 인덱스 검색(`/codesearch`), 외부 에디터 열기(`/open`), 워크스페이스 범위 확장(`/add-dir`), 생성 산출물 검토(`/artifact`), 컨텍스트 토큰 사용량 시각화(`/context`) 등 작업 공간 관리 명령어 6개를 실습합니다.
 
 ---
 
@@ -1406,16 +1389,12 @@ EOF
 ### 테스트 케이스
 1. **코드 변경 내역 TUI 뷰어 렌더링**
    * **입력**: `/diff`  
-**모든 OS 동일**
-
    ```text
    > diff
    ```
    * **기대 결과**:
      * 터미널 내에 변경된 파일 목록 및 파일별 `+`(추가) / `-`(삭제) 라인이 색상 구분된 인터랙티브 Diff 뷰어로 출력됨  
      * 방향키나 키보드 단축키를 통해 변경된 청크(Hunk) 간 이동이 정상 동작함
-**모든 OS 동일**
-
    ```text
       Diff (git)  All Changes  Per Turn  Commit Tree
       6 file(s) changed
@@ -1429,8 +1408,6 @@ EOF
       ? [Untracked] scripts/format_and_lint.sh  +36
 
    ```
-
-**모든 OS 동일**
 
    ```text
       agy_lab/agy_command.md  +193 -48
@@ -1469,13 +1446,9 @@ EOF
 * **사전 조건**: 소스 코드가 인덱싱되어 있는 다중 파일 프로젝트 워크스페이스  
 
 ### 테스트 케이스
-**모든 OS 동일**
-
 ```text
    > /codesearch  A new feature
 ```
-
-**모든 OS 동일**
 
 ```text
    Code Search: A new feature
@@ -1500,26 +1473,14 @@ EOF
 * **테스트 목적**: 에이전트가 최근 수정한 파일 목록이나 사용자가 지정한 파일을 외부 기본 에디터(VS Code, Vim 등)로 열어주는지 검증  
 
 ### 테스트 케이스
-**모든 OS 동일**
-
 ```text
    > /open hooks.json
    ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
-**macOS / Linux**
-
 ```text
    > /open .agents/hooks.json
 ```
-
-**Windows (PowerShell)**
-
-```text
-   > /open .agents\hooks.json
-```
-
-**모든 OS 동일**
 
 ```json
    {
@@ -1566,18 +1527,10 @@ EOF
 
 ### 테스트 케이스
 
-외부 절대 경로를 추가할 때 OS별 경로 표기에 유의하여 테스트합니다.
-
-**macOS / Linux**
+외부 절대 경로를 추가하여 테스트합니다:
 
 ```bash
 > /add-dir /Users/hangsik/Documents/shared_assets
-```
-
-**Windows (PowerShell)**
-
-```powershell
-> /add-dir C:\Users\hangsik\Documents\shared_assets
 ```
 
 ---
@@ -1617,8 +1570,6 @@ EOF
    * **기대 결과**:
      * 현재 사용 중인 총 토큰 수와 최대 지원 컨텍스트 한도 대비 백분율(%)이 프로그레스 바 형태로 시각화되어 표시됨
      * 대화 기록, 시스템 프롬프트, 첨부된 파일/도구 정의별 토큰 점유율 세부 분석 데이터가 출력됨
-**모든 OS 동일**
-
       ```text
          ───────────────────────────────────────────────────────────────────────────────────────────────────────────────
          └ Context Usage
@@ -1648,8 +1599,6 @@ EOF
    * **입력**: `/context`
    * **기대 결과**: 컨텍스트 정리가 필요함을 알리는 경고(Warning) 뱃지가 함께 표시되며, `/clear` 또는 컨텍스트 축소 방안을 제안함
 
-**모든 OS 동일**
-
       ```text
          >/clear
          >
@@ -1677,17 +1626,17 @@ EOF
 
 ---
 
-# 5. Antigravity CLI 환경 설정 및 시스템 관리 명령어 단위 테스트 시나리오
+### 5.6 환경 설정 및 시스템 관리 명령어 실습 및 테스트 시나리오
 
-본 문서는 **5. 환경 설정 및 시스템 관리 (Configuration & System)** 영역에 속한 12개 명령어의 동작 검증을 위한 단위 테스트 시나리오 명세서입니다.
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
+
+본 절에서는 모델 선택(`/model`), 권한 및 샌드박스 정책(`/permissions`), 전역 설정(`/config`), 단축키 매핑(`/keybindings`), 상태 표시줄(`/statusline`), 도움말(`/help`), 가이드 문서(`/antigravity-guide`), 릴리즈 노트(`/changelog`), 피드백 제출(`/feedback`), 라이선스 고지(`/credits`), 로그아웃(`/logout`), 세션 종료(`/exit`) 등 시스템 관리 명령어 12개를 실습합니다.
 
 ---
 
 ## 1. `/model`
 
 * **테스트 목적**: 추론 엔진으로 사용할 기본 모델(예: Gemini 3.5 flash)을 정상 조회하고 전환할 수 있는지 검증 
-
-**모든 OS 동일**
 
 ```text
    > /model
@@ -1720,12 +1669,8 @@ EOF
 * 추천 상황: 팀 단위 프로젝트에서 "이 명령어는 누구나 승인 없이 실행 가능", "이 폴더는 누구든 수정 금지" 같은 팀 표준 보안 정책을 Git으로 공유할 때 선택합니다.
 ### 3. Global (전역 사용자 설정)
 * 적용 범위: 내 컴퓨터에서 agy로 여는 모든 프로젝트에 전역적으로 적용됩니다.
-* 저장 위치: 
-  * **macOS / Linux**: `~/.gemini/config/settings.json`
-  * **Windows (PowerShell)**: `%USERPROFILE%\.gemini\config\settings.json`
+* 저장 위치: `~/.gemini/config/settings.json`
 * 추천 상황: 프로젝트와 무관하게 "기본적으로 모든 읽기 작업은 항상 승인 없이 허용"과 같은 개인 선호 환경을 일괄 적용할 때 선택합니다.
-
-**모든 OS 동일**
 
 ```text
 Permission Config Editor
@@ -1748,16 +1693,12 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 ## 3. `/config` (`/settings`)
 
 * **테스트 목적**: CLI의 통합 환경설정 패널(출력 상세도, 테마, 프록시 등)을 호출하고 설정값을 갱신할 수 있는지 검증  
-* **사전 조건**: 설정 파일이 로컬에 존재하는 상태
-  * **macOS / Linux**: `~/.gemini/antigravity-cli/config.json`
-  * **Windows (PowerShell)**: `%USERPROFILE%\.gemini\antigravity-cli\config.json`
+* **사전 조건**: 설정 파일이 로컬에 존재하는 상태 (`~/.gemini/antigravity-cli/config.json`)
 
 ### 테스트 케이스
 1. **환경설정 TUI 패널 호출 및 수정**
    * **입력**: `/config` (또는 `/settings`)
    * **기대 결과**: 대화형 환경설정 패널이 열리며, 출력 상세도(`verbosity`) 또는 테마 변경 후 저장 시 설정 파일에 즉시 영속 반영됨   
-
-**모든 OS 동일**
 
    ```text
       >
@@ -1791,7 +1732,7 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 ## 4. `/keybindings`
 
 * **테스트 목적**: 대화형 단축키 에디터를 열어 TUI 키 매핑을 커스텀하고 정상 저장하는지 검증   
-* **사전 조건**: CLI TUI 환경 실행 중 (설정 파일 위치: macOS/Linux는 `~/.gemini/antigravity-cli/keybindings.json`, Windows는 `%USERPROFILE%\.gemini\antigravity-cli\keybindings.json`)
+* **사전 조건**: CLI TUI 환경 실행 중 (설정 파일 위치: `~/.gemini/antigravity-cli/keybindings.json`)
 
 ### 테스트 케이스
 1. **키 매핑 커스텀 및 충돌 검증**
@@ -1803,9 +1744,7 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 ## 5. `/statusline`
 
 * **테스트 목적**: 터미널 하단 상태 표시줄의 표시 여부(ON/OFF) 및 모듈(토큰, 브랜치, 모델명) 커스텀 설정을 검증
-* **사전 조건**: 상태 표시줄이 렌더링 가능한 터미널 뷰 상태 (설정 파일 위치: macOS/Linux는 `~/.gemini/antigravity-cli/statusline.json`, Windows는 `%USERPROFILE%\.gemini\antigravity-cli\statusline.json`)
-
-**모든 OS 동일**
+* **사전 조건**: 상태 표시줄이 렌더링 가능한 터미널 뷰 상태 (설정 파일 위치: `~/.gemini/antigravity-cli/statusline.json`)
 
 ```text
    > /statusline
@@ -1886,10 +1825,7 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 1. **인증 토큰 파기 및 세션 로그아웃**
    * **입력**: `/logout`
    * **기대 결과**:
-     * 로컬 키체인/인증 파일에서 세션 토큰이 파기됨
-       * **macOS**: Keychain Access 에서 자격 증명 제거
-       * **Linux**: libsecret (Secret Service API) 에서 자격 증명 제거
-       * **Windows**: Windows Credential Manager 에서 자격 증명 제거
+     * 로컬 키체인/인증 파일에서 세션 토큰이 파기됨 (Linux libsecret 또는 인증 토큰 캐시에서 자격 증명 제거)
      * "성공적으로 로그아웃되었습니다" 메시지와 함께 인증 필요(Unauthenticated) 상태로 전환됨
 
 ---
@@ -1905,3 +1841,28 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
    * **기대 결과**:
      * 임시 캐시 및 비동기 워커가 안전하게 정리(Graceful shutdown)됨
      * CLI가 종료 코드 `0`과 함께 터미널 쉘 프롬프트로 복귀함
+
+---
+
+## 6. 실습 완료 체크리스트
+
+- [ ] 터미널 셸(Shell) 기본 실행 및 프로젝트 신뢰(`trust`) 프롬프트 승인 완료
+- [ ] 헤드리스 비대화형 단발 실행(`agy -p`) 및 최근 세션 복원(`agy -r`) 실행 완료
+- [ ] CI/CD 구조화 출력 플래그(`--json`, `--stream-json`, `--json-schema`) 옵션 이해 완료
+- [ ] 5대 핵심 확장 자산(Agents, Skills, Rules, MCP, Hooks)의 역할 및 우선순위(Precedence) 파악 완료
+- [ ] 세션 및 대화 관리 명령어(`/resume`, `/rewind`, `/clear`, `/fork`, `/rename`, `/copy`) 실습 완료
+- [ ] 계획 및 실행 제어 명령어(`/planning`, `/fast`, `/goal`, `/grill-me`, `/effort`, `/schedule`) 실습 완료
+- [ ] 서브에이전트, 툴 및 확장성 명령어(`built-in tools`, `/agents`, `/tasks`, `/skills`, `/learn`, `/mcp`, `/hooks`) 실습 완료
+- [ ] 작업 공간 및 코드 유틸리티 명령어(`/diff`, `/codesearch`, `/open`, `/add-dir`, `/artifact`, `/context`) 실습 완료
+- [ ] 환경 설정 및 시스템 관리 명령어(`/model`, `/permissions`, `/config`, `/keybindings`, `/help`, `/exit`) 실습 완료
+
+---
+
+## 7. 다음 단계 안내
+
+Antigravity CLI 및 TUI의 모든 명령어와 확장 체계를 마스터하셨다면, 실제 서비스와 애플리케이션을 구축하는 다음 실습을 진행하세요:
+
+- **웹 애플리케이션 구축 실습**: [agy_webapp.md](./agy_webapp.md) — FastAPI 모니터링 대시보드 및 Express 테트리스 게임 개발
+- **중급 개발자 심화 아키텍처 가이드**: [agy_intermediate.md](./agy_intermediate.md) — Progressive Skill, 0-토큰 가드레일 Hook, MCP 사내 DB 연동, Plugin 패키징
+- **비즈니스 명세 주도 개발 가이드**: [agy_sdd.md](../agy_advance/agy_sdd.md) — 비즈니스 기획서(Spec) 기반의 사내 경비 정산기 자동 구축
+- **엔터프라이즈 에이전트 개발 및 Vertex AI 배포**: [build_agent.md](../agy_advance/build_agent.md) — ADK 기반 에이전트 개발 및 GCP 배포
