@@ -15,7 +15,7 @@
 - **Google 계정 및 라이선스 인증**: 브라우저 기반 헤드리스 OAuth 인증을 통해 Google 계정을 연동하고 Gemini 라이선스를 선택합니다.
 - **초기 실행 검증**: 워크스페이스 신뢰 설정 및 첫 TUI 세션 진입, 기본 명령어(`/help`, `/model`, `/config`)와 코드 생성을 검증합니다.
 - **`/plan` 기반 점진적 개발 워크플로우**: 코드를 무작정 작성하지 않고 `/plan`으로 구조적 계획을 수립한 뒤, 피드백을 통해 점차적으로 설계를 개선하여 완성도 높은 결과물을 구현하는 방법을 익힙니다.
-- **환경 아키텍처 이해**: 전역 설정(`.gemini`) 및 프로젝트 커스터마이징(`.agents`) 디렉터리 구조를 파악합니다.
+- **환경 아키텍처 및 커스터마이징 실습**: 전역 설정(`.gemini`) 및 프로젝트 커스터마이징(`.agents`) 디렉터리 구조를 파악하고, 행동 규칙(Rule), 서브에이전트(Agent), 표준 절차(Skill), 사내 외부 DB 연동(MCP), 자동화 가드레일(Hook)을 단계별로 직접 구성합니다.
 
 ---
 
@@ -31,6 +31,31 @@ GCP Cloud Shell은 필요한 기본 개발 도구가 사전에 모두 구성되�
 | **코드 편집기**   | Cloud Shell Editor (VS Code 기반)     | 상단 'Open Editor' 버튼으로 즉시 사용 가능   |
 | **계정 및 권한**  | GCP 프로젝트 접근 권한 및 Google 계정 | GCP Console 로그인 계정 활용                 |
 | **실습 경로**     | `~/antigravity-lab`                   | Cloud Shell 영구 홈 디렉터리(`$HOME`)에 구성 |
+
+---
+
+## 📑 목차 (Table of Contents)
+
+1. [개요 및 학습 목표](#1-개요-및-학습-목표)
+2. [사전 준비 사항 (Prerequisites)](#2-사전-준비-사항-prerequisites)
+3. [단계별 실습 가이드 (Hands-on Lab Steps)](#3-단계별-실습-가이드-hands-on-lab-steps)
+   - [Step 1: GCP Console 접속 및 Cloud Shell 활성화](#step-1-gcp-console-접속-및-cloud-shell-활성화)
+   - [Step 2: 실습 워크스페이스(작업 폴더) 생성 및 기본 환경 확인](#step-2-실습-워크스페이스작업-폴더-생성-및-기본-환경-확인)
+   - [Step 3: (선택) Antigravity CLI 다운로드 및 설치](#step-3-선택-antigravity-cli-다운로드-및-설치-비-cloud-shell-환경-대상)
+   - [Step 4: Google 계정 인증 및 라이선스 선택](#step-4-google-계정-인증-및-라이선스-선택)
+   - [Step 5: 워크스페이스 신뢰 및 첫 TUI 세션 시작](#step-5-워크스페이스-신뢰-및-첫-tui-세션-시작)
+   - [Step 6: 초기 실행 및 기본 도구 동작 검증](#step-6-초기-실행-및-기본-도구-동작-검증)
+   - [Step 7: Antigravity /plan 기반 점진적 업무 개발 핸즈온](#step-7-antigravity-plan-기반-점진적-업무-개발plan-driven-implementation-핸즈온-가이드)
+   - [Step 8: 프로젝트 커스터마이징 디렉터리(.agents) 구성 및 5대 자산 실습](#step-8-프로젝트-커스터마이징-디렉터리agents-구성-및-rule-agent-skill-mcp-hook-실습)
+     - [8-1. 디렉터리 구조 생성](#8-1-디렉터리-구조-생성)
+     - [8-2. Rule (행동 규칙)](#8-2-rule-행동-규칙--개념-작성-예제-및-실제-활용-방법)
+     - [8-3. Agent (맞춤형 AI 비서)](#8-3-agent-맞춤형-ai-비서--개념-작성-예제-및-실제-활용-방법)
+     - [8-4. Skill (표준 업무 절차)](#8-4-skill-표준-업무-절차--개념-작성-예제-및-실제-활용-방법)
+     - [8-5. MCP (Google Cloud BigQuery 연동)](#8-5-mcp-model-context-protocol-외부-데이터-및-도구-연동--google-cloud-bigquery-연동-실습)
+     - [8-6. Hook (자동화 이벤트 트리거)](#8-6-hook-자동화-이벤트-트리거--개념-작성-예제-및-실제-활용-방법)
+     - [8-7. 5대 커스텀 자산 한눈에 비교하기](#8-7-rule-agent-skill-mcp-hook-5대-커스텀-자산-한눈에-비교하기)
+4. [Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)](#4-cloud-shell-환경-문제-해결-및-faq-troubleshooting)
+5. [다음 단계](#5-다음-단계)
 
 ---
 
@@ -436,7 +461,7 @@ Antigravity TUI 프롬프트에서 현재 등록된 스킬, 서브에이전트, 
 > | **Rule (규칙)** | **누적 병합 (Additive)** | Global과 Workspace 규칙이 **둘 다 적용** (로컬 지침 우선 반영) |
 > | **Hook (트리거)** | **순차 체인 실행 (Chaining)** | 덮어쓰지 않고 등록된 모든 훅이 이벤트 시 **순서대로 전부 실행** |
 >
-> 현재 화면에는 기본 내장(Built-in) 항목들만 표시되며, 이어지는 **Step 8**에서 우리만의 맞춤형 Rule, Agent, Skill, Hook을 직접 만들어 등록해 볼 것입니다.
+> 현재 화면에는 기본 내장(Built-in) 항목들만 표시되며, 이어지는 **Step 8**에서 우리만의 맞춤형 Rule, Agent, Skill, MCP, Hook을 직접 만들어 등록해 볼 것입니다.
 
 #### 6-5. 코드 생성 및 도구 호출 테스트
 
@@ -729,9 +754,9 @@ cat weekly_report_output.md
 
 ---
 
-### Step 8: 프로젝트 커스터마이징 디렉터리(`.agents`) 구성 및 Rule, Agent, Skill, Hook 실습
+### Step 8: 프로젝트 커스터마이징 디렉터리(`.agents`) 구성 및 Rule, Agent, Skill, MCP, Hook 실습
 
-기본 동작 검증을 완료했다면, 이제 워크스페이스의 `.agents` 디렉터리를 통해 에이전트의 행동 규칙(**Rule**), 전문 서브에이전트(**Agent**), 재사용 가능한 표준 업무 워크플로우(**Skill**), 자동화 이벤트 트리거(**Hook**)을 직접 작성하고 활용해 봅니다.
+기본 동작 검증을 완료했다면, 이제 워크스페이스의 `.agents` 디렉터리를 통해 에이전트의 행동 규칙(**Rule**), 전문 서브에이전트(**Agent**), 재사용 가능한 표준 업무 워크플로우(**Skill**), 외부 사내 데이터 연동 인터페이스(**MCP**), 자동화 이벤트 트리거(**Hook**)를 직접 작성하고 활용해 봅니다.
 
 #### 8-1. 디렉터리 구조 생성
 
@@ -1070,7 +1095,7 @@ TUI 세션에서 등록된 스킬 목록을 확인하고, 실제 회의 메모 �
   ```
 
 > [!TIP]
-> **💡 핵심 비교: Rule vs Agent vs Skill (목적과 호출 시점)**
+> **💡 핵심 비교: Rule vs Agent vs Skill vs MCP vs Hook (목적과 호출 시점)**
 > - **Rule (행동 규칙)**:
 >   - **목적**: 말투, 답변 서식, 보안 수칙 등 에이전트가 항상 지켜야 할 **기본 원칙 및 가드레일(사내 근무 수칙)**을 규정합니다.
 >   - **호출 시점**: 사용자의 질문 내용과 상관없이 **매 대화 턴마다 항시 자동 적용(Always-on)**됩니다.
@@ -1080,10 +1105,137 @@ TUI 세션에서 등록된 스킬 목록을 확인하고, 실제 회의 메모 �
 > - **Skill (업무 매뉴얼)**:
 >   - **목적**: 회의록 정리, 데이터 가공 등 여러 단계를 거치는 **특정 업무의 표준 처리 절차(SOP: Standard Operating Procedure, 표준 운영 절차)**를 규정합니다.
 >   - **호출 시점**: 평소에는 메모리를 절약하기 위해 대기하다가, 사용자가 관련 업무를 요청하거나 키워드가 일치할 때만 **온디맨드(On-demand)로 로드**되어 실행됩니다.
+> - **MCP (외부 데이터 및 도구 연동)**:
+>   - **목적**: 사내 데이터베이스, 클라우드 데이터 웨어하우스(BigQuery), 외부 API와 연결하는 **표준 데이터 통로(만능 어댑터)**를 제공합니다.
+>   - **호출 시점**: AI가 사내 데이터 조회나 클라우드 쿼리가 필요하다고 판단할 때 **해당 도구(Tool)를 자율 호출**하여 데이터를 가져옵니다.
+> - **Hook (자동화 이벤트 트리거)**:
+>   - **목적**: 답변 전 가이드 주입, 위험 명령어 차단 등 **시스템 이벤트 발생 시점에 가로채어 자동 처리하는 가드레일**을 제공합니다.
+>   - **호출 시점**: 대화 라이프사이클의 특정 사건(답변 직전, 도구 실행 직전/직후 등)이 일어날 때 **시스템이 자동으로 가로채어 실행**합니다.
 
 ---
 
-#### 8-5. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
+#### 8-5. MCP (Model Context Protocol, 외부 데이터 및 도구 연동) — Google Cloud BigQuery 연동 실습
+
+##### 1. MCP의 개념 및 작동 원리 (비즈니스 유저를 위한 쉬운 이해)
+
+- **개념**: AI 모델이 사내 데이터베이스(DB), 클라우드 데이터 웨어하우스(BigQuery), 파일 시스템, 외부 업무 도구(Slack, GitHub 등)와 **안전하고 표준화된 방식으로 소통할 수 있도록 연결해 주는 글로벌 오픈 표준 인터페이스(규격)**입니다.
+- **비유로 이해하기 (스마트폰의 USB-C 포트)**:  
+  스마트폰에 통일된 USB-C 포트가 있으면 외장 하드, 이어폰, 모니터 등 제조사가 다른 다양한 기기들을 어댑터 하나로 즉시 꽂아 쓸 수 있듯이, **MCP는 AI 에이전트에게 '만능 데이터 USB 포트'를 제공하는 것**과 같습니다.
+- **왜 Google Cloud BigQuery를 연동하나요?**:  
+  - 본 실습 환경인 **GCP Cloud Shell은 Google 계정 인증(ADC: Application Default Credentials)이 이미 완료**되어 있으므로, 복잡한 비밀번호나 API 키 설정 없이 즉시 BigQuery에 안전하게 연결할 수 있습니다.
+  - 로컬 파일에 머무르지 않고, 수십억 건의 엔터프라이즈 빅데이터를 처리하는 **Google Cloud 공식 데이터 웨어하우스를 AI 에이전트가 직접 쿼리**해 보는 실무형 경험을 제공합니다.
+
+```
+┌────────────────────────────────────────────────────────┐
+│  Antigravity 에이전트 (Host / Client)                  │
+│  "BigQuery에서 2020년 인기 이름 상위 5개를 조회해줘"    │
+└───────────────────────────┬────────────────────────────┘
+                            │ Streamable HTTP / Google OAuth
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│  Google 관리형 원격 MCP 서버 (Remote Endpoint)         │
+│  - URL: https://bigquery.googleapis.com/mcp            │
+│  - 제공 도구: query_bigquery, list_datasets            │
+└───────────────────────────┬────────────────────────────┘
+                            │ Google Cloud BigQuery API 연동
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│  Google Cloud BigQuery (Cloud Data Warehouse)          │
+│  - 공개 데이터셋: bigquery-public-data.usa_names       │
+└────────────────────────────────────────────────────────┘
+```
+
+##### 2. 워크스페이스 전용 Google 관리형 원격 BigQuery MCP 설정 (`.agents/mcp_config.json`)
+
+Google Cloud 인프라에서 직접 호스팅하는 공식 엔드포인트(`https://bigquery.googleapis.com/mcp`)에 Streamable HTTP로 연결합니다.  
+로컬이나 Cloud Shell에 별도의 Node.js, 파이썬 스크립트, 패키지를 일체 설치할 필요가 없으며, 다른 프로젝트에 영향을 주지 않도록 **현재 실습 워크스페이스(`.agents/`)에만 단독 적용**합니다.
+
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 - 일반 bash 셸)**
+
+```bash
+# 1. Antigravity 워크스페이스 루트로 이동 및 .agents 폴더 확인
+cd ~/antigravity-lab
+mkdir -p .agents
+
+# 2. 워크스페이스 전용 MCP 설정 파일 (.agents/mcp_config.json) 작성
+cat > ~/antigravity-lab/.agents/mcp_config.json <<'EOF'
+{
+  "mcpServers": {
+    "bigquery": {
+      "serverUrl": "https://bigquery.googleapis.com/mcp",
+      "authProviderType": "google_credentials",
+      "oauth": {
+        "scopes": [
+          "https://www.googleapis.com/auth/bigquery",
+          "https://www.googleapis.com/auth/cloud-platform"
+        ]
+      }
+    }
+  }
+}
+EOF
+
+# 3. 작성된 워크스페이스 전용 설정 확인
+ls -la ~/antigravity-lab/.agents/mcp_config.json
+cat ~/antigravity-lab/.agents/mcp_config.json
+```
+
+##### 3. 실제 실행 및 활용 방법
+
+Antigravity 세션을 재기동하여 `bigquery` MCP 서버가 정상 인식되었는지 확인하고, 실제 Google Cloud 공개 데이터셋을 자연어로 조회해 봅니다.
+
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
+
+```bash
+# MCP 설정 파일 로드를 위해 Antigravity 세션을 재기동합니다.
+cd ~/antigravity-lab
+agy
+```
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+- **MCP 서버 연결 상태 확인 (`/mcp`):**
+
+  ```text
+  /mcp
+  ```
+
+  화면에 `bigquery` 항목이 녹색 `CONNECTED` 상태로 등록되어 있으며, 제공 도구(`query_bigquery`, `list_datasets`)가 표시되는 것을 확인합니다. 확인 후 `Esc` 키를 눌러 대화창으로 복귀합니다.
+
+- **프롬프트 입력 예시 (Google Cloud BigQuery 공개 데이터셋 질의):**
+
+  ```text
+  bigquery 도구를 사용해서 Google Cloud 공개 데이터셋(bigquery-public-data.usa_names.usa_1910_current)에서 2020년 캘리포니아(CA) 주에서 가장 많이 등록된 아기 이름 상위 5개를 조회해서 표로 깔끔하게 정리해줘.
+  ```
+
+- **에이전트 실제 응답 결과 (BigQuery SQL 자율 생성 및 클라우드 조회):**
+
+  ```text
+  Google Cloud BigQuery의 'bigquery-public-data.usa_names.usa_1910_current' 테이블을 조회하여 2020년 캘리포니아(CA) 주에서 가장 인기 있었던 이름 상위 5개를 정리했습니다:
+
+  # 📊 2020년 캘리포니아 주 인기 이름 Top 5 (BigQuery Public Data)
+
+  | 순위 | 이름 (Name) | 성별 (Gender) | 출생 등록 수 (Count) |
+  | :--: | :--- | :---: | :---: |
+  | 1 | Liam | 남 (M) | 2,429 |
+  | 2 | Noah | 남 (M) | 2,362 |
+  | 3 | Olivia | 여 (F) | 2,342 |
+  | 4 | Camila | 여 (F) | 2,168 |
+  | 5 | Emma | 여 (F) | 2,130 |
+
+  - **데이터 출처:** Google Cloud BigQuery Public Dataset (`bigquery-public-data.usa_names`)
+  - **실행 결과:** 표준 GoogleSQL 쿼리가 클라우드 데이터 웨어하우스에서 정상 실행되어 실시간 집계되었습니다.
+  ```
+
+> [!TIP]
+> **💡 엔터프라이즈 BigQuery MCP 운영 가이드 (비용 최적화 및 보안)**:  
+> 1. **비용 제어 (Dry Run & Limit)**: BigQuery는 쿼리 스캔 용량에 따라 비용이 발생하므로, 에이전트가 쿼리를 작성할 때 불필요한 전체 테이블 스캔(`SELECT *`)을 피하고 항상 필요한 컬럼만 지정하거나 `LIMIT` 조건을 부여하도록 프롬프트에 명시하는 것이 좋습니다.
+> 2. **권한 최소화 (Least Privilege)**: 실무 운영 환경에서는 BigQuery 실행 서비스 계정에 `roles/bigquery.dataViewer` 및 `roles/bigquery.jobUser` 권한만 부여하여 무단 데이터 변경이나 테이블 삭제를 원천 차단합니다.
+> 3. **네이티브 대체 수단 (VPC-SC 환경)**: 만약 사내 보안 정책이나 특정 VPC-SC 환경에서 외부 원격 엔드포인트 통신이 제한되는 경우, 별도의 MCP 설정 없이도 Antigravity 내장 도구(`bq query`)를 통해 직접 BigQuery를 질의할 수 있습니다.
+
+---
+
+#### 8-6. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Hook의 개념 및 작동 원리 (비즈니스 유저를 위한 쉬운 이해)
 
@@ -1506,14 +1658,15 @@ ls -la ~/antigravity-lab/.agents/hooks/
 
 ---
 
-#### 8-6. Rule, Agent, Skill, Hook 한눈에 비교하기
+#### 8-7. Rule, Agent, Skill, MCP, Hook 5대 커스텀 자산 한눈에 비교하기
 
 | 구분               | 역할 (Role)                                   | 비유                      | 로딩 및 적용 방식                             | 호출/실행 방법                       | 실생활/업무 활용 예시                                    |
 | :----------------- | :-------------------------------------------- | :------------------------ | :-------------------------------------------- | :----------------------------------- | :------------------------------------------------------- |
 | **Rule** (규칙)    | 항상 지켜야 할 말투, 서식, 행동 가이드라인    | 사내 행동 규정, 근무 수칙 | **항시 자동 주입** (Always-on)                | 별도 호출 불필요 (질문 시 자동 적용) | 친절한 존댓말 쓰기, 상단 3줄 요약 강제, 보안 금지어 차단 |
 | **Agent** (비서)   | 특정 역할에 특화된 맞춤형 전담 페르소나       | 전문 비서, 특정 부서 직원 | **독립 세션 및 도구 제한**                    | `@에이전트명` 또는 자연어 위임       | 문서 작성 비서, 영어 회화 튜터, 고객 응대 상담원         |
 | **Skill** (매뉴얼) | 여러 단계로 진행되는 표준 업무 처리 절차(SOP: Standard Operating Procedure) | 업무 매뉴얼, 체크리스트   | **필요할 때만 로드** (Progressive Disclosure) | 스킬명 언급 또는 자연어 지시         | 회의록 정리, 주간 업무 보고서 생성, 데이터 클렌징        |
-| **Hook** (트리거)  | 특정 상황(이벤트) 발생 시 자동 실행되는 동작  | 스마트홈 루틴, 예약 알람  | 라이프사이클 이벤트 발생 시 **자동 실행**     | 이벤트 발생 시 자동 트리거           | 친절 가이드 자동 주입, 위험 명령어 실행 가드             |
+| **MCP** (데이터 연동)| 사내 DB 및 클라우드(BigQuery) 연결 표준 통로 | 만능 데이터 USB 포트      | 설정 등록 후 **필요 시 자율 호출**            | 자연어 질의 시 AI가 자율 도구 호출   | Google Cloud BigQuery 데이터 조회, 사내 DB/API 연동      |
+| **Hook** (트리거)  | 특정 상황(이벤트) 발생 시 자동 실행되는 동작  | 스마트홈 루틴, 안전 차단기 | 라이프사이클 이벤트 발생 시 **0-토큰 자동 실행**| 이벤트 발생 시 시스템 자동 트리거    | 친절 가이드 자동 주입, 위험 명령어 실행 가드             |
 
 ---
 
@@ -1561,7 +1714,7 @@ ls -la ~/antigravity-lab/.agents/hooks/
 - **원인:** 조직(관리자) 정책으로 해당 권한 모드가 차단된 상태입니다.
 - **해결 방법:** 기본값인 `request-review`를 그대로 사용하고 도구 호출 시 수동으로 승인합니다. 실습 진행에는 아무런 문제가 없습니다.
 
-### Q6. `.agents/`에 생성한 Rule, Agent, Skill, Hook이 TUI 화면에 나타나지 않습니다.
+### Q6. `.agents/`에 생성한 Rule, Agent, Skill, MCP, Hook이 TUI 화면에 나타나지 않습니다.
 
 - **원인:** 세션이 실행 중인 상태에서 백그라운드 터미널이나 다른 탭에서 파일을 새로 생성한 경우, CLI 프로세스의 인메모리 캐시 또는 파일 감지 지연으로 인해 즉시 반영되지 않을 수 있습니다.
 - **해결 방법:** TUI 세션을 종료하고 `agy` 를 다시 실행(재기동)하면 워크스페이스의 `.agents` 하위 파일들을 새로 스캔하여 정상적으로 로드합니다:
@@ -1579,7 +1732,7 @@ ls -la ~/antigravity-lab/.agents/hooks/
   agy
   ```
 
-  재기동 후 `/skills`, `/agents`, `/hooks` 명령어를 다시 실행하면 방금 생성한 자산들이 정상적으로 표시됩니다.
+  재기동 후 `/skills`, `/agents`, `/mcp`, `/hooks` 명령어를 다시 실행하면 방금 생성한 자산들이 정상적으로 표시됩니다.
 
 ---
 
