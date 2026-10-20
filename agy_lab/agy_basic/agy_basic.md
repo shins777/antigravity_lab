@@ -120,14 +120,14 @@ python3 --version
 
 ---
 
-### Step 3: (선택) Antigravity CLI 다운로드 및 설치 (비-Cloud Shell 환경 대상)
+### Step 3: <span style="color: red; font-weight: bold;">(선택)</span> Antigravity CLI 다운로드 및 설치 (비-Cloud Shell 환경 대상)
 
 > [!IMPORTANT]
-> **Cloud Shell 사용 시 Antigravity CLI 기본 설치 제공 (설치 불필요)**
-> **GCP Cloud Shell 환경을 사용하는 경우 Antigravity CLI(`agy`)가 기본으로 사전 설치**되어 제공됩니다.
-> 따라서 Cloud Shell 사용자는 수동 다운로드 및 설치 과정을 진행할 필요가 없으며, **3-1**에서 버전 확인 후 바로 **Step 4**로 이동하시면 됩니다.
+> **Cloud Shell 사용자는 본 설치 단계를 건너뛰고 Step 4로 바로 이동하세요! (사전 설치 완료)**  
+> **GCP Cloud Shell 환경에는 Antigravity CLI(`agy`)가 기본으로 사전 설치**되어 제공됩니다.  
+> 따라서 Cloud Shell 사용자는 수동 다운로드 및 설치 과정을 진행할 필요가 없으며, **3-1**에서 버전만 확인한 후 바로 **Step 4**로 이동하시면 됩니다.
 >
-> 본 단계의 수동 설치 가이드(3-2)는 **Cloud Shell이 아닌 자체 Linux 환경(로컬 Linux, 온프레미스 서버, 독자 VM 등)을 사용하는 실습자**를 위한 선택적(Optional) 안내입니다.
+> ⚠️ 아래의 수동 설치 가이드(3-2)는 **Cloud Shell이 아닌 자체 Linux 환경(로컬 Linux, 온프레미스 서버, 독자 VM 등)을 사용하는 실습자**만을 위한 <span style="color: red; font-weight: bold;">선택적(Optional)</span> 안내입니다.
 
 #### 3-1. Cloud Shell 기본 설치 확인 (Cloud Shell 사용자)
 
@@ -149,7 +149,7 @@ _로그인 방식 선택 화면이 나타나면 정상 동작 확인_
 
 - 위 화면이 나타나면 정상 작동하는 상태입니다. 실제 로그인은 Step 4에서 진행하므로 `Ctrl + C` 로 세션을 종료한 후 **Step 4**로 바로 진행하세요.
 
-#### 3-2. (선택) 수동 다운로드 및 설치 (Cloud Shell 외 환경 사용자 대상)
+#### 3-2. <span style="color: red; font-weight: bold;">(선택)</span> 수동 다운로드 및 설치 (Cloud Shell 외 환경 사용자 대상)
 
 Cloud Shell이 아닌 일반 Linux 환경에서 `agy` 바이너리가 존재하지 않는 경우 아래 절차에 따라 다운로드 및 설치를 진행합니다.
 
@@ -247,7 +247,12 @@ _라이선스 선택_
 
 > 📍 **진행 위치: 🤖 Antigravity 대화창 (TUI 환경 설정 화면)**
 
-컬러 스킴 및 마이그레이션 옵션 화면에서는 기본값을 유지하고 **Enter**를 눌러 진행합니다.
+컬러 스킴 및 마이그레이션 옵션 화면에서는 화살표를 아래로 움직여가면서 기본값을 유지하고 **Enter**를 눌러 진행합니다.
+
+> [!TIP]
+> **💡 처음 접하는 사용자를 위한 쉬운 팁 (키보드 조작법)**
+> 1. **마우스 대신 키보드 사용**: 검은색 터미널 화면(TUI)에서는 마우스 클릭이 동작하지 않습니다. 키보드의 **화살표 아래/위 키(`↓`, `↑`)** 로 항목 사이를 이동할 수 있습니다.
+> 2. **기본값 그대로 Enter 입력 권장**: 화면에 표시되는 컬러 테마나 옵션은 특별히 변경하지 않아도 실습에 전혀 지장이 없습니다. 옵션을 잘 모르겠거나 헷갈릴 때는 아무것도 변경하지 않고 바로 **`Enter`** 키를 누르면 권장 기본값으로 가장 안전하고 빠르게 다음 단계로 넘어갑니다.
 
 _컬러 스킴 및 마이그레이션 옵션 선택_
 <p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/lab4-6.png" width="600" alt="컬러 스킴 선택 화면"></p>
@@ -286,42 +291,15 @@ Antigravity CLI requires permission to read, edit, and execute files here.
 _TUI 초기 화면_
 <p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/lab4-8.png" width="600" alt="Antigravity CLI TUI 초기 화면"></p>
 
-- 확인 후 다음 설정을 위해 `/exit` 또는 `Ctrl + C` 로 세션을 일시 종료합니다.
+- 이제 세션을 종료할 필요 없이 현재 열려 있는 Antigravity TUI 대화창에서 곧바로 **Step 6**의 기본 도구 검증을 시작합니다. (만약 세션을 종료했다면 터미널에서 `cd ~/antigravity-lab && agy`를 실행하여 다시 진입합니다.)
 
 ---
 
-### Step 6: (선택) GCP Application Default Credentials(ADC) 설정
+### Step 6: 초기 실행 및 기본 도구 동작 검증
 
-BigQuery, Vertex AI, Cloud Storage 등 GCP 리소스 연동 실습을 진행하는 경우 ADC 인증을 설정합니다.
+실습 워크스페이스(`~/antigravity-lab`)의 Antigravity 대화창에서 기본 명령어(`/help`, `/model`, `/config`, `/skills`, `/agents`) 및 코드 생성 동작을 검증합니다:
 
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-cd ~/antigravity-lab
-gcloud auth application-default login --no-launch-browser
-```
-
-_ADC 인증 진행 화면 (Cloud Shell 예시)_
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/lab4-0.png" width="600" alt="gcloud ADC 인증 화면"></p>
-
-1. 명령 실행 후 계속 진행할지 묻는 프롬프트에 `y`를 입력합니다.
-2. 출력된 URL을 로컬 브라우저에 열고 로그인하여 인증 코드를 발급받습니다.
-3. 터미널의 verification code 입력 프롬프트에 붙여넣고 **Enter**를 누릅니다.
-
----
-
-### Step 7: 초기 실행 및 기본 도구 동작 검증
-
-실습 워크스페이스(`~/antigravity-lab`)에서 `agy`를 실행하고, 기본 명령어(`/help`, `/model`, `/config`, `/skills`, `/agents`) 및 코드 생성 동작을 검증합니다:
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-cd ~/antigravity-lab
-agy
-```
-
-#### 7-1. 도움말 및 단축키 확인
+#### 6-1. 도움말 및 단축키 확인
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
 
@@ -331,7 +309,7 @@ agy
 
 Antigravity TUI에서 지원하는 슬래시 명령어, 단축키 및 주요 사용법을 확인합니다.
 
-#### 7-2. 현재 모델 확인 및 Gemini 3.8 Flash (Medium) 설정
+#### 6-2. 현재 모델 확인 및 Gemini 3.8 Flash (Medium) 설정
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
 
@@ -363,7 +341,7 @@ Effort  ◂        ○──────────────◉────�
    - `medium`: 일상적인 코딩 및 에이전트 개발 실습에 최적의 응답 속도와 논리적 추론력을 제공하는 균형 잡힌 설정입니다.
 3. **설정 적용**: **Enter**를 눌러 설정을 확정합니다. 화면 상단 또는 상태 표시줄에 `Gemini 3.8 Flash (Medium)` 로 반영된 것을 확인합니다.
 
-#### 7-3. 도구 실행 권한(Tool Permission) 설정
+#### 6-3. 도구 실행 권한(Tool Permission) 설정
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
 
@@ -377,7 +355,7 @@ Effort  ◂        ○──────────────◉────�
 _`/config` 의 Tool Permission 설정 화면_
 <p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/lab6-1.png" width="600" alt="Tool Permission 설정 화면"></p>
 
-#### 7-4. 스킬 및 에이전트 목록 조회 명령 확인 (`/skills`, `/agents`)
+#### 6-4. 스킬 및 에이전트 목록 조회 명령 확인 (`/skills`, `/agents`)
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
 
@@ -398,9 +376,9 @@ Antigravity TUI 프롬프트에서 스킬과 서브에이전트 목록을 확인
    현재 사용 가능한 서브에이전트 목록이 출력되는 것을 확인합니다.
 
 > [!NOTE]
-> 현재는 기본 내장 항목들만 표시됩니다. 이어지는 **Step 8**에서 우리만의 맞춤형 Rule, Agent, Skill을 직접 만들어 이 목록에 등록하고 활용해 볼 것입니다.
+> 현재는 기본 내장 항목들만 표시됩니다. 이어지는 **Step 7**에서 우리만의 맞춤형 Rule, Agent, Skill을 직접 만들어 이 목록에 등록하고 활용해 볼 것입니다.
 
-#### 7-5. 코드 생성 및 도구 호출 테스트
+#### 6-5. 코드 생성 및 도구 호출 테스트
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (agy 프롬프트)**
 
@@ -410,7 +388,7 @@ Antigravity TUI 프롬프트에서 스킬과 서브에이전트 목록을 확인
 > Python으로 1부터 10까지의 합을 구하는 sum_1_to_10.py 파일을 생성해줘.
 ```
 
-#### 7-6. Cloud Shell 탭 추가를 통한 실행 검증 (다중 커맨드 창 활용)
+#### 6-6. Cloud Shell 탭 추가를 통한 실행 검증 (다중 커맨드 창 활용)
 
 Antigravity CLI가 실행 중일 때는 터미널 화면이 대화형 TUI 인터페이스로 점유됩니다. 생성된 파일을 실행하거나, 프로세스 로그를 확인하고, git 상태를 점검하는 등 **추가 셸 명령어가 필요한 경우 `agy`를 종료할 필요 없이 Cloud Shell의 탭 추가 기능을 활용**하여 여러 개의 명령 창을 동시에 사용할 수 있습니다.
 
@@ -455,11 +433,11 @@ python3 sum_1_to_10.py
 
 ---
 
-### Step 8: 프로젝트 커스터마이징 디렉터리(`.agents`) 구성 및 Rule, Agent, Skill, Hook 실습
+### Step 7: 프로젝트 커스터마이징 디렉터리(`.agents`) 구성 및 Rule, Agent, Skill, Hook 실습
 
 기본 동작 검증을 완료했다면, 이제 워크스페이스의 `.agents` 디렉터리를 통해 에이전트의 행동 규칙(**Rule**), 전문 서브에이전트(**Agent**), 재사용 가능한 표준 업무 워크플로우(**Skill**), 자동화 이벤트 트리거(**Hook**)을 직접 작성하고 활용해 봅니다.
 
-#### 8-1. 디렉터리 구조 생성
+#### 7-1. 디렉터리 구조 생성
 
 Tab 2(일반 bash 터미널) 또는 `agy` 종료 후 터미널에서 `.agents` 하위 폴더들을 생성합니다:
 
@@ -476,7 +454,7 @@ mkdir -p .agents/rules .agents/skills .agents/agents .agents/scripts
 ls -la .agents
 ```
 
-#### 8-2. Rule (행동 규칙) — 개념, 작성 예제 및 실제 활용 방법
+#### 7-2. Rule (행동 규칙) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Rule의 개념 및 작동 원리
 
@@ -548,7 +526,7 @@ Antigravity 세션(`agy`)에서 일반적인 질문을 던지면 Rule이 어떻�
 
 ---
 
-#### 8-3. Agent (맞춤형 AI 비서) — 개념, 작성 예제 및 실제 활용 방법
+#### 7-3. Agent (맞춤형 AI 비서) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Agent의 개념 및 작동 원리
 
@@ -635,7 +613,7 @@ ls -la ~/antigravity-lab/.agents/agents/writing-assistant.md
 
 ---
 
-#### 8-4. Skill (표준 업무 절차) — 개념, 작성 예제 및 실제 활용 방법
+#### 7-4. Skill (표준 업무 절차) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Skill의 개념 및 작동 원리
 
@@ -744,7 +722,7 @@ TUI 세션에서 등록된 스킬 목록을 확인하고, 실제 회의 메모 �
 
 ---
 
-#### 8-5. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
+#### 7-5. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Hook의 개념 및 5대 이벤트 유형
 
@@ -846,7 +824,7 @@ Antigravity 세션(`agy`)에서 `/hooks` 명령어를 실행하여 등록된 5�
 
 ---
 
-#### 8-6. Rule, Agent, Skill, Hook 한눈에 비교하기
+#### 7-6. Rule, Agent, Skill, Hook 한눈에 비교하기
 
 | 구분               | 역할 (Role)                                   | 비유                      | 로딩 및 적용 방식                             | 호출/실행 방법                       | 실생활/업무 활용 예시                                    |
 | :----------------- | :-------------------------------------------- | :------------------------ | :-------------------------------------------- | :----------------------------------- | :------------------------------------------------------- |
@@ -857,7 +835,7 @@ Antigravity 세션(`agy`)에서 `/hooks` 명령어를 실행하여 등록된 5�
 
 ---
 
-#### 8-7. 등록된 커스텀 자산 종합 검증 (All-in-One 테스트)
+#### 7-7. 등록된 커스텀 자산 종합 검증 (All-in-One 테스트)
 
 > [!TIP]
 > **새로 생성한 Hook, Skill, Agent 등이 TUI에 잘 안 보일 때의 해결 팁 (세션 재기동)**  
@@ -1357,7 +1335,6 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 - [ ] Antigravity CLI 동작 확인 완료 (Cloud Shell 기본 제공 또는 수동 설치 후 agy --version 확인)
 - [ ] 브라우저 헤드리스 OAuth 로그인 및 Gemini 프로젝트 라이선스 선택 완료
 - [ ] 워크스페이스 신뢰(Trust) 승인 및 Antigravity TUI 초기 화면 진입 완료
-- [ ] (선택) GCP ADC 설정 완료 (`gcloud auth application-default login --no-launch-browser`)
 - [ ] `.agents` 커스터마이징 디렉터리 구성 및 Rule, Agent, Skill 예제 작성 완료
 - [ ] `/help`, `/model` (Gemini 3.8 Flash Medium 설정), `/config`, `/skills`, `/agents` 실행 및 도구 호출 검증 완료
 - [ ] `/plan` 명령어 기반 주간 업무 보고서 계획 수립, 피드백 점진적 개선 및 최종 자동 구현 검증 완료
