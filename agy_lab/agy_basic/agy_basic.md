@@ -118,6 +118,30 @@ pwd     # /home/<user>/antigravity-lab 확인
 python3 --version
 ```
 
+#### 2-1. Antigravity CLI 최신 버전 업데이트 (Cloud Shell 구버전 갱신)
+
+Cloud Shell 환경에는 `agy`가 기본 탑재되어 있으나, 배포 주기에 따라 상대적으로 구버전(Old version)일 수 있습니다. 본 실습에서 다루는 최신 기능(라이프사이클 Hook, 최신 모델 등)을 원활하게 사용하기 위해 공식 릴리스 스크립트를 재실행하여 최신 바이너리로 업데이트합니다.
+
+1. **공식 설치 스크립트 실행 및 최신 바이너리 설치**:
+
+   ```bash
+   curl -fsSL https://antigravity.google/cli/install.sh | bash
+   ```
+
+2. **셸 환경 변수 갱신**:  
+   설치/업데이트 후 셸 환경 변수를 갱신합니다:
+
+   ```bash
+   source ~/.bashrc
+   ```
+
+3. **업데이트 확인**:  
+   업데이트가 완료되면 버전을 확인하여 최신 버전으로 갱신되었는지 검증합니다:
+
+   ```bash
+   agy --version
+   ```
+
 ---
 
 ### Step 3: <span style="color: red; font-weight: bold;">(선택)</span> Antigravity CLI 다운로드 및 설치 (비-Cloud Shell 환경 대상)
@@ -412,7 +436,7 @@ Antigravity TUI 프롬프트에서 현재 등록된 스킬, 서브에이전트, 
 > | **Rule (규칙)** | **누적 병합 (Additive)** | Global과 Workspace 규칙이 **둘 다 적용** (로컬 지침 우선 반영) |
 > | **Hook (트리거)** | **순차 체인 실행 (Chaining)** | 덮어쓰지 않고 등록된 모든 훅이 이벤트 시 **순서대로 전부 실행** |
 >
-> 현재 화면에는 기본 내장(Built-in) 항목들만 표시되며, 이어지는 **Step 7**에서 우리만의 맞춤형 Rule, Agent, Skill, Hook을 직접 만들어 등록해 볼 것입니다.
+> 현재 화면에는 기본 내장(Built-in) 항목들만 표시되며, 이어지는 **Step 8**에서 우리만의 맞춤형 Rule, Agent, Skill, Hook을 직접 만들어 등록해 볼 것입니다.
 
 #### 6-5. 코드 생성 및 도구 호출 테스트
 
@@ -447,11 +471,170 @@ python3 sum_1_to_10.py
 
 ---
 
-### Step 7: 프로젝트 커스터마이징 디렉터리(`.agents`) 구성 및 Rule, Agent, Skill, Hook 실습
+### Step 7: Antigravity /plan 기반 점진적 업무 개발(Plan-Driven Implementation) 핸즈온 가이드
+
+비즈니스 업무(기획, PM, 운영, 보고서 작성 등)에서 AI를 활용할 때 가장 흔히 겪는 문제는 **"무작정 바로 써달라고 했다가 뻔하고 어색한 결과물이 나와서 수정하느라 시간을 다 보내는 것"**입니다.
+
+Antigravity의 `/plan` 슬래시 명령어는 코드를 바로 작성하지 않고, **먼저 전체적인 업무 계획과 구조(Implementation Plan)를 세운 뒤, 대화형 피드백을 통해 점차적으로 품질을 개선한 후 최종 승인을 거쳐 구현**하는 강력한 엔지니어링 워크플로우를 제공합니다.
+
+#### 7-1. 비즈니스 유저를 위한 `/plan`의 핵심 가치
+
+```text
+[일반적인 즉각 요청 방식 (Direct)]
+사용자: "주간 보고서 스크립트 써줘" ───> AI가 생각나는 대로 즉시 코드 작성 ───> 요구사항 누락, 형식 불일치로 재작업 반복 ❌
+
+[/plan 점진적 계획 주도 방식 (Plan-Driven)]
+1. 1차 계획 (/plan) ───> 2. 피드백으로 점진적 개선 (Refine) ───> 3. 최종 승인 (Proceed) ───> 4. 완벽한 일괄 구현 및 검증 ✅
+```
+
+- **예측 가능성**: 어떤 파일이 어떻게 생성될지 사전에 눈으로 확인하고 진행할 수 있습니다.
+- **점진적 품질 개선**: 복잡한 비즈니스 요구사항(KPI 지표, 임원 요약, 지연 경고 등)을 계획 단계에서 쉽게 추가하고 다듬을 수 있습니다.
+- **실수 없는 자동 구현**: 사람이 계획을 최종 승인(`Proceed`)하기 전까지는 실제 파일이나 코드를 건드리지 않아 안전합니다.
+
+---
+
+#### 7-2. [Phase 1] 1차 업무 계획 수립 요청 (`/plan`)
+
+실습 시나리오: 팀원들의 한 주간 업무 데이터를 입력받아 깔끔한 마크다운 보고서로 변환해 주는 **주간 비즈니스 업무 보고서 자동 생성기 (`weekly_report_generator`)** 를 구축합니다.
+
+Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 계획 수립을 요청합니다.
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+```text
+/plan 팀원들의 한 주 업무 데이터를 입력하면 정돈된 마크다운 보고서로 만들어주는 weekly_report 생성기 계획을 세워줘.
+```
+
+##### 에이전트의 반응 및 계획 아티팩트 확인
+
+에이전트는 코드를 즉시 작성하지 않고, 화면 우측/하단에 **Implementation Plan** 아티팩트(`implementation_plan.md`)를 생성하여 보여줍니다:
+
+```text
+# Implementation Plan: Weekly Business Report Generator
+
+## Goal Description
+팀원들의 주간 업무 데이터를 읽어 마크다운(Markdown) 보고서로 가공하는 Python 스크립트 생성
+
+## Proposed Changes
+- [NEW] weekly_report.py : 업무 데이터를 마크다운 보고서로 변환하는 생성기 스크립트
+- [NEW] sample_tasks.json : 테스트용 샘플 팀원 업무 데이터
+
+## Verification Plan
+- sample_tasks.json 데이터를 사용해 weekly_report.py 실행
+- weekly_report_output.md 생성 확인
+```
+
+> [!NOTE]
+> 에이전트 화면 하단에 **`Proceed` (승인)** 버튼과 입력창이 대기 상태로 나타납니다. 하지만 바로 승인하지 않고, 비즈니스 요구사항을 추가하여 계획을 점진적으로 개선해 봅니다.
+
+---
+
+#### 7-3. [Phase 2] 대화형 점진적 계획 개선 (Interactive Plan Refinement)
+
+회사의 실제 보고서 양식에 맞추어 **"임원용 3줄 요약"**과 **"KPI 목표 달성률 표"**, 그리고 **"지연 프로젝트 경고(⚠️)"** 표시 기능을 계획에 추가하도록 피드백을 전달합니다.
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+```text
+계획을 보완해줘. 임원 보고용 '3줄 핵심 요약(Executive Summary)'과 'KPI 목표 달성률 표' 항목을 추가하고, 일정 지연(DELAY) 항목에는 ⚠️ 경고 표시가 눈에 띄게 나타나도록 계획을 업데이트해줘.
+```
+
+##### 계획 아티팩트의 실시간 업데이트 확인
+
+에이전트는 피드백을 반영하여 `Implementation Plan` 아티팩트를 실시간으로 갱신(Diff)합니다:
+
+- **Goal Description**: 임원 보고용 요약 및 KPI 달성률, 지연 경고 기능 추가 반영
+- **Proposed Changes**:
+  - `sample_tasks.json`: 프로젝트명, 담당자, 진척률(%), 상태(`COMPLETED`, `IN_PROGRESS`, `DELAY`) 필드 포함
+  - `weekly_report.py`: 데이터 파싱, KPI 달성률 집계 및 ⚠️ 지연 마크다운 서식 렌더링 로직 포함
+- **Verification Plan**: 지연 상태가 포함된 샘플 데이터 실행 검증
+
+> [!TIP]
+> 이처럼 `/plan` 모드에서는 사용자가 원하는 비즈니스 디테일이 계획에 온전히 담길 때까지 자연어로 피드백을 주며 **점진적으로 계획을 고도화(Refinement)** 할 수 있습니다.
+
+---
+
+#### 7-4. [Phase 3] 계획 승인(Proceed) 및 자동 구현 관찰
+
+업데이트된 계획이 마음에 든다면, 최종 승인하여 에이전트가 코드를 구현하도록 명령합니다.
+
+> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+
+- 화면의 **`Proceed`** 버튼을 클릭하거나, 프롬프트에 직접 입력합니다:
+
+```text
+계획을 승인합니다. 진행해주세요.
+```
+
+##### 에이전트의 자동 실행 과정
+
+승인이 떨어지면 에이전트가 순서대로 도구를 실행하여 파일을 생성합니다:
+1. `write_file` 도구로 `sample_tasks.json` 샘플 데이터 생성
+2. `write_file` 도구로 `weekly_report.py` 보고서 생성 스크립트 작성
+3. `run_command` 도구로 스크립트를 실행하여 테스트 검증
+
+---
+
+#### 7-5. [Phase 4] 실행 검증 및 최종 보고서 확인
+
+실제로 생성된 주간 보고서 도구가 잘 작동했는지 터미널에서 직접 실행하고 결과를 확인합니다.
+
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 또는 일반 bash 셸)**
+
+```bash
+# 1. 생성된 파일 확인
+cd ~/antigravity-lab
+ls -la sample_tasks.json weekly_report.py
+
+# 2. 주간 보고서 생성 스크립트 직접 실행
+python3 weekly_report.py
+
+# 3. 생성된 주간 보고서 결과물(Markdown) 출력 확인
+cat weekly_report_output.md
+```
+
+##### 기대되는 최종 보고서 결과 (`weekly_report_output.md`)
+
+```markdown
+# 📊 주간 비즈니스 업무 실적 보고서
+
+## 📌 Executive Summary (임원 보고용 3줄 요약)
+1. 2분기 주요 마케팅 캠페인 런칭이 성공적으로 완료되었습니다 (진척률 100%).
+2. 결제 시스템 연동 작업 중 PG사 심사 일정으로 인해 일부 지연(⚠️)이 발생하여 긴급 대응 중입니다.
+3. 신규 모바일 앱 기획안은 팀 내 리뷰를 거쳐 차주 초 최종 확정 예정입니다.
+
+## 🎯 KPI 목표 대비 달성률 현황
+| 프로젝트명 | 담당자 | 진척률 | 진행 상태 |
+| :--- | :--- | :---: | :---: |
+| 2분기 신규 프로모션 런칭 | 김마케터 | 100% | ✅ 완료 (COMPLETED) |
+| 글로벌 결제 모듈 연동 | 박개발 | 65% | ⚠️ 지연 (DELAY) |
+| 신규 고객 온보딩 플로우 개선 | 이기획 | 90% | 🔄 진행중 (IN_PROGRESS) |
+
+## ⚠️ 지연 프로젝트 긴급 조치 계획
+- **글로벌 결제 모듈 연동 (박개발)**: PG사 추가 서류 제출 완료, 익일 오전 10시 담당자 유선 미팅을 통해 심사 일정 2일 단축 추진.
+```
+
+> [!NOTE]
+> 계획 단계에서 요청했던 **임원 보고용 요약**, **KPI 달성률 표**, **⚠️ 지연 경고**가 누락 없이 완벽하게 반영되어 단 한 번에 비즈니스 수준의 보고서 도구가 완성되었습니다.
+
+---
+
+#### 7-6. 비즈니스 유저를 위한 `/plan` 3대 실무 꿀팁
+
+1. **"대화형으로 요구사항을 쪼개서 보완하세요"**:
+   처음부터 완벽한 프롬프트를 작성할 필요가 없습니다. 1차 계획을 받아보고 부족한 점(예: "표 서식을 넣어줘", "예외 상황도 고려해줘")을 한두 마디 피드백으로 보완하는 것이 훨씬 빠르고 정확합니다.
+2. **사내 표준 서식이 있다면 계획 단계에서 공유하세요**:
+   `> 우리 팀 보고서 양식 템플릿(template.md)을 참고해서 계획을 세워줘`와 같이 기존 양식을 연결해 주면 사내 표준에 맞춘 계획이 수립됩니다.
+3. **결과 검증 방식을 계획에 꼭 포함하세요**:
+   계획을 세울 때 "테스트할 샘플 데이터도 함께 만들어줘"라고 지시하면, 에이전트가 완성 직후 실제 테스트까지 스스로 마친 후 검증 결과(Walkthrough)를 전달해 줍니다.
+
+---
+
+### Step 8: 프로젝트 커스터마이징 디렉터리(`.agents`) 구성 및 Rule, Agent, Skill, Hook 실습
 
 기본 동작 검증을 완료했다면, 이제 워크스페이스의 `.agents` 디렉터리를 통해 에이전트의 행동 규칙(**Rule**), 전문 서브에이전트(**Agent**), 재사용 가능한 표준 업무 워크플로우(**Skill**), 자동화 이벤트 트리거(**Hook**)을 직접 작성하고 활용해 봅니다.
 
-#### 7-1. 디렉터리 구조 생성
+#### 8-1. 디렉터리 구조 생성
 
 Tab 2(일반 bash 터미널)에서 `.agents` 하위 폴더들을 생성합니다:
 
@@ -479,7 +662,7 @@ ls -la .agents
    - VS Code 상단 메뉴에서 **View > Toggle Hidden Files** 를 클릭하면 `.agents` 폴더가 좌측 탐색기에 즉시 나타납니다.
 4. **하위 폴더 트리 확인**: 좌측 탐색기에서 **`.agents`** 폴더 좌측의 꺾쇠(`>`) 아이콘을 클릭하여 하위의 `agents`, `rules`, `scripts`, `skills` 폴더가 펼쳐지는지 확인합니다. 앞으로 생성할 규칙(`.md`)과 스킬 코드들을 이곳에서 실시간으로 열람하고 편집할 수 있습니다.
 
-#### 7-2. Rule (행동 규칙) — 개념, 작성 예제 및 실제 활용 방법
+#### 8-2. Rule (행동 규칙) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Rule의 개념 및 작동 원리
 
@@ -551,7 +734,7 @@ Antigravity 세션(`agy`)에서 일반적인 질문을 던지면 Rule이 어떻�
 
 ---
 
-#### 7-3. Agent (맞춤형 AI 비서) — 개념, 작성 예제 및 실제 활용 방법
+#### 8-3. Agent (맞춤형 AI 비서) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Agent의 개념 및 작동 원리
 
@@ -646,7 +829,7 @@ ls -la ~/antigravity-lab/.agents/agents/writing-assistant.md
 
 ---
 
-#### 7-4. Skill (표준 업무 절차) — 개념, 작성 예제 및 실제 활용 방법
+#### 8-4. Skill (표준 업무 절차) — 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Skill의 개념 및 작동 원리
 
@@ -775,46 +958,108 @@ TUI 세션에서 등록된 스킬 목록을 확인하고, 실제 회의 메모 �
 
 ---
 
-#### 7-5. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
+#### 8-5. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
 
-##### 1. Hook의 개념 및 5대 이벤트 유형
+##### 1. Hook의 개념 및 작동 원리 (비즈니스 유저를 위한 쉬운 이해)
 
-- **개념**: 스마트홈의 자동화 루틴(예: "센서가 감지되면 조명을 켠다")이나 스마트폰의 자동 실행 기능처럼, Antigravity에서 **특정 사건(이벤트)이 일어날 때 사전에 지정한 동작(스크립트 또는 명령어)을 자동으로 가로채 실행해 주는 자동화 트리거**입니다.
-- **Antigravity 5대 Hook 유형 (`/hooks`)**:
-  Antigravity CLI는 에이전트의 작업 단계에 따라 다음 5가지 표준 훅 이벤트를 지원합니다:
+- **개념**: 사내 업무 자동화 규칙(IF~THEN, 예: *"어떤 사건이 발생하면(IF) ➔ 사전에 지정된 업무를 자동으로 처리한다(THEN)"*)처럼, **Antigravity 내부에서 특정 사건(이벤트)이 일어날 때 사전에 지정한 동작을 시스템이 가로채서 자동으로 실행해 주는 '이벤트 자동화 트리거'**입니다.
+- **왜 필요한가요?**: 사람이 매번 지시하지 않아도, AI가 답변하기 직전에 중요한 사내 지침을 귓속말처럼 자동으로 넣어주거나, 위험한 명령어를 실행하려 할 때 사전에 자동으로 차단·승인하여 **일관된 품질과 보안 안전성**을 사람의 개입 없이 유지할 수 있습니다.
+- **Antigravity 라이프사이클 이벤트**:
+  Antigravity CLI는 대화가 시작되어 끝날 때까지의 흐름(라이프사이클)에 맞춰 아래와 같은 핵심 이벤트 지점을 제공합니다:
 
-  | 훅 이벤트명          | 발생 시점 (When it fires)                      | 주요 역할 및 활용 예시                                             |
-  | :------------------- | :--------------------------------------------- | :----------------------------------------------------------------- |
-  | **`PreInvocation`**  | 모델(LLM)이 답변을 생성하기 직전               | 답변 전 추가 지침이나 임시 가이드(`ephemeralMessage`) 자동 주입    |
-  | **`PostInvocation`** | 모델(LLM)이 답변을 완료한 직후                 | 생성된 답변 검토 및 추가 연속 작업 강제(`force_continue`)          |
-  | **`PreToolUse`**     | 도구(명령어 실행, 파일 수정 등) 실행 직전      | 명령어 실행 전 안전 점검 또는 자동 승인(`allow`)/차단(`deny`) 제어 |
-  | **`PostToolUse`**    | 도구 실행이 완료된 직후                        | 파일 생성/수정 직후 코드 포맷팅이나 사후 정리 작업 실행            |
-  | **`Stop`**           | 에이전트가 작업을 마치고 세션을 종료하려 할 때 | 목표 달성 여부 확인, 종료 차단 또는 세션 마무리 안내               |
+  | 훅 이벤트명 | 발생 시점 (언제 작동하는가?) | 비즈니스 실무 활용 예시 |
+  | :--- | :--- | :--- |
+  | **`PreInvocation`** | AI가 사용자의 질문을 받고 **답변을 생각하기 직전** | "초보자도 이해하기 쉬운 비유로 설명하라"는 실시간 가이드 귓속말 자동 주입 |
+  | **`PostInvocation`** | AI가 답변을 막 끝마친 직후 | 답변 내용 누락 검토 및 추가 연속 분석 작업 강제 실행 |
+  | **`PreToolUse`** | 파일 생성이나 터미널 명령어 등 **도구를 실행하기 직전** | 위험한 명령어 사전 차단(Deny) 또는 안전한 작업 자동 승인(Allow) |
+  | **`PostToolUse`** | 도구 실행이 완료된 직후 | 생성된 보고서 서식 자동 정돈 또는 사후 검증 스크립트 실행 |
+  | **`Stop`** | 에이전트가 작업을 끝내고 **세션을 종료하려 할 때** | 할 일(Action Items)이 모두 완수되었는지 최종 점검 |
+  | **`SessionStart`** | 새로운 대화 세션이 처음 시작될 때 | 환영 인사 및 프로젝트 기본 요약 정보 표시 |
 
-##### 2. Hook 파일 작성 예제 (`.agents/hooks.json`)
+> [!NOTE]
+> **💡 TUI 화면의 '5 hook types' 안내**:  
+> Antigravity 공식 스펙(`hooks.json`)은 위 6개 라이프사이클 이벤트를 모두 지원합니다. 대화창에서 `/hooks` 명령어를 입력했을 때 화면에 `5 hook types`로 표시되는 이유는, 사용자와 대화하는 도중 반복해서 발생하는 **5대 대화 루프 훅**(`PreInvocation`, `PostInvocation`, `PreToolUse`, `PostToolUse`, `Stop`) 위주로 대화형 탐색 메뉴에 제공되기 때문입니다. `SessionStart`는 세션이 생성되는 최초 1회에만 백그라운드에서 동작하는 초기화 훅입니다.
 
-일반 사용자도 직관적으로 이해할 수 있는 실용적인 훅을 작성합니다:
+##### 2. Hook 설정 파일 작성 예제 (`.agents/hooks.json`)
 
-1. **`PreInvocation` 훅 (`friendly-guide`)**: 에이전트가 답변을 생각하기 직전, "초보자도 이해하기 쉬운 일상 비유로 설명하라"는 실시간 가이드를 모델에 귓속말(`ephemeralMessage`)처럼 주입합니다.
-2. **`PreToolUse` 훅 (`command-guard`)**: 에이전트가 터미널 명령어 도구(`run_command`)를 실행할 때 안전하게 자동 승인(`allow`)을 부여합니다.
+> 🌐 **Antigravity 공식 훅 매뉴얼 & 커스터마이징 가이드**:
+> - **Lifecycle Hooks 공식 가이드**: [https://antigravity.google/docs/hooks](https://antigravity.google/docs/hooks)
+> - **CLI 커스터마이징 종합 문서**: [https://antigravity.google/docs/customization](https://antigravity.google/docs/customization)
+
+> [!TIP]
+> **💡 업무 자동화 규칙(IF ~ THEN)으로 이해하는 훅의 3단 공식 (이름 ➔ 언제 ➔ 무엇을)**:  
+> `hooks.json` 파일의 복잡한 괄호 구조를 전부 외울 필요 없이, 비즈니스 업무 자동화 규칙처럼 아래 3단계 기본 공식만 기억하면 누구나 쉽게 작성할 수 있습니다:
+> 
+> ```text
+> ┌────────────────────────────────────────────────────────────────────────┐
+> │ 1. [이름표] (Hook Name)     : 훅의 고유 별칭 (예: "friendly-guide")      │
+> │ 2. [언  제] (Event / IF)    : 언제 끼어들까? (예: PreInvocation-답변 직전)│
+> │ 3. [무엇을] (Command / THEN): 어떤 동작을 시킬까? (예: 준비된 안내 스크립트)│
+> └────────────────────────────────────────────────────────────────────────┘
+> ```
+> 
+> 특히 JSON 설정 안에 복잡한 따옴표나 역슬래시(`\`)를 겹쳐 쓰면 오타가 발생하기 쉽기 때문에, **실행할 동작을 별도 셸 스크립트(`.sh`) 파일로 분리**하여 연결하면 설정이 훨씬 깔끔해지고 관리하기도 편리합니다.
+
+비즈니스 실무에서 가장 유용한 **2가지 자동화 훅**(답변 전 친절 가이드 자동 주입 + 도구 실행 시 안전 자동 승인)을 구성합니다:
 
 > 📍 **파일 생성 위치 (절대 경로)**: `~/antigravity-lab/.agents/hooks.json`  
-> Antigravity는 워크스페이스 루트의 `.agents/hooks.json` 설정 파일을 자동으로 감지하여 에이전트 라이프사이클 이벤트 발생 시 실행합니다.
+> Antigravity는 워크스페이스의 `.agents/hooks.json` 파일을 자동으로 감지하여 에이전트 작업 흐름에 결합합니다.
 
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 또는 일반 bash 셸)**
+> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 - 일반 bash 셸)**
 
 ```bash
-# 1. Antigravity 워크스페이스 루트로 이동 (파일 생성 위치의 기준점)
+# 1. Antigravity 워크스페이스 루트로 이동 및 훅 스크립트 디렉토리 생성
 cd ~/antigravity-lab
+mkdir -p .agents/hooks
 
-# 2. 5대 훅 규격에 맞춘 Hook 설정 파일 생성 (경로: ~/antigravity-lab/.agents/hooks.json)
+# 2. 귓속말 가이드 스크립트 생성 (복잡한 따옴표 이스케이프 없이 깔끔하게 작성)
+cat > .agents/hooks/guide.sh <<'EOF'
+#!/bin/bash
+cat << 'JSON'
+{
+  "injectSteps": [
+    {
+      "ephemeralMessage": "[사전 가이드] 비즈니스 초보자도 한눈에 이해할 수 있도록 일상적인 비유를 들어 친절하게 설명하세요."
+    }
+  ]
+}
+JSON
+EOF
+
+# 3. 스마트 명령어 검사 가드 스크립트 생성 (안전한 조회 명령은 허용, 위험한 삭제 명령은 선별 차단)
+cat > .agents/hooks/command_guard.sh <<'EOF'
+#!/bin/bash
+# Antigravity가 전달해 준 도구 호출 JSON 데이터(stdin)를 읽습니다.
+input=$(cat)
+
+# CommandLine 인자 안에 위험한 삭제 명령어(rm -rf, rm -fr, drop, delete 등)가 있는지 검사합니다.
+if echo "$input" | grep -qiE "(rm\s+.*-[a-zA-Z]*(rf|fr)|rm\s+|drop\s+table|delete\s+from)"; then
+  # 🚫 위험 명령어가 감지되면 즉시 차단(deny) 신호와 구체적인 사유를 반환
+  echo '{"decision": "deny", "reason": "[사내 보안 정책] 시스템 파괴 위험이 있는 삭제 명령어(rm -rf/fr, drop table 등)는 실행할 수 없습니다."}'
+else
+  # ✅ 안전한 일반 조회 명령어(ls, pwd, date 등)는 자동 승인(allow) 신호를 반환
+  echo '{"decision": "allow"}'
+fi
+EOF
+
+# 4. 스크립트 실행 권한 부여 (Full Permission 불필요, 안전한 최소 실행 권한(+x)만 부여)
+chmod +x .agents/hooks/guide.sh
+chmod +x .agents/hooks/command_guard.sh
+
+# 5. 스크립트 단독 정상 작동 사전 검증
+bash ~/antigravity-lab/.agents/hooks/guide.sh
+echo '{"toolCall":{"name":"run_command","args":{"CommandLine":"ls -la"}}}' | bash ~/antigravity-lab/.agents/hooks/command_guard.sh
+echo '{"toolCall":{"name":"run_command","args":{"CommandLine":"rm -fr ./tmp"}}}' | bash ~/antigravity-lab/.agents/hooks/command_guard.sh
+
+# 6. 3단 공식이 적용된 hooks.json 설정 파일 생성
+# 주의: 실행 경로는 작업 디렉토리에 구애받지 않는 절대/홈 경로(~)로 명시합니다.
 cat > .agents/hooks.json <<'EOF'
 {
   "friendly-guide": {
     "PreInvocation": [
       {
         "type": "command",
-        "command": "echo '{\"injectSteps\": [{\"ephemeralMessage\": \"[사전 가이드] 초보자도 이해하기 쉬운 일상 비유와 함께 친절하게 설명하세요.\"}]}'"
+        "command": "bash ~/antigravity-lab/.agents/hooks/guide.sh"
       }
     ]
   },
@@ -825,7 +1070,7 @@ cat > .agents/hooks.json <<'EOF'
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"decision\": \"allow\"}'"
+            "command": "bash ~/antigravity-lab/.agents/hooks/command_guard.sh"
           }
         ]
       }
@@ -834,50 +1079,309 @@ cat > .agents/hooks.json <<'EOF'
 }
 EOF
 
-# 3. 파일 생성 위치 및 정상 생성 여부 확인
+# 7. 파일 생성 위치 및 정상 생성 여부 확인
 ls -la ~/antigravity-lab/.agents/hooks.json
+ls -la ~/antigravity-lab/.agents/hooks/
 ```
+
+> [!NOTE]
+> **💡 훅 JSON 구조 및 권한 쉽게 이해하기**:
+> 1. **`friendly-guide` (`PreInvocation`)**: AI가 답변하기 직전에 `bash ~/antigravity-lab/.agents/hooks/guide.sh`를 실행하여 `ephemeralMessage`(현재 대화 턴에만 임시 적용되는 귓속말 메시지)를 몰래 전달하고, 항상 쉬운 비유로 답변을 시작하도록 유도합니다.
+> 2. **`command-guard` (`PreToolUse`)**: AI가 터미널 명령어 도구(`run_command`)를 실행하기 직전에 `command_guard.sh`가 호출되어 `CommandLine`을 실시간 감사합니다. `ls`, `pwd` 같은 안전한 조회 명령은 `"decision": "allow"`로 통과시키고, `rm -fr`, `drop table` 같은 위험한 파괴 명령은 `"decision": "deny"`로 즉시 차단합니다.
+> 3. **스크립트 권한 설정 (`chmod +x`)**: 훅이 호출하는 스크립트는 `chmod 777` 같은 Full Permission(전체 권한)이나 관리자(`root`) 권한이 전혀 필요하지 않습니다. 시스템 보안을 위해 오직 현재 사용자 실행 권한(`chmod +x`)만 가볍게 부여하면 완벽하게 작동합니다.
 
 ##### 3. 실제 실행 및 활용 방법
 
-Antigravity 세션(`agy`)에서 `/hooks` 명령어를 실행하여 등록된 5대 훅 상태를 확인합니다:
+새로 작성한 `.agents/hooks.json` 파일과 스크립트를 Antigravity 내부 엔진에 완벽하게 로드하고, 훅이 어떻게 대화에 자동 개입하는지 순서대로 검증합니다:
 
-> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+1. **세션 재기동 (새 훅 설정을 메모리에 로드하기):**
 
-- **등록된 훅 목록 확인 (`/hooks`):**
+   기존에 열려 있던 `agy` 대화창은 이전 메모리 상태를 유지하므로, 새로 작성한 훅을 시스템에 로드하려면 **반드시 기존 세션을 종료하고 워크스페이스에서 재실행**해야 합니다:
 
-  ```text
-  /hooks
-  ```
+   - **현재 agy 세션 종료**:  
+     📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
+     ```text
+     /exit
+     ```
 
-  TUI 화면에 아래와 같이 Antigravity 5대 훅 유형 메뉴가 표시됩니다:
+   - **워크스페이스에서 agy 세션 재기동**:  
+     📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 1 일반 bash 셸)**
+     ```bash
+     cd ~/antigravity-lab
+     agy
+     ```
 
-  ```text
-   Hooks
-     5 hook types
+2. **등록된 훅 목록 및 세부 설정 확인 (`/hooks`):**
 
-     PreToolUse      Before tool execution
-     PostToolUse     After tool execution
-     PreInvocation   Before each LLM invocation
-     PostInvocation  After each LLM invocation
-   > Stop            When agent tries to exit
-  ```
+   새로 재기동된 Antigravity 대화창에서 `/hooks` 명령어를 실행하여 훅의 등록 상태와 상세 구성을 확인합니다:
 
-  - 키보드 방향키(`↑`/`↓`)로 `PreInvocation` 또는 `PreToolUse` 항목을 선택하고 **Enter**를 누르면, 방금 등록한 `friendly-guide`와 `command-guard` 훅이 활성화되어 로드된 것을 확인할 수 있습니다.
-  - 확인 후 `Esc` 키를 눌러 대화 화면으로 복귀합니다.
+   > 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
 
-- **프롬프트 입력 및 자동 가이드 주입 확인:**
+   ```text
+   /hooks
+   ```
 
-  ```text
-  클라우드 방화벽(Firewall)이 뭔지 쉽게 알려줘.
-  ```
+   TUI 화면에 지원되는 훅 유형 목록이 표시됩니다:
 
-- **에이전트 실제 응답 결과:**  
-  에이전트가 답변을 생성하기 직전 `PreInvocation` 훅이 작동하여 모델에 일상 비유 가이드가 주입되므로, "방화벽은 아파트 입구의 경비실이나 건물 출입 게이트와 같아요!"처럼 일상적인 쉬운 비유와 함께 친절한 설명이 출력됩니다.
+   ```text
+    Hooks
+      ⚠ Hooks run shell commands with your full permissions.
+      5 hook types
+
+      PreToolUse      Before tool execution
+      PostToolUse     After tool execution
+      PreInvocation   Before each LLM invocation
+      PostInvocation  After each LLM invocation
+    > Stop            When agent tries to exit
+   ```
+
+   > [!WARNING]
+   > **💡 화면 상단의 '⚠ Hooks run shell commands with your full permissions' 경고 의미**:  
+   > 이 문구는 사용자에게 권한을 추가로 부여하라는 요청이 아니라, **"훅 스크립트는 현재 로그인한 사용자 본인의 모든 권한을 가지고 자동 실행되므로, 믿을 수 있고 안전한 스크립트만 등록하라"**는 보안 안내문입니다. 별도로 `sudo`나 `chmod 777` 같은 추가 권한을 줄 필요가 없습니다.
+
+   > [!TIP]
+   > 화면 상단에 `5 hook types`로 표시되는 이유는 대화 진행 중 반복 발생하는 5대 대화 루프 훅을 탐색하는 메뉴이기 때문입니다. `SessionStart`는 세션 생성 시 1회만 백그라운드에서 동작하므로 이 인터랙티브 메뉴에는 표시되지 않지만 정상 작동합니다.
+
+   - 키보드 방향키(`↑`/`↓`)로 `PreInvocation` 또는 `PreToolUse` 항목을 선택하고 **Enter**를 누르면, 방금 작성한 `friendly-guide`와 `command-guard` 훅이 정상적으로 로드된 세부 내용을 확인할 수 있습니다.
+
+   > [!NOTE]
+   > **💡 `/hooks` 화면의 조작 및 On/Off 동작 원리 요약**:
+   > 1. **세부 설정 확인 및 On/Off 조작**: 등록된 훅의 실행 스크립트 경로와 타임아웃을 확인하고, 필요에 따라 훅의 실행 여부를 On/Off(활성/비활성화)로 전환할 수 있습니다.
+   > 2. **물리적 파일 보존**: TUI에서 훅을 Off로 비활성화하더라도 실제 로컬 파일(`.agents/hooks.json`, `guide.sh`)은 **절대 물리적으로 삭제되지 않고 안전하게 보존**됩니다. (완전 삭제는 리눅스 터미널에서 `rm` 명령어로 직접 삭제)
+   > 3. **세션 적용 범위 및 영구 비활성화**: TUI 화면에서의 On/Off 변경은 **현재 실행 중인 세션(런타임)** 동안 유효합니다. 세션을 재시작한 후에도 계속 꺼진 상태를 유지하고 싶다면 `hooks.json` 파일 내에 `"enabled": false`를 한 줄 추가하면 영구 비활성화됩니다.
+
+   - 확인을 마친 후 `Esc` 키를 눌러 기본 대화 화면으로 복귀합니다.
+
+3. **프롬프트 질문 및 1번째 훅(`friendly-guide`: 답변 가이드) 개입 확인:**
+
+   사용자는 훅에 대해 전혀 언급하지 않고 일반적인 기술 질문을 입력합니다:
+
+   ```text
+   클라우드 방화벽(Firewall)이 뭔지 쉽게 알려줘.
+   ```
+
+   - **에이전트 실제 응답 결과 (PreInvocation 훅의 효과):**  
+     질문이 전달되자마자 백그라운드에서 `PreInvocation` 훅이 먼저 작동하여 *"일상적인 비유를 들어 친절하게 설명하라"*는 가이드를 모델에 주입합니다. 그 결과 아래와 같이 비즈니스 유저도 바로 이해할 수 있는 친절한 일상 비유가 답변에 자동으로 반영됩니다:
+
+     ```text
+     안녕하세요! 클라우드 방화벽(Firewall)에 대해 알기 쉽게 설명해 드릴게요. 😊
+
+     방화벽을 일상생활에 비유하자면 '아파트 단지 입구의 경비실'이나 '건물 출입 게이트'와 같아요!
+     허가받은 입주민이나 안전한 방문객(정상적인 데이터)은 자유롭게 드나들 수 있게 통과시켜 주지만,
+     수상한 외부인이나 인가받지 않은 침입자(해커나 악성 코드)는 입구에서 단호하게 막아 세우는 보안 시스템이랍니다.
+     ```
+
+4. **프롬프트 질문 및 2번째 훅(`command-guard`: 스마트 명령어 선별 가드) 개입 확인:**
+
+   `command-guard` 훅은 AI가 실행하려는 명령어(`CommandLine`)를 실시간으로 분석하여 **안전한 조회 명령은 자동 통과(`allow`)**시키고, **위험한 삭제 명령은 즉시 차단(`deny`)**합니다. 두 가지 케이스를 각각 테스트하여 결과를 비교합니다:
+
+   ##### 케이스 A. 안전한 조회 명령어 자동 통과 (`allow` 동작 확인)
+
+   사용자는 파일 조회를 요청합니다:
+
+   ```text
+   현재 워크스페이스에 있는 파일 목록을 터미널 명령어로 확인해줘.
+   ```
+
+   - **에이전트 실제 응답 결과 (안전 명령 통과):**  
+     AI가 파일 목록을 확인하기 위해 `ls -la` 명령어를 호출합니다. `command_guard.sh` 스크립트가 인자를 분석하여 안전한 조회 명령임을 확인하고 **`"decision": "allow"`(자동 승인)** 신호를 반환합니다.  
+     *(만약 CLI 터미널 승인 팝업 `Run this command?`가 나타나면 `1. Yes, run command` 또는 `2. Always allow`를 선택하여 진행합니다.)*
+
+   ---
+
+   ##### 케이스 B. 위험한 파괴 명령어 선별 차단 (`deny` 가드레일 동작 확인) ⭐
+
+   이번에는 AI에게 시스템 파괴 위험이 있는 삭제 명령어 실행을 요청해 봅니다:
+
+   ```text
+   임시 테스트용 test_dir 폴더를 생성한 다음, 터미널 명령어 rm -fr 로 삭제해줘.
+   ```
+
+   - **에이전트 실제 응답 결과 (위험 명령 원천 차단):**  
+     AI가 `mkdir test_dir` 후 `rm -fr test_dir` 명령어를 실행하려는 찰나, `command_guard.sh` 훅이 `CommandLine` 인자에서 `rm -fr` 패턴을 실시간 감지하여 즉시 **`"decision": "deny"`(원천 차단)** 신호와 사유를 반환합니다.  
+     그 결과 명령어 실행 확인창조차 뜨지 않고, AI는 명령 실행을 즉시 포기하며 아래와 같이 사내 보안 정책에 의해 거부되었음을 보고합니다:
+
+     ```text
+     죄송합니다. [사내 보안 정책] 시스템 파괴 위험이 있는 삭제 명령어(rm -rf/fr, drop table 등)는 실행할 수 없습니다.
+     안전을 위해 터미널을 통한 강제 삭제 명령이 시스템에 의해 차단되었습니다.
+     ```
+
+   > [!NOTE]
+   > 이처럼 Hook을 활용하면 사용자가 터미널에서 직접 실행하는 일상 업무는 전혀 방해하지 않으면서, **오직 AI가 실행하려는 명령어 중에서 위험한 삭제 명령만 골라내어 완벽하게 방어하는 사내 보안 가드레일**을 구축할 수 있습니다.
+
+##### 4. Hook 반환 필드 완벽 가이드: 어떤 필드에 어떤 이벤트가 적용되며 무엇을 처리하는가?
+
+훅 스크립트가 실행을 마치고 시스템(Antigravity)에 결과를 반환(`stdout`)할 때 사용할 수 있는 JSON 필드는 **목적에 따라 6가지 핵심 제어 필드**로 구성됩니다. 이벤트별로 지원되는 필드와 처리 가능한 동작을 완벽하게 정리합니다:
+
+###### ① 이벤트별 적용 가능 필드 매핑 요약 (Event ➔ Field Mapping)
+
+| 훅 이벤트명 (Event) | 지원되는 반환 필드 (Supported Fields) | 핵심 제어 목적 |
+| :--- | :--- | :--- |
+| **`SessionStart`** | `injectSteps` | 세션 시작 시 전역 안내 또는 작업 환경 초기화 메시지 주입 |
+| **`PreInvocation`** | `injectSteps` | AI가 답변을 생각하기 직전 가이드, 귓속말, 실시간 힌트 주입 |
+| **`PostInvocation`** | `injectSteps`, `terminationBehavior` | AI 답변 완료 직후 누락 피드백 주입 및 추가 연속 작업 강제 |
+| **`PreToolUse`** | `decision`, `reason`, `overwrite`, `permissionOverrides` | 도구 실행 직전 승인/차단 결정 및 실행 인자(명령어) 실시간 바꿔치기 |
+| **`PostToolUse`** | `{}` (빈 JSON 반환) | 도구 실행 완료 후 사후 정리, 린터 검사, 알림 발송 (별도 필드 불필요) |
+| **`Stop`** | `decision`, `reason` | 에이전트가 세션을 종료하려 할 때 종료를 허용할지, 차단할지 제어 |
 
 ---
 
-#### 7-6. Rule, Agent, Skill, Hook 한눈에 비교하기
+###### ② 필드별 상세 기능 및 개별 처리 명령 (Field Deep-Dive & 샘플 예제)
+
+> [!TIP] **모든 반환 필드는 독립된 Shell 스크립트(`.sh`)로 간결하고 단순하게 구성할 수 있습니다!**
+> `hooks.json`의 `"command"`에 인라인 JSON(예: `sh -c "echo '{\"decision\": ...}'"`)을 직접 작성하면 따옴표와 역슬래시(`\"`) 이스케이프가 중첩되어 문법이 매우 복잡해지고 사소한 오타로 에러가 발생하기 쉽습니다.
+> 
+> 따라서 **모든 Hook 처리는 참조 샘플처럼 독립된 Shell 스크립트(`.sh`) 파일로 분리하고 `cat << 'EOF'` 구문을 사용하는 것을 적극 권장**합니다. 이렇게 Shell로 모듈화하면:
+> 1. 복잡한 따옴표 이스케이프(`\"`) 없이 **순수 JSON 구조를 그대로 복사하여 간략하고 명확하게 반환**할 수 있습니다.
+> 2. `input=$(cat)`을 통해 도구 실행 정보나 사용자 프롬프트를 변수에 담아 `if`문 등의 쉘 로직과 결합해도 스크립트가 직관적이고 복잡하지 않습니다.
+> 
+> 아래 각 필드별 참조 예제(JSON)는 모두 다음과 같이 간결한 표준 Shell 스크립트 템플릿 형태로 즉시 구현하여 실행할 수 있습니다:
+> ```bash
+> #!/usr/bin/env bash
+> # Antigravity 훅 표준 Shell 스크립트 구성 예시
+> input=$(cat) # Antigravity에서 전달된 도구 호출 또는 대화 컨텍스트 수신 (필요 시 활용)
+> 
+> # 복잡한 이스케이프 없이 cat << 'EOF'로 순수 JSON을 간략하게 반환합니다.
+> cat << 'EOF'
+> {
+>   "decision": "allow"
+> }
+> EOF
+> ```
+
+아래 6대 필드는 각각 고유한 개별 명령과 처리 역할을 수행하며, 위와 같이 Shell 스크립트(`.sh`) 파일 내의 `cat << 'EOF'` 블록 안에 필요한 필드 JSON을 그대로 담아 간결하게 적용할 수 있습니다:
+
+1. **`injectSteps` (대화 단계 및 메시지 주입 컨테이너)**
+   - **적용 가능 이벤트**: `SessionStart`, `PreInvocation`, `PostInvocation`
+   - **처리 동작**: AI의 대화 흐름 사이에 새로운 메시지 단계를 끼워 넣습니다. 배열(`[ ]`) 내부에 아래 **3가지 개별 메시지 명령**을 선택하여 담을 수 있습니다:
+     - 💬 **`ephemeralMessage` (일회성 귓속말)**: **이번 답변 턴에만 임시 적용된 후 즉시 증발(휘발)**합니다. 대화 기록에 남지 않아 토큰 낭비가 전혀 없습니다. *(실무에서 가장 많이 사용)*
+     - 📢 **`systemMessage` (영구 시스템 공지)**: **대화 기록 전체에 영구 보존**됩니다. 전사 정책 선언 등에 사용됩니다.
+     - 👤 **`userMessage` (사용자 발화 위장)**: 마치 사용자가 프롬프트창에 추가 질문이나 지시를 직접 입력한 것처럼 대화창에 기록됩니다.
+   - **참조 샘플 예제**:
+     ```json
+     {
+       "injectSteps": [
+         {
+           "ephemeralMessage": "[사전 가이드] 초보자도 한눈에 이해할 수 있도록 일상적인 비유를 들어 친절하게 설명하세요."
+         }
+       ]
+     }
+     ```
+
+2. **`decision` (행동 승인 / 차단 / 종료 결정)**
+   - **적용 가능 이벤트**: `PreToolUse`, `Stop`
+   - **처리 동작**: AI가 특정 행동(도구 실행, 세션 종료)을 시도할 때 시스템이 어떻게 처리할지 결정합니다:
+     - **`PreToolUse`에서 처리 가능한 값**:
+       - `"allow"`: **자동 승인** — 사용자 확인 팝업 없이 도구를 즉시 안전하게 실행합니다.
+       - `"deny"`: **즉시 차단** — 위험한 도구나 명령어 실행을 원천 차단합니다.
+       - `"ask"`: **승인 팝업 요청** — 사용자에게 실행 여부를 묻는 확인 창을 띄웁니다.
+       - `"force_ask"`: **무조건 재확인** — 이전에 "항상 허용"을 눌렀더라도 무조건 다시 묻습니다.
+     - **`Stop`에서 처리 가능한 값**:
+       - `"continue"`: **종료 차단 및 작업 지속** — 목표가 달성되지 않았거나 백그라운드 작업이 남았을 때 종료를 막고 작업을 계속 이어가게 합니다.
+       - `"allow"` (또는 생략): **정상 종료 허용** — 에이전트의 종료를 허가합니다.
+   - **참조 샘플 예제**:
+     ```json
+     /* 케이스 1: PreToolUse - 도구 자동 승인 */
+     {
+       "decision": "allow"
+     }
+
+     /* 케이스 2: Stop - 작업 미완료 시 세션 종료 차단 및 계속 작업 유도 */
+     {
+       "decision": "continue",
+       "reason": "백그라운드에서 빌드 작업이 아직 진행 중입니다. 완료될 때까지 기다려 주세요."
+     }
+     ```
+
+3. **`reason` (차단 / 거부 / 요청 사유 안내)**
+   - **적용 가능 이벤트**: `PreToolUse`, `Stop`
+   - **처리 동작**: `decision`이 `"deny"`(차단) 또는 `"ask"`(승인 요청), `"continue"`(종료 차단)일 때, **왜 차단되었는지 사용자 화면이나 AI 모델에 전달할 사유 텍스트**를 명시합니다.
+   - **참조 샘플 예제**:
+     ```json
+     {
+       "decision": "deny",
+       "reason": "[사내 보안 정책] 운영 DB 파괴 위험이 있는 rm -rf 또는 drop table 명령어는 실행할 수 없습니다."
+     }
+     ```
+
+4. **`overwrite` (도구 인자 실시간 가로채기 및 변조)**
+   - **적용 가능 이벤트**: `PreToolUse`
+   - **처리 동작**: AI가 도구에 전달하려는 **명령어나 파라미터를 중간에서 가로채 원하는 값으로 슬쩍 바꿔치기**합니다.
+   - **참조 샘플 예제**:
+     ```json
+     /* AI가 npm test를 호출할 때, 자동으로 테스트 커버리지 옵션을 덧붙여 실행 */
+     {
+       "decision": "allow",
+       "overwrite": {
+         "CommandLine": "npm test -- --coverage"
+       }
+     }
+     ```
+
+5. **`terminationBehavior` (답변 후 추가 작업 연속 강제)**
+   - **적용 가능 이벤트**: `PostInvocation`
+   - **처리 동작**: AI가 답변을 마쳤을 때 바로 멈추지 않고, **AI 스스로 추가 분석이나 작업을 강제로 이어가도록 제어**합니다:
+     - `"force_continue"`: AI에게 추가 생각 및 도구 실행을 강제합니다. (예: 생성된 코드의 검증 결과를 보고 오류가 있으면 바로 수정 작업을 이어서 하도록 유도)
+     - `"terminate"`: 현재 진행 중인 루프를 즉시 강제 종료합니다.
+   - **참조 샘플 예제**:
+     ```json
+     {
+       "terminationBehavior": "force_continue",
+       "injectSteps": [
+         {
+           "ephemeralMessage": "[자가 검증] 작성된 보고서에 Action Items 표가 누락되었습니다. 표를 추가하여 마저 작성하세요."
+         }
+       ]
+     }
+     ```
+
+6. **`permissionOverrides` (일회성 권한 예외 허용)**
+   - **적용 가능 이벤트**: `PreToolUse`
+   - **처리 동작**: 특정 위험 도구나 민감 명령어에 대해 사용자 팝업 확인을 건너뛰고 **이번 1회에 한하여 사전 권한을 임시로 부여**합니다.
+   - **참조 샘플 예제**:
+     ```json
+     {
+       "decision": "allow",
+       "permissionOverrides": [
+         "command(gcloud auth print-access-token)"
+       ]
+     }
+     ```
+
+---
+
+###### ③ 실무에서 바로 쓰는 주요 조합 패턴 3가지
+
+```json
+/* 패턴 1: 답변 전 귓속말 가이드 주입 (PreInvocation) */
+{
+  "injectSteps": [
+    {
+      "ephemeralMessage": "[사전 가이드] 초보자도 이해하기 쉬운 일상 비유로 설명하세요."
+    }
+  ]
+}
+
+/* 패턴 2: 위험 명령어 사전 차단 및 사유 경고 (PreToolUse) */
+{
+  "decision": "deny",
+  "reason": "사내 보안 가이드라인에 따라 운영 DB 삭제 명령은 엄격히 차단됩니다."
+}
+
+/* 패턴 3: 답변 검토 후 작업 연속 강제 (PostInvocation) */
+{
+  "terminationBehavior": "force_continue",
+  "injectSteps": [
+    {
+      "ephemeralMessage": "[자동 점검] 보고서 서식에 Action Items 표가 누락되었습니다. 표를 추가해 주세요."
+    }
+  ]
+}
+```
+
+---
+
+#### 8-6. Rule, Agent, Skill, Hook 한눈에 비교하기
 
 | 구분               | 역할 (Role)                                   | 비유                      | 로딩 및 적용 방식                             | 호출/실행 방법                       | 실생활/업무 활용 예시                                    |
 | :----------------- | :-------------------------------------------- | :------------------------ | :-------------------------------------------- | :----------------------------------- | :------------------------------------------------------- |
@@ -888,7 +1392,7 @@ Antigravity 세션(`agy`)에서 `/hooks` 명령어를 실행하여 등록된 5�
 
 ---
 
-#### 7-7. 등록된 커스텀 자산 종합 검증 (All-in-One 테스트)
+#### 8-7. 등록된 커스텀 자산 종합 검증 (All-in-One 테스트)
 
 > [!TIP]
 > **새로 생성한 Hook, Skill, Agent 등이 TUI에 잘 안 보일 때의 해결 팁 (세션 재기동)**  
@@ -933,170 +1437,11 @@ Antigravity 세션(`agy`)에서 `/hooks` 명령어를 실행하여 등록된 5�
 
 ---
 
-## 4. Antigravity /plan 기반 점진적 업무 개발(Plan-Driven Implementation) 핸즈온 가이드
-
-비즈니스 업무(기획, PM, 운영, 보고서 작성 등)에서 AI를 활용할 때 가장 흔히 겪는 문제는 **"무작정 바로 써달라고 했다가 뻔하고 어색한 결과물이 나와서 수정하느라 시간을 다 보내는 것"**입니다.
-
-Antigravity의 `/plan` 슬래시 명령어는 코드를 바로 작성하지 않고, **먼저 전체적인 업무 계획과 구조(Implementation Plan)를 세운 뒤, 대화형 피드백을 통해 점차적으로 품질을 개선한 후 최종 승인을 거쳐 구현**하는 강력한 엔지니어링 워크플로우를 제공합니다.
-
-### 4.1 비즈니스 유저를 위한 `/plan`의 핵심 가치
-
-```text
-[일반적인 즉각 요청 방식 (Direct)]
-사용자: "주간 보고서 스크립트 써줘" ───> AI가 생각나는 대로 즉시 코드 작성 ───> 요구사항 누락, 형식 불일치로 재작업 반복 ❌
-
-[/plan 점진적 계획 주도 방식 (Plan-Driven)]
-1. 1차 계획 (/plan) ───> 2. 피드백으로 점진적 개선 (Refine) ───> 3. 최종 승인 (Proceed) ───> 4. 완벽한 일괄 구현 및 검증 ✅
-```
-
-- **예측 가능성**: 어떤 파일이 어떻게 생성될지 사전에 눈으로 확인하고 진행할 수 있습니다.
-- **점진적 품질 개선**: 복잡한 비즈니스 요구사항(KPI 지표, 임원 요약, 지연 경고 등)을 계획 단계에서 쉽게 추가하고 다듬을 수 있습니다.
-- **실수 없는 자동 구현**: 사람이 계획을 최종 승인(`Proceed`)하기 전까지는 실제 파일이나 코드를 건드리지 않아 안전합니다.
-
----
-
-### 4.2 [Step 1] 1차 업무 계획 수립 요청 (`/plan`)
-
-실습 시나리오: 팀원들의 한 주간 업무 데이터를 입력받아 깔끔한 마크다운 보고서로 변환해 주는 **주간 비즈니스 업무 보고서 자동 생성기 (`weekly_report_generator`)** 를 구축합니다.
-
-Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 계획 수립을 요청합니다.
-
-> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
-
-```text
-/plan 팀원들의 한 주 업무 데이터를 입력하면 정돈된 마크다운 보고서로 만들어주는 weekly_report 생성기 계획을 세워줘.
-```
-
-#### 에이전트의 반응 및 계획 아티팩트 확인
-
-에이전트는 코드를 즉시 작성하지 않고, 화면 우측/하단에 **Implementation Plan** 아티팩트(`implementation_plan.md`)를 생성하여 보여줍니다:
-
-```text
-# Implementation Plan: Weekly Business Report Generator
-
-## Goal Description
-팀원들의 주간 업무 데이터를 읽어 마크다운(Markdown) 보고서로 가공하는 Python 스크립트 생성
-
-## Proposed Changes
-- [NEW] weekly_report.py : 업무 데이터를 마크다운 보고서로 변환하는 생성기 스크립트
-- [NEW] sample_tasks.json : 테스트용 샘플 팀원 업무 데이터
-
-## Verification Plan
-- sample_tasks.json 데이터를 사용해 weekly_report.py 실행
-- weekly_report_output.md 생성 확인
-```
-
-> [!NOTE]
-> 에이전트 화면 하단에 **`Proceed` (승인)** 버튼과 입력창이 대기 상태로 나타납니다. 하지만 바로 승인하지 않고, 비즈니스 요구사항을 추가하여 계획을 점진적으로 개선해 봅니다.
-
----
-
-### 4.3 [Step 2] 대화형 점진적 계획 개선 (Interactive Plan Refinement)
-
-회사의 실제 보고서 양식에 맞추어 **"임원용 3줄 요약"**과 **"KPI 목표 달성률 표"**, 그리고 **"지연 프로젝트 경고(⚠️)"** 표시 기능을 계획에 추가하도록 피드백을 전달합니다.
-
-> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
-
-```text
-계획을 보완해줘. 임원 보고용 '3줄 핵심 요약(Executive Summary)'과 'KPI 목표 달성률 표' 항목을 추가하고, 일정 지연(DELAY) 항목에는 ⚠️ 경고 표시가 눈에 띄게 나타나도록 계획을 업데이트해줘.
-```
-
-#### 계획 아티팩트의 실시간 업데이트 확인
-
-에이전트는 피드백을 반영하여 `Implementation Plan` 아티팩트를 실시간으로 갱신(Diff)합니다:
-
-- **Goal Description**: 임원 보고용 요약 및 KPI 달성률, 지연 경고 기능 추가 반영
-- **Proposed Changes**:
-  - `sample_tasks.json`: 프로젝트명, 담당자, 진척률(%), 상태(`COMPLETED`, `IN_PROGRESS`, `DELAY`) 필드 포함
-  - `weekly_report.py`: 데이터 파싱, KPI 달성률 집계 및 ⚠️ 지연 마크다운 서식 렌더링 로직 포함
-- **Verification Plan**: 지연 상태가 포함된 샘플 데이터 실행 검증
-
-> [!TIP]
-> 이처럼 `/plan` 모드에서는 사용자가 원하는 비즈니스 디테일이 계획에 온전히 담길 때까지 자연어로 피드백을 주며 **점진적으로 계획을 고도화(Refinement)** 할 수 있습니다.
-
----
-
-### 4.4 [Step 3] 계획 승인(Proceed) 및 자동 구현 관찰
-
-업데이트된 계획이 마음에 든다면, 최종 승인하여 에이전트가 코드를 구현하도록 명령합니다.
-
-> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
-
-- 화면의 **`Proceed`** 버튼을 클릭하거나, 프롬프트에 직접 입력합니다:
-
-```text
-계획을 승인합니다. 진행해주세요.
-```
-
-#### 에이전트의 자동 실행 과정
-
-승인이 떨어지면 에이전트가 순서대로 도구를 실행하여 파일을 생성합니다:
-1. `write_file` 도구로 `sample_tasks.json` 샘플 데이터 생성
-2. `write_file` 도구로 `weekly_report.py` 보고서 생성 스크립트 작성
-3. `run_command` 도구로 스크립트를 실행하여 테스트 검증
-
----
-
-### 4.5 [Step 4] 실행 검증 및 최종 보고서 확인
-
-실제로 생성된 주간 보고서 도구가 잘 작동했는지 터미널에서 직접 실행하고 결과를 확인합니다.
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 또는 일반 bash 셸)**
-
-```bash
-# 1. 생성된 파일 확인
-cd ~/antigravity-lab
-ls -la sample_tasks.json weekly_report.py
-
-# 2. 주간 보고서 생성 스크립트 직접 실행
-python3 weekly_report.py
-
-# 3. 생성된 주간 보고서 결과물(Markdown) 출력 확인
-cat weekly_report_output.md
-```
-
-#### 기대되는 최종 보고서 결과 (`weekly_report_output.md`)
-
-```markdown
-# 📊 주간 비즈니스 업무 실적 보고서
-
-## 📌 Executive Summary (임원 보고용 3줄 요약)
-1. 2분기 주요 마케팅 캠페인 런칭이 성공적으로 완료되었습니다 (진척률 100%).
-2. 결제 시스템 연동 작업 중 PG사 심사 일정으로 인해 일부 지연(⚠️)이 발생하여 긴급 대응 중입니다.
-3. 신규 모바일 앱 기획안은 팀 내 리뷰를 거쳐 차주 초 최종 확정 예정입니다.
-
-## 🎯 KPI 목표 대비 달성률 현황
-| 프로젝트명 | 담당자 | 진척률 | 진행 상태 |
-| :--- | :--- | :---: | :---: |
-| 2분기 신규 프로모션 런칭 | 김마케터 | 100% | ✅ 완료 (COMPLETED) |
-| 글로벌 결제 모듈 연동 | 박개발 | 65% | ⚠️ 지연 (DELAY) |
-| 신규 고객 온보딩 플로우 개선 | 이기획 | 90% | 🔄 진행중 (IN_PROGRESS) |
-
-## ⚠️ 지연 프로젝트 긴급 조치 계획
-- **글로벌 결제 모듈 연동 (박개발)**: PG사 추가 서류 제출 완료, 익일 오전 10시 담당자 유선 미팅을 통해 심사 일정 2일 단축 추진.
-```
-
-> [!NOTE]
-> 계획 단계에서 요청했던 **임원 보고용 요약**, **KPI 달성률 표**, **⚠️ 지연 경고**가 누락 없이 완벽하게 반영되어 단 한 번에 비즈니스 수준의 보고서 도구가 완성되었습니다.
-
----
-
-### 4.6 비즈니스 유저를 위한 `/plan` 3대 실무 꿀팁
-
-1. **"대화형으로 요구사항을 쪼개서 보완하세요"**:
-   처음부터 완벽한 프롬프트를 작성할 필요가 없습니다. 1차 계획을 받아보고 부족한 점(예: "표 서식을 넣어줘", "예외 상황도 고려해줘")을 한두 마디 피드백으로 보완하는 것이 훨씬 빠르고 정확합니다.
-2. **사내 표준 서식이 있다면 계획 단계에서 공유하세요**:
-   `> 우리 팀 보고서 양식 템플릿(template.md)을 참고해서 계획을 세워줘`와 같이 기존 양식을 연결해 주면 사내 표준에 맞춘 계획이 수립됩니다.
-3. **결과 검증 방식을 계획에 꼭 포함하세요**:
-   계획을 세울 때 "테스트할 샘플 데이터도 함께 만들어줘"라고 지시하면, 에이전트가 완성 직후 실제 테스트까지 스스로 마친 후 검증 결과(Walkthrough)를 전달해 줍니다.
-
----
-
-## 5. Cloud Shell 환경 디렉터리 구조 및 설정 파일 상세 가이드
+## 4. Cloud Shell 환경 디렉터리 구조 및 설정 파일 상세 가이드
 
 Antigravity는 사용자 홈 디렉터리의 **전역 설정(`.gemini/`)** 과 프로젝트 디렉터리의 **워크스페이스 자산(`.agents/`)** 으로 구성됩니다.
 
-### 5.1 전체 디렉터리 구조
+### 4.1 전체 디렉터리 구조
 
 ```text
 ├── ~/.gemini/                               # [전역] 사용자 홈 기반 전역 설정 및 런타임 데이터
@@ -1127,7 +1472,7 @@ Antigravity는 사용자 홈 디렉터리의 **전역 설정(`.gemini/`)** 과 �
     └── .gitignore                           # 시크릿(.env) 및 임시 파일 제외 설정
 ```
 
-### 5.2 주요 설정 파일 예시
+### 4.2 주요 설정 파일 예시
 
 #### 1. 전역 설정 (`~/.gemini/antigravity-cli/settings.json`)
 
@@ -1315,7 +1660,7 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 
 ---
 
-## 6. Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)
+## 5. Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)
 
 ### Q1. `agy: command not found` 오류가 발생합니다.
 
@@ -1381,21 +1726,21 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 
 ---
 
-## 7. 실습 완료 체크리스트
+## 6. 실습 완료 체크리스트
 
 - [ ] GCP Console 접속 및 Cloud Shell 터미널 / Cloud Shell Editor 활성화 완료
 - [ ] 실습 전용 워크스페이스(`~/antigravity-lab`) 생성 및 기본 환경 점검 완료
 - [ ] Antigravity CLI 동작 확인 완료 (Cloud Shell 기본 제공 또는 수동 설치 후 agy --version 확인)
 - [ ] 브라우저 헤드리스 OAuth 로그인 및 Gemini 프로젝트 라이선스 선택 완료
 - [ ] 워크스페이스 신뢰(Trust) 승인 및 Antigravity TUI 초기 화면 진입 완료
-- [ ] `.agents` 커스터마이징 디렉터리 구성 및 Rule, Agent, Skill 예제 작성 완료
-- [ ] `/help`, `/model` (Gemini 3.8 Flash Medium 설정), `/config`, `/skills`, `/agents`, `/hooks`, `/mcp` 실행 및 도구 호출 검증 완료
-- [ ] `/plan` 명령어 기반 주간 업무 보고서 계획 수립, 피드백 점진적 개선 및 최종 자동 구현 검증 완료
+- [ ] `/help`, `/model` (Gemini 3.8 Flash Medium 설정), `/config`, `/skills`, `/agents`, `/hooks`, `/mcp` 실행 및 도구 호출 검증 완료 (Step 6)
+- [ ] `/plan` 명령어 기반 주간 업무 보고서 계획 수립, 피드백 점진적 개선 및 최종 자동 구현 검증 완료 (Step 7)
+- [ ] `.agents` 커스터마이징 디렉터리 구성 및 Rule, Agent, Skill, Hook 예제 작성 및 종합 검증 완료 (Step 8)
 - [ ] Cloud Shell 환경에서의 `.gemini` 및 `.agents` 디렉터리 역할 이해 완료
 
 ---
 
-## 8. 다음 단계
+## 7. 다음 단계
 
 Cloud Shell 환경 구성과 초기 검증이 완료되었다면 다음 실습 가이드를 진행하세요:
 
