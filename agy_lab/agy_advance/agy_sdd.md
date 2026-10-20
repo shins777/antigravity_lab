@@ -312,4 +312,4 @@ cat validation_report.md
 다음 고급 실습으로 이동하여 더 강력한 에이전트를 개발해 보세요:
 - **실전 비즈니스 전략 분석 에이전트 개발**: [build_agent.md](./build_agent.md)
 - **GCP Vertex AI Reasoning Engine 배포 및 Gemini Enterprise 연동**: [agy_ge.md](./agy_ge.md)
-- **Antigravity 고급 기능 및 도구 마스터**: [agy_features.md](./agy_features.md)
+- **Antigravity CLI 명령어 및 도구 마스터**: [agy_command.md](./agy_command.md)

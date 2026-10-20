@@ -2759,8 +2759,7 @@ https://console.cloud.google.com/storage/browser?project=<YOUR_PROJECT_ID>
 > | 리소스 경로의 맨 뒤 ID | `REASONING_ENGINE_ID`          |
 
 - [agy_ge.md](agy_ge.md) — 배포한 Agent Engine 을 **Gemini Enterprise** 에 커스텀 에이전트로 등록하기
-- [agy_features.md](agy_features.md) — Antigravity 의 Agent · Skill · Rule · MCP 확장
-- [agy_command.md](../agy_basic/agy_command.md) — `/planning`, `/diff`, `/tasks` 등 Antigravity 명령어 상세
+- [agy_command.md](agy_command.md) — Antigravity CLI 명령어 및 Agent · Skill · Rule · MCP 기능 상세
 - **Chapter 1로 되돌아가기** — 에이전트 로직을 개선한 뒤 [2-8. 재배포](#2-8-step-5-선택-코드-수정-후-재배포) 의 `update` 방식으로 **리소스명을 유지한 채** 다시 배포
 
 ---

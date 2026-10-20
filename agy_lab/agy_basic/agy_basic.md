@@ -1399,6 +1399,6 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 
 Cloud Shell 환경 구성과 초기 검증이 완료되었다면 다음 실습 가이드를 진행하세요:
 
-- [agy_command.md](./agy_command.md) — Antigravity CLI 기본 명령어 및 TUI 조작 실습
+- [agy_command.md](../agy_advance/agy_command.md) — Antigravity CLI 기본 명령어 및 TUI 조작 실습
 - [agy_webapp.md](./agy_webapp.md) — Antigravity를 활용한 웹 애플리케이션 개발 실습
 - [agy_intermediate.md](./agy_intermediate.md) — 중급 개발자를 위한 Progressive Skill, Lifecycle Hook 및 플러그인 핸즈온 실습

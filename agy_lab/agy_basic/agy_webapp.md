@@ -753,4 +753,4 @@ git status --short
 ## 부록 B. 다음 단계
 
 - [agy_basic.md](./agy_basic.md) — Antigravity Cloud Shell 설치 및 환경 구성 가이드
-- [agy_command.md](./agy_command.md) — Antigravity CLI 명령어 및 단축키 전체 가이드
+- [agy_command.md](../agy_advance/agy_command.md) — Antigravity CLI 명령어 및 단축키 전체 가이드
