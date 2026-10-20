@@ -750,6 +750,32 @@ mkdir -p .agents/rules .agents/skills .agents/agents .agents/scripts
 ls -la .agents
 ```
 
+##### Antigravity 전체 디렉터리 아키텍처 개요
+
+Antigravity는 사용자 홈 디렉터리의 **전역 설정(`.gemini/`)** 과 프로젝트 디렉터리의 **워크스페이스 자산(`.agents/`)** 으로 구성됩니다:
+
+```text
+├── ~/.gemini/                               # [전역] 사용자 홈 기반 전역 설정 및 런타임 데이터
+│   ├── antigravity-cli/
+│   │   ├── settings.json                   # CLI 전역 설정 (기본 모델, 테마, 권한 등)
+│   │   ├── cache/                          # 프로젝트 캐시
+│   │   └── brain/                          # 세션 대화 로그 및 생성 아티팩트
+│   └── config/
+│       ├── skills/                         # 머신 전역 커스텀 스킬
+│       └── mcp_config.json                 # 머신 전역 MCP 서버 설정
+│
+└── ~/antigravity-lab/                       # [워크스페이스] 실습 프로젝트 루트
+    ├── .agents/                             # 프로젝트 전용 에이전트 커스터마이징 폴더
+    │   ├── rules/                           # 답변 스타일, 행동 원칙 및 가드레일 규칙 (.md)
+    │   ├── skills/                          # 업무별 표준 처리 절차 워크플로우 (SKILL.md)
+    │   ├── agents/                          # 역할별 맞춤형 AI 비서 정의 파일 (.md)
+    │   ├── scripts/                         # 자동화 헬퍼 스크립트 (.sh, .py)
+    │   ├── mcp_config.json                  # 프로젝트 전용 MCP 서버 연동 설정
+    │   └── hooks.json                       # 에이전트 라이프사이클 이벤트 훅 정의
+    ├── GEMINI.md                            # 워크스페이스 전역 규칙 및 가드레일 (로컬 전용)
+    └── .gitignore                           # 시크릿(.env) 및 임시 파일 제외 설정
+```
+
 ##### Cloud Shell Editor(VS Code)에서 숨김 폴더(`.agents`) 확인 가이드
 
 터미널에서 생성한 `.agents` 디렉터리와 하위 자산들을 GUI 편집기에서 시각적으로 편리하게 관리하기 위해 **편집기(Cloud Shell Editor)**에서 확인합니다:
@@ -1491,275 +1517,7 @@ ls -la ~/antigravity-lab/.agents/hooks/
 
 ---
 
-#### 8-7. 등록된 커스텀 자산 종합 검증 (All-in-One 테스트)
-
-> [!TIP]
-> **새로 생성한 Hook, Skill, Agent 등이 TUI에 잘 안 보일 때의 해결 팁 (세션 재기동)**  
-> `.agents/` 디렉터리에 새로운 Rule, Agent, Skill, Hook 설정 파일이나 스크립트를 작성한 직후, 현재 실행 중인 Antigravity TUI 세션의 슬래시 명령어(`/skills`, `/agents`, `/hooks`) 목록에 즉시 나타나지 않거나 이전 캐시 상태로 머물러 있을 수 있습니다.  
-> 이 경우 당황하지 마시고 TUI 프롬프트에서 `/exit` 로 세션을 종료한 뒤, 워크스페이스에서 `agy` 를 다시 실행(재기동)하면 새로 작성한 파일들이 정상적으로 감지되어 나타납니다:
->
-> 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1)**
->
-> ```bash
-> /exit
-> ```
->
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 1 bash 셸)**
->
-> ```bash
-> cd ~/antigravity-lab
-> agy
-> ```
-
-방금 생성한 Rule, Agent, Skill, Hook 자산들이 Antigravity TUI 세션 내에서 정상적으로 감지되고 유기적으로 협업하는지 종합 점검합니다:
-
-1. **전체 컴포넌트 목록 점검**:
-
-   > 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
-   - `/skills` : `meeting-summary` 스킬 등록 확인
-   - `/agents` : `writing-assistant` 에이전트 등록 확인
-   - `/hooks` : 5개 훅 타입 중 `PreInvocation`(`friendly-guide`), `PreToolUse`(`command-guard`) 등록 확인
-
-2. **종합 연계 협업 테스트 (Agent + Rule + Hook 올인원 시나리오)**:
-
-   > 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
-   > 프롬프트에 아래와 같이 지시해 봅니다:
-
-   ```text
-   @writing-assistant 이번 주 금요일 오후 3시 2분기 킥오프 온라인 회의에 팀원들을 초대하는 정중한 이메일 초안을 작성해줘.
-   ```
-
-3. **기대되는 동작 결과**:
-   - **Agent 역할**: `writing-assistant` 비서가 격식 있는 비즈니스 서식으로 이메일 본문을 정중하게 작성합니다.
-   - **Rule 가드레일**: `friendly-response` 규칙에 따라 상단에 `[핵심 3줄 요약]`을 먼저 제공하고 친절한 어조를 유지합니다.
-   - **Hook 자동 지원**: 에이전트가 생각하기 전 `PreInvocation` 훅이 작동하여 친절한 설명 가이드를 자동 주입하고, 도구 실행 전 `PreToolUse` 가 안전하게 실행을 자동 승인합니다.
-
----
-
-## 4. Cloud Shell 환경 디렉터리 구조 및 설정 파일 상세 가이드
-
-Antigravity는 사용자 홈 디렉터리의 **전역 설정(`.gemini/`)** 과 프로젝트 디렉터리의 **워크스페이스 자산(`.agents/`)** 으로 구성됩니다.
-
-### 4.1 전체 디렉터리 구조
-
-```text
-├── ~/.gemini/                               # [전역] 사용자 홈 기반 전역 설정 및 런타임 데이터
-│   ├── antigravity-cli/
-│   │   ├── settings.json                   # CLI 전역 설정 (기본 모델, 테마, 권한 등)
-│   │   ├── cache/
-│   │   │   └── projects.json               # 프로젝트 경로 - ID 매핑 캐시
-│   │   ├── brain/                          # 세션 트랜스크립트 및 생성 아티팩트
-│   │   │   └── <conversation_id>/
-│   │   │       ├── .system_generated/logs/ # JSONL 대화 로그 (transcript.jsonl)
-│   │   │       ├── scratch/                # 임시 분석/디버깅 스크립트 저장소
-│   │   │       └── *.md                    # 구조화된 아티팩트 문서
-│   │   └── builtin/skills/                 # CLI 내장 기본 스킬 모듈
-│   └── config/
-│       ├── skills/                         # 머신 전역 커스텀 스킬
-│       ├── plugins/                        # 머신 전역 플러그인
-│       └── mcp_config.json                 # 머신 전역 MCP 서버 설정
-│
-└── ~/antigravity-lab/                       # [워크스페이스] 실습 프로젝트 루트
-    ├── .agents/                             # 프로젝트 전용 에이전트 커스터마이징 폴더
-    │   ├── rules/                           # 답변 스타일, 행동 원칙 및 가드레일 규칙 (.md)
-    │   ├── skills/                          # 업무별 표준 처리 절차 워크플로우 (SKILL.md)
-    │   ├── agents/                          # 역할별 맞춤형 AI 비서 정의 파일 (.md)
-    │   ├── scripts/                         # MCP 서버 또는 자동화 헬퍼 스크립트 (.py)
-    │   ├── mcp_config.json                  # 프로젝트 전용 MCP 서버 연동 설정
-    │   └── hooks.json                       # 에이전트 라이프사이클 이벤트 훅 정의
-    ├── GEMINI.md                            # 워크스페이스 전역 규칙 및 가드레일 (로컬 전용)
-    └── .gitignore                           # 시크릿(.env) 및 임시 파일 제외 설정
-```
-
-### 4.2 주요 설정 파일 예시
-
-#### 1. 전역 설정 (`~/.gemini/antigravity-cli/settings.json`)
-
-> 📍 **파일 생성 위치 (절대 경로)**: `~/.gemini/antigravity-cli/settings.json`  
-> 사용자 홈 디렉터리에 위치하며, 모든 Antigravity 프로젝트에 공통으로 적용되는 전역 설정 파일입니다.
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-# 1. Antigravity 워크스페이스 홈으로 이동
-cd ~/antigravity-lab
-
-# 2. 전역 설정 디렉터리 생성 및 settings.json 작성
-mkdir -p ~/.gemini/antigravity-cli
-cat > ~/.gemini/antigravity-cli/settings.json <<'EOF'
-{
-  "model": "gemini-3.8-flash",
-  "effort": "medium",
-  "sandbox": false,
-  "dangerously_skip_permissions": false
-}
-EOF
-
-# 3. 파일 생성 확인
-ls -la ~/.gemini/antigravity-cli/settings.json
-```
-
-#### 2. 친절한 응답 및 요약 규칙 (`.agents/rules/friendly-response.md`)
-
-> 📍 **파일 생성 위치 (절대 경로)**: `~/antigravity-lab/.agents/rules/friendly-response.md`  
-> 워크스페이스 루트의 `.agents/rules/` 에 저장되어 모든 대화에 자동으로 상시 주입되는 행동 규칙입니다.
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-# 1. Antigravity 워크스페이스 홈으로 이동 (파일 생성 기준점)
-cd ~/antigravity-lab
-
-# 2. Rule 파일 생성 (경로: ~/antigravity-lab/.agents/rules/friendly-response.md)
-cat > .agents/rules/friendly-response.md <<'EOF'
----
-trigger: always_on
-description: 친절한 한국어 응답 및 3줄 핵심 요약 규칙
----
-
-# 친절한 응답 및 핵심 요약 규칙 (Response Style Rule)
-
-모든 질문에 응답할 때는 다음 지침을 준수하세요:
-
-1. **말투:** 항상 정중하고 친절한 한국어 존댓말(~해요, ~합니다)로 답변하세요.
-2. **쉬운 설명:** 전문 용어가 나오면 초보자도 이해하기 쉬운 일상적인 비유나 쉬운 단어로 풀어 설명하세요.
-3. **3줄 핵심 요약:** 긴 설명에 앞서, 답변 맨 위에 반드시 `[핵심 3줄 요약]`을 글머리 기호로 먼저 제시하세요.
-4. **추천 액션:** 답변 끝에 사용자가 바로 따라 해볼 수 있는 '다음 추천 단계'를 1~2가지 제안하세요.
-EOF
-
-# 3. 파일 생성 확인
-ls -la ~/antigravity-lab/.agents/rules/friendly-response.md
-```
-
-#### 3. 문서 작성 비서 서브에이전트 (`.agents/agents/writing-assistant.md`)
-
-> 📍 **파일 생성 위치 (절대 경로)**: `~/antigravity-lab/.agents/agents/writing-assistant.md`  
-> 워크스페이스 루트의 `.agents/agents/` 에 저장되어 `@writing-assistant` 로 호출 가능한 전문 비서입니다.
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-# 1. Antigravity 워크스페이스 홈으로 이동 (파일 생성 기준점)
-cd ~/antigravity-lab
-
-# 2. Agent 파일 생성 (경로: ~/antigravity-lab/.agents/agents/writing-assistant.md)
-cat > .agents/agents/writing-assistant.md <<'EOF'
----
-name: writing-assistant
-description: 비즈니스 이메일, 업무 보고서, 공지사항, 블로그 초안 작성 및 문장 교정 전문 비서
-model: inherit
-tools:
-  - view_file
-  - list_dir
----
-
-# Writing Assistant Instructions
-
-당신은 직관적이고 설득력 있는 글을 작성하는 전문 문서 비서입니다. 사용자가 초안이나 메모를 제공하면 다음 작업을 수행하세요:
-
-1. **맞춤법 및 문장 교정:** 어색하거나 모호한 표현을 자연스럽고 명확한 문장으로 수정합니다.
-2. **문맥에 맞는 톤 조정:**
-   - 비즈니스 이메일/보고서: 격식 있고 정중하며 핵심이 바로 드러나는 어조
-   - 블로그/SNS/안내문: 친근하고 가독성이 높은 편안한 어조
-3. **가독성 개선:** 단락을 보기 좋게 나누고, 중요한 항목은 글머리 기호(bullet points)로 시각화합니다.
-EOF
-
-# 3. 파일 생성 확인
-ls -la ~/antigravity-lab/.agents/agents/writing-assistant.md
-```
-
-#### 4. 회의록 정리 및 할 일 추출 스킬 (`.agents/skills/meeting-summary/SKILL.md`)
-
-> 📍 **파일 생성 위치 (절대 경로)**: `~/antigravity-lab/.agents/skills/meeting-summary/SKILL.md`  
-> 워크스페이스 루트의 `.agents/skills/meeting-summary/` 디렉터리에 저장되는 표준 업무 절차 지침서입니다.
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-# 1. Antigravity 워크스페이스 홈으로 이동 (파일 생성 기준점)
-cd ~/antigravity-lab
-
-# 2. 스킬 전용 하위 디렉터리 생성 및 SKILL.md 작성
-mkdir -p .agents/skills/meeting-summary
-cat > .agents/skills/meeting-summary/SKILL.md <<'EOF'
----
-name: meeting-summary
-title: 회의록 요약 및 할 일(Action Items) 자동 추출 워크플로우
-version: 1.0.0
-description: 회의 메모나 대화 텍스트를 읽고 핵심 안건, 결정 사항, 담당자별 할 일을 표로 깔끔하게 정리하는 스킬
-tags:
-  - productivity
-  - meeting
-  - notes
----
-
-# Meeting Summary Skill Instructions
-
-사용자가 회의 메모, 대화 기록, 또는 미팅 노트를 제공하면 아래 3단계 표준 절차에 따라 정리된 마크다운 문서를 작성하세요:
-
-## 표준 정리 워크플로우
-
-1. **기본 정보 및 안건 요약:**
-   - 회의 일시, 참석자, 주요 논의 주제를 상단에 간결하게 정리합니다.
-2. **핵심 결정 사항 (Key Decisions):**
-   - 회의 중 최종 결정되거나 합의된 사항을 글머리 기호(`-`)로 명확하게 요약합니다.
-3. **Action Items (담당자별 할 일 목록 표):**
-   - 아래 서식의 마크다운 표를 작성하여 각 항목의 담당자와 마감 기한을 명시합니다:
-
-   | 번호 | 담당자 | 할 일 (Action Item) | 완료 기한 | 우선순위 |
-   | :--: | :----: | :------------------ | :-------: | :------: |
-   | 1    | 홍길동 | 기획안 초안 공유    | 이번 주 금 | 높음     |
-EOF
-
-# 3. 파일 생성 확인
-ls -la ~/antigravity-lab/.agents/skills/meeting-summary/SKILL.md
-```
-
-#### 5. 사전 가이드 및 명령어 자동 승인 훅 (`.agents/hooks.json`)
-
-> 📍 **파일 생성 위치 (절대 경로)**: `~/antigravity-lab/.agents/hooks.json`  
-> 워크스페이스 루트의 `.agents/hooks.json` 에 정의되어 Antigravity 5대 훅 이벤트(`PreInvocation`, `PreToolUse` 등) 발생 시 실행되는 트리거 설정입니다.
-
-> 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
-
-```bash
-# 1. Antigravity 워크스페이스 홈으로 이동 (파일 생성 기준점)
-cd ~/antigravity-lab
-
-# 2. Hook 설정 파일 생성 (경로: ~/antigravity-lab/.agents/hooks.json)
-cat > .agents/hooks.json <<'EOF'
-{
-  "friendly-guide": {
-    "PreInvocation": [
-      {
-        "type": "command",
-        "command": "echo '{\"injectSteps\": [{\"ephemeralMessage\": \"[사전 가이드] 초보자도 이해하기 쉬운 일상 비유와 함께 친절하게 설명하세요.\"}]}'"
-      }
-    ]
-  },
-  "command-guard": {
-    "PreToolUse": [
-      {
-        "matcher": "run_command",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"decision\": \"allow\"}'"
-          }
-        ]
-      }
-    ]
-  }
-}
-EOF
-
-# 3. 파일 생성 확인
-ls -la ~/antigravity-lab/.agents/hooks.json
-```
-
----
-
-## 5. Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)
+## 4. Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)
 
 ### Q1. `agy: command not found` 오류가 발생합니다.
 
@@ -1825,21 +1583,7 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 
 ---
 
-## 6. 실습 완료 체크리스트
-
-- [ ] GCP Console 접속 및 Cloud Shell 터미널 / Cloud Shell Editor 활성화 완료
-- [ ] 실습 전용 워크스페이스(`~/antigravity-lab`) 생성 및 기본 환경 점검 완료
-- [ ] Antigravity CLI 동작 확인 완료 (Cloud Shell 기본 제공 또는 수동 설치 후 agy --version 확인)
-- [ ] 브라우저 헤드리스 OAuth 로그인 및 Gemini 프로젝트 라이선스 선택 완료
-- [ ] 워크스페이스 신뢰(Trust) 승인 및 Antigravity TUI 초기 화면 진입 완료
-- [ ] `/help`, `/model` (Gemini 3.8 Flash Medium 설정), `/config`, `/skills`, `/agents`, `/hooks`, `/mcp` 실행 및 도구 호출 검증 완료 (Step 6)
-- [ ] `/plan` 명령어 기반 주간 업무 보고서 계획 수립, 피드백 점진적 개선 및 최종 자동 구현 검증 완료 (Step 7)
-- [ ] `.agents` 커스터마이징 디렉터리 구성 및 Rule, Agent, Skill, Hook 예제 작성 및 종합 검증 완료 (Step 8)
-- [ ] Cloud Shell 환경에서의 `.gemini` 및 `.agents` 디렉터리 역할 이해 완료
-
----
-
-## 7. 다음 단계
+## 5. 다음 단계
 
 Cloud Shell 환경 구성과 초기 검증이 완료되었다면 다음 실습 가이드를 진행하세요:
 
