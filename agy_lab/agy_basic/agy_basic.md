@@ -10,7 +10,7 @@
 ## 1. 개요 및 학습 목표
 
 - **GCP Cloud Shell 환경 준비**: 웹 브라우저에서 Cloud Shell 터미널 및 Cloud Shell Editor를 활성화합니다.
-- **실습 워크스페이스 및 Python 가상환경 구성**: 워크스페이스 디렉터리(`~/antigravity-lab`)를 생성하고 `.venv` 가상환경을 활성화합니다.
+- **실습 워크스페이스(작업 폴더) 준비**: Antigravity 실습 파일과 AI 규칙이 저장될 전용 작업 폴더(`~/antigravity-lab`)를 생성하고 기본 환경을 점검합니다.
 - **Antigravity CLI 설치**: Cloud Shell 환경에 Antigravity CLI 바이너리를 배치하고 시스템 경로(PATH)를 설정합니다.
 - **Google 계정 및 라이선스 인증**: 브라우저 기반 헤드리스 OAuth 인증을 통해 Google 계정을 연동하고 Gemini 라이선스를 선택합니다.
 - **초기 실행 검증**: 워크스페이스 신뢰 설정 및 첫 TUI 세션 진입, 기본 명령어(`/help`, `/model`, `/config`)와 코드 생성을 검증합니다.
@@ -98,29 +98,24 @@ Cloud Shell은 여러 명령을 동시에 수행할 수 있도록 **다중 터�
 
 ---
 
-### Step 2: 실습 워크스페이스 생성 및 Python 가상환경(venv) 구성
+### Step 2: 실습 워크스페이스(작업 폴더) 생성 및 기본 환경 확인
 
-Cloud Shell 터미널에서 실습 전용 워크스페이스를 생성하고 Python 가상환경을 활성화합니다.
+새로운 업무나 프로젝트를 시작할 때 전용 폴더를 만드는 것처럼, Cloud Shell 터미널에서 Antigravity 실습 파일들과 AI 규칙이 저장될 전용 작업 폴더(`~/antigravity-lab`)를 생성합니다.
+
+> [!NOTE]
+> **비즈니스 유저를 위한 쉬운 안내**:  
+> 별도의 복잡한 가상환경 설치 없이 Cloud Shell에 기본 제공되는 환경을 그대로 사용합니다. 폴더를 생성하는 명령어(`mkdir`)와 이동하는 명령어(`cd`)만 실행하면 모든 준비가 끝납니다.
 
 > 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
 
 ```bash
-# 1. 실습 워크스페이스 디렉터리 생성 및 이동
+# 1. 실습 전용 폴더(워크스페이스) 생성 및 이동
 mkdir -p ~/antigravity-lab
 cd ~/antigravity-lab
 pwd     # /home/<user>/antigravity-lab 확인
 
-# 2. Python 버전 확인 (3.10 이상 기본 제공)
+# 2. Python 기본 런타임 확인 (Cloud Shell 기본 3.11+ 제공)
 python3 --version
-
-# 3. 프로젝트 격리 가상환경(.venv) 생성
-python3 -m venv .venv
-
-# 4. 가상환경 활성화
-source .venv/bin/activate
-
-# 5. 활성화 확인 (프롬프트 앞에 (.venv) 표시 확인)
-which python
 ```
 
 ---
@@ -422,13 +417,12 @@ Antigravity CLI가 실행 중일 때는 터미널 화면이 대화형 TUI 인터
 ##### 방법 1: Cloud Shell 새 탭(`+`) 추가하여 병행 실행 (권장)
 
 1. **새 탭 열기**: Cloud Shell 터미널 상단 탭 표시줄 우측의 **`+` (새 탭 열기)** 버튼을 클릭합니다.
-2. **명령 실행 및 검증 (Tab 2)**: 새 탭이 열리면 워크스페이스로 이동하고 가상환경을 활성화한 뒤, 방금 Antigravity가 생성한 코드를 실행해 봅니다:
+2. **명령 실행 및 검증 (Tab 2)**: 새 탭이 열리면 워크스페이스로 이동하여 방금 Antigravity가 생성한 코드를 확인하고 실행해 봅니다:
 
 > 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 - 새 bash 탭)**
 
 ```bash
 cd ~/antigravity-lab
-source .venv/bin/activate
 
 # 생성된 파일 내용 확인
 cat sum_1_to_10.py
@@ -1322,11 +1316,10 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 ### Q4. 일정 시간 후 Cloud Shell 터미널 연결이 끊겼습니다.
 
 - **원인:** Cloud Shell은 약 20분 이상 유휴(idle) 상태가 지속되면 세션이 자동 종료됩니다.
-- **해결 방법:** 브라우저에서 **Reconnect**를 클릭하여 다시 접속한 뒤 가상환경을 재활성화하고 실습을 이어갑니다:
+- **해결 방법:** 브라우저에서 **Reconnect**를 클릭하여 다시 접속한 뒤 작업 폴더(`~/antigravity-lab`)로 이동하여 실습을 이어갑니다:
   > 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (일반 bash 셸)**
   ```bash
   cd ~/antigravity-lab
-  source .venv/bin/activate
   agy
   ```
 
@@ -1360,7 +1353,7 @@ ls -la ~/antigravity-lab/.agents/hooks.json
 ## 7. 실습 완료 체크리스트
 
 - [ ] GCP Console 접속 및 Cloud Shell 터미널 / Cloud Shell Editor 활성화 완료
-- [ ] 실습 워크스페이스(`~/antigravity-lab`) 생성 및 `.venv` 가상환경 활성화 완료
+- [ ] 실습 전용 워크스페이스(`~/antigravity-lab`) 생성 및 기본 환경 점검 완료
 - [ ] Antigravity CLI 동작 확인 완료 (Cloud Shell 기본 제공 또는 수동 설치 후 agy --version 확인)
 - [ ] 브라우저 헤드리스 OAuth 로그인 및 Gemini 프로젝트 라이선스 선택 완료
 - [ ] 워크스페이스 신뢰(Trust) 승인 및 Antigravity TUI 초기 화면 진입 완료
