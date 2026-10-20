@@ -497,41 +497,89 @@ Antigravity의 `/plan` 슬래시 명령어는 코드를 바로 작성하지 않�
 
 실습 시나리오: 팀원들의 한 주간 업무 데이터를 입력받아 깔끔한 마크다운 보고서로 변환해 주는 **주간 비즈니스 업무 보고서 자동 생성기 (`weekly_report_generator`)** 를 구축합니다.
 
-Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 계획 수립을 요청합니다.
+> [!TIP]
+> **💡 실무 팁: 계획을 세울 때 "테스트용 샘플 데이터"도 함께 생성하도록 명시하세요!**  
+> 아직 실제 사내 업무 데이터가 없거나 보안상 실제 데이터를 쓰기 어려운 경우, 프롬프트에 **"바로 테스트해 볼 수 있도록 샘플 데이터(`sample_tasks.json`)도 함께 생성해줘"**라고 명시하는 것이 좋습니다.  
+> 이렇게 하면 에이전트가 데이터 스키마와 현실감 있는 가상의 팀원 업무 데이터(프로젝트명, 담당자, 진척률 등)를 스스로 작성해 주므로, 코드가 완성되자마자 즉시 실제 동작을 검증해 볼 수 있습니다.
+
+Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 계획 수립을 요청합니다:
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
 
 ```text
-/plan 팀원들의 한 주 업무 데이터를 입력하면 정돈된 마크다운 보고서로 만들어주는 weekly_report 생성기 계획을 세워줘.
+/plan 팀원들의 주간 업무 데이터(JSON 파일)를 인자로 입력받아 정돈된 마크다운 보고서로 변환해 주는 weekly_report CLI 도구 계획을 세워줘. 바로 테스트해 볼 수 있도록 가상의 샘플 업무 데이터(sample_tasks.json)도 함께 생성하는 계획을 포함해줘.
 ```
 
 ##### 에이전트의 반응 및 계획 아티팩트 확인
 
-에이전트는 코드를 즉시 작성하지 않고, 화면 우측/하단에 **Implementation Plan** 아티팩트(`implementation_plan.md`)를 생성하여 보여줍니다:
+`/plan` 명령을 실행하면 에이전트는 코드를 즉시 작성하지 않고, 다음과 같이 3단계 흐름으로 계획을 제시하고 검토를 안내합니다:
 
-```text
-# Implementation Plan: Weekly Business Report Generator
+1. **대화창(TUI) 안내 메시지 출력**:
+   ```text
+   주간 업무 보고서 생성기(weekly_report_generator) 구축을 위한 1차 구현 계획을 수립했습니다.
+   화면에 생성된 implementation_plan.md 아티팩트를 검토해 주세요. 추가 요구사항이 있다면 편하게 말씀해 주시고, 
+   계획이 완료되면 하단의 [Proceed] 버튼을 눌러 구현을 진행해 주세요.
+   ```
 
-## Goal Description
-팀원들의 주간 업무 데이터를 읽어 마크다운(Markdown) 보고서로 가공하는 Python 스크립트 생성
+2. **`/artifact` 명령어로 계획 아티팩트 확인 및 패널 열기**:
+   에이전트가 계획을 수립하면 화면 우측(또는 분할 화면)에 아티팩트가 생성됩니다. 이 계획서를 전체 화면에서 자세히 읽어보거나 검토 창을 제어하기 위해 슬래시 명령어 또는 단축키를 입력합니다:
 
-## Proposed Changes
-- [NEW] weekly_report.py : 업무 데이터를 마크다운 보고서로 변환하는 생성기 스크립트
-- [NEW] sample_tasks.json : 테스트용 샘플 팀원 업무 데이터
+   > 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
 
-## Verification Plan
-- sample_tasks.json 데이터를 사용해 weekly_report.py 실행
-- weekly_report_output.md 생성 확인
-```
+   ```text
+   /artifact
+   ```
+
+   - **동작**: 단축키 **`Ctrl+R`** 또는 **`/artifact`** 를 입력하면 **Artifact Review 전용 패널**이 열리며, 생성된 `implementation_plan.md` 전체 내용을 상하 스크롤하며 편리하게 검토할 수 있습니다.
+   - **리뷰 패널 내 핵심 조작 키**:
+     - **`y`** : 현재 계획 아티팩트 승인 (`Proceed`와 동일)
+     - **`n`** : 계획 거절 (대화창으로 돌아가 추가 요구사항 피드백 입력)
+     - **`A`** : 생성된 아티팩트 전체 일괄 승인
+     - **`q` 또는 `Esc`** : 리뷰 패널을 닫고 프롬프트 대화창으로 복귀
+   - **팁 (`/diff`)**: 계획이 수정되었을 때 변경 전후 차이점을 한눈에 비교하고 싶다면 **`/diff`** 명령어를 입력하여 대화형 Diff 뷰어로 확인할 수 있습니다.
+
+3. **열람된 `implementation_plan.md` 계획서 내용 확인**:
+   패널에서 열람할 수 있는 실제 `implementation_plan.md` 계획 아티팩트의 구조와 내용은 다음과 같습니다:
+
+   ```markdown
+   # Implementation Plan: Weekly Business Report Generator
+
+   ## Goal Description
+   CLI 인자(Argument)로 지정된 JSON 업무 데이터 파일(예: `sample_tasks.json`)을 읽어들여, 정돈되고 가독성 높은 마크다운(Markdown) 보고서로 가공하여 저장하는 Python 자동화 도구(`weekly_report.py`)를 구축합니다.
+
+   ## User Review Required
+   > [!IMPORTANT]
+   > - 생성될 기본 파일: `weekly_report.py` (보고서 변환 CLI 스크립트), `sample_tasks.json` (테스트 데이터)
+   > - 실행 방식: `python3 weekly_report.py <입력_json_경로>` 형태로 입력 파일을 유연하게 지정할 수 있도록 설계합니다.
+   > - 추가하고 싶은 비즈니스 요구사항이나 사내 보고서 서식이 있다면 승인 전에 피드백을 전달해 주세요.
+
+   ## Proposed Changes
+   ### Report Generator Module
+   #### [NEW] `sample_tasks.json`
+   - 테스트용 팀원 업무 현황 데이터 (프로젝트명, 담당자, 진척률 등)
+
+   #### [NEW] `weekly_report.py`
+   - `sys.argv[1]`로 전달된 JSON 파일 경로를 로드하여 Markdown 보고서 서식으로 변환
+   - 최종 결과 파일(`weekly_report_output.md`) 자동 저장
+
+   ## Verification Plan
+   ### Automated Execution
+   - `python3 weekly_report.py sample_tasks.json` 명령으로 스크립트 실행
+   - `weekly_report_output.md` 보고서 파일 생성 및 출력 내용 검증
+   ```
 
 > [!NOTE]
-> 에이전트 화면 하단에 **`Proceed` (승인)** 버튼과 입력창이 대기 상태로 나타납니다. 하지만 바로 승인하지 않고, 비즈니스 요구사항을 추가하여 계획을 점진적으로 개선해 봅니다.
+> 에이전트 화면 하단에 **`[Proceed]` (승인)** 버튼과 입력창이 대기 상태로 나타납니다. 하지만 바로 승인하지 않고, 비즈니스 요구사항을 추가하여 계획을 점진적으로 개선해 봅니다.
 
 ---
 
 #### 7-3. [Phase 2] 대화형 점진적 계획 개선 (Interactive Plan Refinement)
 
-회사의 실제 보고서 양식에 맞추어 **"임원용 3줄 요약"**과 **"KPI 목표 달성률 표"**, 그리고 **"지연 프로젝트 경고(⚠️)"** 표시 기능을 계획에 추가하도록 피드백을 전달합니다.
+> [!TIP]
+> **💡 계획 개선(피드백) 단계에서는 `/plan`을 다시 입력할 필요가 없습니다!**  
+> `/plan`은 계획 모드(Planning Mode)를 켜는 첫 트리거입니다. 한 번 계획 모드에 진입하여 아티팩트가 생성되면, 사용자가 최종 승인(`Proceed`)을 누르기 전까지 세션이 계획 검토 대기 상태를 유지합니다. 따라서 이후부터는 **`/plan` 접두어 없이 평소처럼 자연어(일반 문장)로만 수정 사항을 피드백**하면 에이전트가 알아서 계획서를 실시간으로 업데이트(Diff 갱신)합니다.
+
+회사의 실제 보고서 양식에 맞추어 **"임원용 3줄 요약"**과 **"KPI 목표 달성률 표"**, 그리고 **"지연 프로젝트 경고(⚠️)"** 표시 기능을 계획에 추가하도록 피드백을 전달합니다:
 
 > 📍 **실행 위치: 🤖 Antigravity 대화창 (Tab 1 agy 프롬프트)**
 
@@ -541,13 +589,34 @@ Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 
 
 ##### 계획 아티팩트의 실시간 업데이트 확인
 
-에이전트는 피드백을 반영하여 `Implementation Plan` 아티팩트를 실시간으로 갱신(Diff)합니다:
+피드백을 입력하면 에이전트는 기존 아티팩트를 바탕으로 **`implementation_plan.md` 문서를 실시간으로 업데이트(Diff 갱신)** 하여 개선된 계획을 보여줍니다:
 
-- **Goal Description**: 임원 보고용 요약 및 KPI 달성률, 지연 경고 기능 추가 반영
-- **Proposed Changes**:
-  - `sample_tasks.json`: 프로젝트명, 담당자, 진척률(%), 상태(`COMPLETED`, `IN_PROGRESS`, `DELAY`) 필드 포함
-  - `weekly_report.py`: 데이터 파싱, KPI 달성률 집계 및 ⚠️ 지연 마크다운 서식 렌더링 로직 포함
-- **Verification Plan**: 지연 상태가 포함된 샘플 데이터 실행 검증
+```markdown
+# Implementation Plan: Weekly Business Report Generator (Updated)
+
+## Goal Description
+팀원들의 주간 업무 데이터를 분석하여, **임원 보고용 3줄 핵심 요약(Executive Summary)**, **KPI 목표 달성률 표**, 그리고 **일정 지연(DELAY) 프로젝트 경고(⚠️)** 기능이 완벽히 포함된 전문 비즈니스 보고서 생성기를 구축합니다.
+
+## User Review Required
+> [!NOTE]
+> 사용자 피드백이 반영되어 **임원용 3줄 요약 양식**과 **⚠️ 지연 프로젝트 긴급 조치 계획 섹션**이 설계에 추가되었습니다.
+
+## Proposed Changes
+### Report Generator Module
+#### [NEW] `sample_tasks.json`
+- 프로젝트명, 담당자, 진척률(%), 상태(`COMPLETED`, `IN_PROGRESS`, `DELAY`) 필드가 포함된 실무 시뮬레이션 업무 데이터
+
+#### [NEW] `weekly_report.py`
+- CLI 인자(`sys.argv[1]`)로 입력 JSON 파일 경로를 전달받아 로드 및 파싱
+- **임원 보고용 3줄 핵심 요약(Executive Summary)** 자동 추출 기능
+- **KPI 목표 대비 달성률 표** Markdown 테이블 생성 기능
+- 상태가 `DELAY`인 프로젝트를 자동 감지하여 **⚠️ 경고 표시 및 긴급 조치 섹션** 렌더링
+
+## Verification Plan
+### Automated Execution
+- `python3 weekly_report.py sample_tasks.json` 실행 후 `weekly_report_output.md` 파일 생성 확인
+- 마크다운 본문에 3줄 요약, KPI 달성률 표, ⚠️ 경고 표시가 누락 없이 출력되는지 확인
+```
 
 > [!TIP]
 > 이처럼 `/plan` 모드에서는 사용자가 원하는 비즈니스 디테일이 계획에 온전히 담길 때까지 자연어로 피드백을 주며 **점진적으로 계획을 고도화(Refinement)** 할 수 있습니다.
@@ -568,26 +637,56 @@ Antigravity TUI 세션의 프롬프트에서 `/plan`을 입력하여 첫 번째 
 
 ##### 에이전트의 자동 실행 과정
 
-승인이 떨어지면 에이전트가 순서대로 도구를 실행하여 파일을 생성합니다:
-1. `write_file` 도구로 `sample_tasks.json` 샘플 데이터 생성
-2. `write_file` 도구로 `weekly_report.py` 보고서 생성 스크립트 작성
-3. `run_command` 도구로 스크립트를 실행하여 테스트 검증
+승인이 떨어지면 에이전트가 계획에 명시된 순서대로 도구를 실행하여 파일을 자동 생성하고 검증합니다:
+
+1. **`write_file` 도구로 `sample_tasks.json` 테스트용 업무 데이터 자동 생성**:  
+   에이전트가 계획 단계에서 약속한 대로, 실무 시뮬레이션에 필요한 팀원(김마케터, 박개발, 이기획)의 업무 현황 데이터를 JSON으로 직접 작성하여 저장합니다:
+   ```json
+   [
+     {
+       "project": "2분기 신규 프로모션 런칭",
+       "assignee": "김마케터",
+       "progress": 100,
+       "status": "COMPLETED",
+       "summary": "2분기 주요 마케팅 캠페인 런칭이 성공적으로 완료되었습니다."
+     },
+     {
+       "project": "글로벌 결제 모듈 연동",
+       "assignee": "박개발",
+       "progress": 65,
+       "status": "DELAY",
+       "summary": "결제 시스템 연동 작업 중 PG사 심사 일정으로 인해 일부 지연이 발생하여 긴급 대응 중입니다.",
+       "action_plan": "PG사 추가 서류 제출 완료, 익일 오전 10시 담당자 유선 미팅을 통해 심사 일정 2일 단축 추진."
+     },
+     {
+       "project": "신규 고객 온보딩 플로우 개선",
+       "assignee": "이기획",
+       "progress": 90,
+       "status": "IN_PROGRESS",
+       "summary": "신규 모바일 앱 기획안은 팀 내 리뷰를 거쳐 차주 초 최종 확정 예정입니다."
+     }
+   ]
+   ```
+2. **`write_file` 도구로 `weekly_report.py` 보고서 생성 스크립트 작성**:  
+   CLI 인자(`sys.argv[1]`)로 넘겨받은 JSON 파일을 읽어들여 임원용 요약, KPI 달성률 표, 지연(⚠️) 경고 섹션이 포함된 마크다운 보고서(`weekly_report_output.md`)를 만들어내는 변환 코드를 작성합니다.
+3. **`run_command` 도구로 스크립트를 실행하여 자체 테스트 검증**:  
+   `python3 weekly_report.py sample_tasks.json`을 실행하여 오류 없이 결과 보고서가 생성되는지 에이전트 스스로 확인합니다.
 
 ---
 
 #### 7-5. [Phase 4] 실행 검증 및 최종 보고서 확인
 
-실제로 생성된 주간 보고서 도구가 잘 작동했는지 터미널에서 직접 실행하고 결과를 확인합니다.
+에이전트가 만든 데이터와 보고서 생성 도구가 정상 동작하는지 터미널에서 직접 실행하고 결과를 확인합니다.
 
 > 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2 또는 일반 bash 셸)**
 
 ```bash
-# 1. 생성된 파일 확인
+# 1. 에이전트가 자동 생성한 입력 데이터(sample_tasks.json) 확인
 cd ~/antigravity-lab
-ls -la sample_tasks.json weekly_report.py
+cat sample_tasks.json
 
-# 2. 주간 보고서 생성 스크립트 직접 실행
-python3 weekly_report.py
+# 2. 주간 보고서 생성 스크립트에 입력 파일(sample_tasks.json)을 인자로 전달하여 직접 실행
+python3 weekly_report.py sample_tasks.json
 
 # 3. 생성된 주간 보고서 결과물(Markdown) 출력 확인
 cat weekly_report_output.md
