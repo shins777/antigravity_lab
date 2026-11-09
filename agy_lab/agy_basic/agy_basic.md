@@ -1,8 +1,17 @@
 # Antigravity Cloud Shell 설치 및 환경 구성 실습 가이드 (agy_basic)
 
+
 본 문서는 **GCP Cloud Shell** 환경에서 AI 업무 도구인 **Antigravity CLI(`agy`)** 를 처음 시작하는 **비즈니스 사용자(기획자, PM, 운영 담당자 등)** 를 위한 핸즈온 실습 가이드입니다.
 
-웹 브라우저 하나만으로 복잡한 설치 없이 **3가지 핵심 과제**를 순서대로 따라 할 수 있도록 간결하게 정리되어 있습니다.
+
+궁극적으로 우리는 아래와 같은 협업 구조에서 하네스 엔지니어링 기반의 에이전트를 만들어서 업무 효율 및 생산성 향상을 높히기 위한 목적입니다.   
+
+
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/collaboration.png" width="700" alt="하네스 엔지니어링 기반 협업 구조"></p>
+
+---
+
+이 Lab에서는 웹 브라우저 하나만으로 복잡한 설치 없이 **3가지 핵심 과제**를 순서대로 따라 할 수 있도록 간결하게 정리되어 있습니다.
 
 > [!NOTE]
 > **💡 비즈니스 사용자를 위한 팁**: 터미널 명령어가 생소하더라도 코드 블록 우측의 복사 버튼을 눌러 터미널에 그대로 붙여넣고 **Enter**를 누르면 손쉽게 완료할 수 있습니다.
@@ -31,7 +40,7 @@
 4. [과제 3: Antigravity 핵심 명령어 및 실무 기능 활용 (/plan, Rule, Agent 등)](#4-과제-3-antigravity-핵심-명령어-및-실무-기능-활용-plan-rule-agent-등)
    - [실습 3-1. 기본 명령어 및 코드 생성/다중 탭 검증 (/help, 파이썬 코드 생성)](#실습-3-1-기본-명령어-및-코드-생성다중-탭-검증-help-파이썬-코드-생성)
    - [실습 3-2. /plan 기반 점진적 업무 개발 실습 (Plan-Driven Implementation)](#실습-3-2-plan-기반-점진적-업무-개발-실습-plan-driven-implementation)
-   - [실습 3-3. 프로젝트 커스터마이징 디렉터리(.agents) 구조 생성 및 아키텍처 개요](#실습-3-3-프로젝트-커스터마이징-디렉터리agents-구조-생성-및-아키텍처-개요)
+   - [실습 3-3. 하네스 엔지니어링을 위한 디렉터리(.agents) 구조 생성 및 구조](#실습-3-3-하네스-엔지니어링을-위한-디렉터리agents-구조-생성-및-구조)
    - [실습 3-4. 프로젝트 기본 지침서(GEMINI.md) 작성 실습](#실습-3-4-프로젝트-기본-지침서geminimd-작성-실습)
    - [실습 3-5. Rule (행동 규칙): 사내 근무 수칙 및 친절한 3줄 요약](#실습-3-5-rule-행동-규칙-사내-근무-수칙-및-친절한-3줄-요약)
    - [실습 3-6. Agent (맞춤형 AI 비서): 문서 작성 전문 비서](#실습-3-6-agent-맞춤형-ai-비서-문서-작성-전문-비서)
@@ -405,9 +414,15 @@ cat weekly_report_output.md
 
 ---
 
-### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-3</span> 프로젝트 커스터마이징 디렉터리(`.agents`) 구조 생성 및 아키텍처 개요
+### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-3</span> 하네스 엔지니어링을 위한 디렉터리(`.agents`) 구조 생성 및 구조. 
 
-5대 맞춤형 자산(Rule, Agent, Skill, MCP, Hook)을 보관할 서류함 폴더를 생성합니다:
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/harness_1.png" width="700" alt="하네스 엔지니어링 디렉터리 아키텍처"></p>
+
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/harness_2.png" width="700" alt="하네스 엔지니어링 5대 맞춤형 자산 관계도"></p>
+
+---
+
+하네스 엔지니어링을 위한 5대 맞춤형 자산(Rule, Agent, Skill, MCP, Hook)을 보관할 서류함 폴더를 생성합니다:
 
 > 📍 **실행 위치: 🖥️ Cloud Shell 터미널 (Tab 2)**
 
