@@ -544,7 +544,19 @@ ls -la .agents/rules/friendly-response.md
 
 ### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-6</span> Agent (맞춤형 AI 비서): 문서 작성 전문 비서
 
-- **개념**: 특정 업무에 특화된 전담 비서(Persona)로, 대화 중 `@에이전트명`으로 호출합니다.
+- **개념**: 특정 업무에 특화된 전담 비서(Persona)로, 대화 중 `@에이전트명`이나 전용 슬래시 명령어로 호출합니다.
+
+> [!TIP]
+> **💡 Antigravity 내장 에이전트(Built-in Agents)와 커스텀 에이전트의 차이**:  
+> Antigravity에는 개발자가 직접 만들지 않아도 즉시 호출하여 활용할 수 있는 강력한 **내장 전문 에이전트**들이 사전 탑재되어 있습니다:
+> - **`/plan`**: 코딩 전에 단계별 실행 계획(Plan)을 먼저 수립하는 **기획 주도 에이전트** (실습 3-2에서 실습 완료)
+> - **`/browser`**: 실시간 인터넷 웹 검색 및 웹페이지를 직접 탐색하는 **리서치 전담 에이전트**
+> - **`/review-agent`**: 코드의 보안 취약점, 버그, 성능 병목을 정밀 검사하는 **코드 리뷰 전담 에이전트**
+> - **`/owl`**: 복잡한 아키텍처나 기술 연구를 다각도로 검증하는 **심층 추론(Deep Thinking) 에이전트**
+> - **`/teamwork`**: 여러 에이전트가 역할을 나누어 병렬로 협업하는 **멀티에이전트 팀 (Swarm)**
+> - **`/goal`**: 목표가 100% 달성될 때까지 중간에 멈추지 않고 스스로 오류를 수정하며 완수하는 **자율 완수 에이전트**
+>
+> 📌 **이번 실습의 목표**: 이러한 내장 에이전트 외에, 우리 팀만의 고유한 업무 규칙과 양식을 학습시킨 **'사내 맞춤형 커스텀 에이전트(`.agents/agents/`)'** 를 직접 만들고 `@에이전트명`으로 호출하는 방법을 배웁니다. 대화창에서 `/agents`를 입력하면 내장 에이전트와 커스텀 에이전트 목록을 한눈에 확인할 수 있습니다.
 
 _에이전트 목록 화면 (`/agents`)_
 <p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/agents_1.png" width="700" alt="에이전트 목록 화면"></p>
