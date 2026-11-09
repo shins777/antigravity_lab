@@ -13,7 +13,7 @@
 
 1. [개요 및 학습 목표](#1-개요-및-학습-목표)
    - [사전 준비 사항 (Prerequisites)](#사전-준비-사항-prerequisites)
-2. [과제 1: Cloud Shell 접속 및 실습 환경 준비](#과제-1-cloud-shell-접속-및-실습-환경-준비)
+2. [과제 1: Cloud Shell 접속 및 실습 환경 준비](#2-과제-1-cloud-shell-접속-및-실습-환경-준비)
    - [실습 1-1. GCP Console 접속](#실습-1-1-gcp-console-접속)
    - [실습 1-2. 프로젝트 선택](#실습-1-2-프로젝트-선택)
    - [실습 1-3. Cloud Shell 터미널 열기](#실습-1-3-cloud-shell-터미널-열기)
@@ -21,23 +21,23 @@
    - [실습 1-5. 다중 터미널 탭 기능 및 실행 환경 구분](#실습-1-5-다중-터미널-탭-기능-및-실행-환경-구분)
    - [실습 1-6. 실습 워크스페이스(작업 폴더) 생성 및 기본 환경 확인](#실습-1-6-실습-워크스페이스작업-폴더-생성-및-기본-환경-확인)
    - [실습 1-7. [선택 옵션] Antigravity CLI 최신 업데이트 및 설치 확인 (선택 수동 설치 포함)](#실습-1-7-선택-옵션-optional-antigravity-cli-최신-업데이트-및-설치-확인-선택-수동-설치-포함)
-3. [과제 2: Antigravity 실행 및 초기 인증/환경 설정](#과제-2-antigravity-실행-및-초기-인증환경-설정)
+3. [과제 2: Antigravity 실행 및 초기 인증/환경 설정](#3-과제-2-antigravity-실행-및-초기-인증환경-설정)
    - [실습 2-1. 첫 실행 및 로그인 방식 선택 (헤드리스 OAuth)](#실습-2-1-첫-실행-및-로그인-방식-선택-헤드리스-oauth)
    - [실습 2-2. 브라우저 인증 및 인증 코드 입력](#실습-2-2-브라우저-인증-및-인증-코드-입력)
    - [실습 2-3. 라이선스 및 프로젝트 선택](#실습-2-3-라이선스-및-프로젝트-선택)
    - [실습 2-4. 초기 환경 설정 (컬러 스킴 및 TUI 기본 조작법)](#실습-2-4-초기-환경-설정-컬러-스킴-및-tui-기본-조작법)
    - [실습 2-5. 워크스페이스 신뢰 승인 (Workspace Trust)](#실습-2-5-워크스페이스-신뢰-승인-workspace-trust)
    - [실습 2-6. Antigravity TUI 초기 화면 진입 및 모델/권한 설정 (/model, /config)](#실습-2-6-antigravity-tui-초기-화면-진입-및-모델권한-설정-model-config)
-4. [과제 3: Antigravity 핵심 명령어 및 실무 기능 활용 (/plan, Rule, Agent 등)](#과제-3-antigravity-핵심-명령어-및-실무-기능-활용-plan-rule-agent-등)
+4. [과제 3: Antigravity 핵심 명령어 및 실무 기능 활용 (/plan, Rule, Agent 등)](#4-과제-3-antigravity-핵심-명령어-및-실무-기능-활용-plan-rule-agent-등)
    - [실습 3-1. 기본 명령어 및 코드 생성/다중 탭 검증 (/help, 파이썬 코드 생성)](#실습-3-1-기본-명령어-및-코드-생성다중-탭-검증-help-파이썬-코드-생성)
    - [실습 3-2. /plan 기반 점진적 업무 개발 실습 (Plan-Driven Implementation)](#실습-3-2-plan-기반-점진적-업무-개발-실습-plan-driven-implementation)
    - [실습 3-3. 프로젝트 커스터마이징 디렉터리(.agents) 구조 생성 및 아키텍처 개요](#실습-3-3-프로젝트-커스터마이징-디렉터리agents-구조-생성-및-아키텍처-개요)
    - [실습 3-4. 프로젝트 기본 지침서(GEMINI.md) 작성 실습](#실습-3-4-프로젝트-기본-지침서geminimd-작성-실습)
-   - [실습 3-5. Rule (행동 규칙) — 사내 근무 수칙 및 친절한 3줄 요약](#실습-3-5-rule-행동-규칙--사내-근무-수칙-및-친절한-3줄-요약)
-   - [실습 3-6. Agent (맞춤형 AI 비서) — 문서 작성 전문 비서](#실습-3-6-agent-맞춤형-ai-비서--문서-작성-전문-비서)
-   - [실습 3-7. Skill (표준 업무 절차) — 회의록 정리 표준 SOP (Standard Operating Procedure)](#실습-3-7-skill-표준-업무-절차--회의록-정리-표준-sop-standard-operating-procedure)
-   - [실습 3-8. MCP (외부 데이터 연동) — Google Cloud BigQuery 연동](#실습-3-8-mcp-외부-데이터-연동--google-cloud-bigquery-연동)
-   - [실습 3-9. Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법](#실습-3-9-hook-자동화-이벤트-트리거--개념-작성-예제-및-실제-활용-방법)
+   - [실습 3-5. Rule (행동 규칙): 사내 근무 수칙 및 친절한 3줄 요약](#실습-3-5-rule-행동-규칙-사내-근무-수칙-및-친절한-3줄-요약)
+   - [실습 3-6. Agent (맞춤형 AI 비서): 문서 작성 전문 비서](#실습-3-6-agent-맞춤형-ai-비서-문서-작성-전문-비서)
+   - [실습 3-7. Skill (표준 업무 절차): 회의록 정리 표준 SOP (Standard Operating Procedure)](#실습-3-7-skill-표준-업무-절차-회의록-정리-표준-sop-standard-operating-procedure)
+   - [실습 3-8. MCP (외부 데이터 연동): Google Cloud BigQuery 연동](#실습-3-8-mcp-외부-데이터-연동-google-cloud-bigquery-연동)
+   - [실습 3-9. Hook (자동화 이벤트 트리거): 개념, 작성 예제 및 실제 활용 방법](#실습-3-9-hook-자동화-이벤트-트리거-개념-작성-예제-및-실제-활용-방법)
    - [실습 3-10. Rule, Agent, Skill, MCP, Hook 5대 커스텀 자산 한눈에 비교하기](#실습-3-10-rule-agent-skill-mcp-hook-5대-커스텀-자산-한눈에-비교하기)
 5. [Cloud Shell 환경 문제 해결 및 FAQ (Troubleshooting)](#5-cloud-shell-환경-문제-해결-및-faq-troubleshooting)
 6. [다음 단계](#6-다음-단계)
@@ -81,7 +81,7 @@ Cloud Shell은 브라우저에서 동작하며 모든 개발 도구가 사전 �
 
 ---
 
-## <span style="background-color: #1e3a8a; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 0.9em; font-weight: 800; margin-right: 8px;">과제 1</span> Cloud Shell 접속 및 실습 환경 준비
+## 2. <span style="background-color: #1e3a8a; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 0.9em; font-weight: 800; margin-right: 8px;">과제 1</span> Cloud Shell 접속 및 실습 환경 준비
 
 ### <span style="background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 1-1</span> GCP Console 접속
 
@@ -147,7 +147,9 @@ python3 --version
 
 ### <span style="background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 1-7</span> <span style="background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-right: 6px;">선택 옵션 (Optional)</span> Antigravity CLI 최신 업데이트 및 설치 확인 (선택 수동 설치 포함)
 
-> 💡 **비즈니스 유저 안내 (선택 진행)**: Cloud Shell 환경에 이미 `agy`가 기본 탑재되어 있으므로, 이 단계는 건너뛰고 바로 **[과제 2](#과제-2-antigravity-실행-및-초기-인증환경-설정)** 로 진행하셔도 무방합니다. 최신 버전으로 업데이트하거나 별도 Linux PC에 설치할 때만 참고하세요.
+> [!TIP]
+> **💡 Cloud Shell 사용자를 위한 안내 (건너뛰기 권장)**:  
+> Google Cloud Shell 환경에는 `agy`가 이미 사전 설치되어 있습니다. 따라서 이 단계는 실행하지 않고 건너뛴 후 바로 **[과제 2: Antigravity 실행 및 초기 인증](#3-과제-2-antigravity-실행-및-초기-인증환경-설정)** 로 넘어가셔도 실습에 전혀 지장이 없습니다. 최신 버전으로 업데이트하거나 별도 자체 Linux PC에 설치할 때만 참고하세요.
 
 Cloud Shell에 사전 탑재된 `agy`를 최신 바이너리로 업데이트하고 동작을 확인합니다:
 
@@ -182,7 +184,7 @@ _터미널 실행 및 로그인 선택 화면_
 
 ---
 
-## <span style="background-color: #065f46; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 0.9em; font-weight: 800; margin-right: 8px;">과제 2</span> Antigravity 실행 및 초기 인증/환경 설정
+## 3. <span style="background-color: #065f46; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 0.9em; font-weight: 800; margin-right: 8px;">과제 2</span> Antigravity 실행 및 초기 인증/환경 설정
 
 ### <span style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 2-1</span> 첫 실행 및 로그인 방식 선택 (헤드리스 OAuth)
 
@@ -266,7 +268,7 @@ _Tool Permission 설정 화면_
 
 ---
 
-## <span style="background-color: #4c1d95; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 0.9em; font-weight: 800; margin-right: 8px;">과제 3</span> Antigravity 핵심 명령어 및 실무 기능 활용 (/plan, Rule, Agent 등)
+## 4. <span style="background-color: #4c1d95; color: #ffffff; padding: 4px 14px; border-radius: 6px; font-size: 0.9em; font-weight: 800; margin-right: 8px;">과제 3</span> Antigravity 핵심 명령어 및 실무 기능 활용 (/plan, Rule, Agent 등)
 
 ### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-1</span> 기본 명령어 및 코드 생성/다중 탭 검증 (`/help`, 파이썬 코드 생성)
 
@@ -299,7 +301,8 @@ python3 sum_1_to_10.py
 
 코드를 바로 작성하지 않고, **기획서(Plan)를 먼저 받아 피드백을 통해 요구사항을 완성한 후 구현하는 워크플로우**입니다.
 
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/plan-1.png" width="700" alt="Tool Permission 설정 화면"></p>
+_`/plan` 실행 계획 및 아티팩트 리뷰 화면_
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/plan-1.png" width="700" alt="/plan 실행 계획 및 아티팩트 리뷰 화면"></p>
 
 
 #### 3-2-1. 비즈니스 유저를 위한 `/plan`의 핵심 가치
@@ -487,7 +490,7 @@ cat GEMINI.md
 
 ---
 
-### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-5</span> Rule (행동 규칙) — 사내 근무 수칙 및 친절한 3줄 요약
+### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-5</span> Rule (행동 규칙): 사내 근무 수칙 및 친절한 3줄 요약
 
 - **개념**: `GEMINI.md`가 프로젝트의 뼈대(목표, 경로, 보안)를 정의했다면, Rule은 AI가 모든 답변에서 **항상(Always-on)** 지켜야 하는 **구체적인 보고서 서식(말투, [핵심 3줄 요약], 추천 액션)** 을 규정합니다.
 
@@ -524,11 +527,12 @@ ls -la .agents/rules/friendly-response.md
 
 ---
 
-### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-6</span> Agent (맞춤형 AI 비서) — 문서 작성 전문 비서
+### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-6</span> Agent (맞춤형 AI 비서): 문서 작성 전문 비서
 
 - **개념**: 특정 업무에 특화된 전담 비서(Persona)로, 대화 중 `@에이전트명`으로 호출합니다.
 
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/agents_1.png" width="700" ></p>
+_에이전트 목록 화면 (`/agents`)_
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/agents_1.png" width="700" alt="에이전트 목록 화면"></p>
 
 > [!NOTE]
 > **💡 에이전트(Agent) 작성 핵심 규칙 4가지**:
@@ -567,15 +571,17 @@ ls -la .agents/agents/writing-assistant.md
 
 
 
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/agents_2.png" width="700" ></p>
+_에이전트 단축키 및 작업 전환 화면_
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/agents_2.png" width="700" alt="에이전트 단축키 및 작업 전환 화면"></p>
 
 ---
 
-### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-7</span> Skill (표준 업무 절차) — 회의록 정리 표준 SOP (Standard Operating Procedure)
+### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-7</span> Skill (표준 업무 절차): 회의록 정리 표준 SOP (Standard Operating Procedure)
 
 - **개념**: 담당자가 바뀌어도 항상 일관된 최고 품질의 결과가 나오도록 일 처리 순서와 규칙을 공식화해 둔 **표준 운영 절차서(SOP: Standard Operating Procedure)** 입니다. AI에게 사내 업무 매뉴얼을 쥐여주는 것과 같으며, 평소에는 메모리를 점유하지 않고 관련 업무를 요청할 때만 동적으로 로드되어 토큰 비용을 크게 절약합니다.
 
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/skill_1.png" width="700" ></p>
+_스킬 목록 및 정보 조회 화면 (`/skills`)_
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/skill_1.png" width="700" alt="스킬 목록 및 정보 조회 화면"></p>
 
 > [!NOTE]
 > **💡 스킬(Skill) 작성 핵심 규칙 4가지**:
@@ -626,11 +632,12 @@ ls -la .agents/skills/meeting-summary/SKILL.md
 
 ---
 
-### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-8</span> MCP (외부 데이터 연동) — Google Cloud BigQuery 연동
+### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-8</span> MCP (외부 데이터 연동): Google Cloud BigQuery 연동
 
 - **개념**: AI 모델이 사내 DB나 클라우드 데이터 웨어하우스(BigQuery)와 소통할 수 있게 돕는 표준 데이터 연결 규격입니다.
 
-<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/mcp_1.png" width="700" ></p>
+_MCP 서버 연결 상태 확인 화면 (`/mcp`)_
+<p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/mcp_1.png" width="700" alt="MCP 서버 연결 상태 확인 화면"></p>
 
 - **BigQuery MCP 설정 (`.agents/mcp_config.json`)**:
 
@@ -671,7 +678,7 @@ cat .agents/mcp_config.json
 
 ---
 
-### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-9</span> Hook (자동화 이벤트 트리거) — 개념, 작성 예제 및 실제 활용 방법
+### <span style="background-color: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; padding: 2px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-right: 6px;">실습 3-9</span> Hook (자동화 이벤트 트리거): 개념, 작성 예제 및 실제 활용 방법
 
 ##### 1. Hook의 개념 및 작동 원리 (비즈니스 유저를 위한 쉬운 이해)
 
