@@ -1193,5 +1193,6 @@ ls -la ~/antigravity-lab/.agents/hooks/
 기초 실습을 성공적으로 마치셨습니다! 다음 실습 가이드를 통해 더 발전된 기능들을 확인해 보세요:
 
 - [agy_command.md](../agy_advance/agy_command.md) — Antigravity CLI 기본 명령어 및 TUI 조작 실습
-- [agy_webapp.md](./agy_webapp.md) — Antigravity를 활용한 웹 애플리케이션 개발 실습
-- [agy_intermediate.md](./agy_intermediate.md) — 중급 개발자를 위한 Progressive Skill, Lifecycle Hook 및 플러그인 핸즈온 실습
+- [agy_webapp.md](../agy_advance/agy_webapp.md) — Antigravity를 활용한 웹 애플리케이션 개발 실습
+- [agy_tokenomics.md](./agy_tokenomics.md) — 토크노믹스 및 Progressive Skill, Lifecycle Hook, 플러그인 핸즈온 실습
+- [agy_harness.md](./agy_harness.md) — 엔터프라이즈 AI 하네스 및 전사 거버넌스 가이드

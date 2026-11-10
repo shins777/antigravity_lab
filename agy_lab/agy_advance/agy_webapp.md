@@ -17,7 +17,7 @@
 
 > 📍 **실행 위치: 🖥️ [Cloud Shell 터미널 ①]** (일반 bash 셸)
 
-[agy_basic.md](./agy_basic.md) 에서 생성한 워크스페이스 루트(`~/antigravity-lab`)로 이동한 뒤, 실제 소스코드가 작성될 `agy_webapp` 디렉터리와 하위 프로젝트 폴더들(`sysinfo_dashboard`, `tetris_game`)을 만듭니다.
+[agy_basic.md](../agy_basic/agy_basic.md) 에서 생성한 워크스페이스 루트(`~/antigravity-lab`)로 이동한 뒤, 실제 소스코드가 작성될 `agy_webapp` 디렉터리와 하위 프로젝트 폴더들(`sysinfo_dashboard`, `tetris_game`)을 만듭니다.
 
 ```bash
 # 1. 워크스페이스 루트로 이동

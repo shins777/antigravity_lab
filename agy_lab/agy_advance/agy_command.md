@@ -1863,6 +1863,7 @@ Keyboard: ↑/↓ Navigate  enter Save  esc Close
 Antigravity CLI 및 TUI의 모든 명령어와 확장 체계를 마스터하셨다면, 실제 서비스와 애플리케이션을 구축하는 다음 실습을 진행하세요:
 
 - **웹 애플리케이션 구축 실습**: [agy_webapp.md](./agy_webapp.md) — FastAPI 모니터링 대시보드 및 Express 테트리스 게임 개발
-- **중급 개발자 심화 아키텍처 가이드**: [agy_intermediate.md](./agy_intermediate.md) — Progressive Skill, 0-토큰 가드레일 Hook, MCP 사내 DB 연동, Plugin 패키징
+- **토크노믹스 및 심화 아키텍처 가이드**: [agy_tokenomics.md](../agy_basic/agy_tokenomics.md) — Progressive Skill, 0-토큰 가드레일 Hook, MCP 연동, Plugin 패키징
+- **엔터프라이즈 AI 하네스 가이드**: [agy_harness.md](../agy_basic/agy_harness.md) — 옴니채널 하네스 통제, 4단계 심층 방어선 및 전사 거버넌스
 - **비즈니스 명세 주도 개발 가이드**: [agy_sdd.md](../agy_advance/agy_sdd.md) — 비즈니스 기획서(Spec) 기반의 사내 경비 정산기 자동 구축
 - **엔터프라이즈 에이전트 개발 및 Vertex AI 배포**: [build_agent.md](../agy_advance/build_agent.md) — ADK 기반 에이전트 개발 및 GCP 배포
