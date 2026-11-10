@@ -576,11 +576,19 @@ _에이전트 목록 화면 (`/agents`)_
 <p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/agents_1.png" width="700" alt="에이전트 목록 화면"></p>
 
 > [!NOTE]
-> **💡 에이전트(Agent) 작성 핵심 규칙 4가지**:
-> 1. **폴더 및 파일명**: 반드시 `.agents/agents/[에이전트명].md` (단일 마크다운 파일) 경로에 만듭니다.
-> 2. **머리말(Frontmatter)**: 파일 맨 위에 `---`로 감싸 `name`(호출할 에이전트 ID), `description`(전문 업무 소개), `model`(사용할 AI 모델, 기본값 `inherit`)을 선언합니다.
-> 3. **페르소나 지침(Instructions)**: 본문에는 에이전트의 구체적인 전문 역할, 말투, 업무 지침, 준수할 가이드라인을 명시합니다.
-> 4. **명시적 호출(`@에이전트명`)**: 대화창에서 `@writing-assistant`처럼 호출할 때만 해당 전문 비서로 즉시 전환되어 독립된 세션에서 업무를 전담합니다.
+> **💡 에이전트(Agent) 마크다운 파일 내부 작성 규칙**:
+> 에이전트는 `.agents/agents/[에이전트명].md` 단일 마크다운 파일로 정의되며, **Frontmatter(헤더)** 와 **Instructions(본문)** 로 구성됩니다:
+>
+> 1. **Frontmatter (YAML 헤더 — 필수 메타데이터)**:
+>    - `name` *(필수)*: 에이전트 고유 ID (영문 소문자·하이픈 권장). 채팅창에서 `@name`으로 호출할 때 사용됩니다.
+>    - `description` *(필수)*: 에이전트의 전문 분야와 호출 조건 설명. (비어있으면 에이전트 목록에서 제외됨)
+>    - `model` *(선택)*: 사용할 AI 모델 티어 (`inherit`, `flash_lite`, `flash`, `pro` 중 선택, 기본값 `inherit`).
+>    - `tools` *(선택)*: 허용할 도구 목록 (생략 시 기본 도구 상속, 특정 도구만 허용하려면 명시).
+>
+> 2. **Instructions (본문 — 페르소나 및 프롬프트 지침)**:
+>    - **역할 및 정체성 (Role)**: 에이전트의 전담 임무와 페르소나 정의 (예: *"당신은 전문 문서 작성 비서입니다."*)
+>    - **행동 지침 (Guidelines)**: 어조(비즈니스 톤앤매너), 출력 서식(글머리 기호, 섹션 구분 등) 구체화.
+>    - **제약 사항 (Constraints)**: 추측성 답변 금지, 다루지 말아야 할 영역 등 가드레일 설정.
 
 - **Agent 파일 작성 (`.agents/agents/writing-assistant.md`)**:
 
@@ -625,11 +633,19 @@ _스킬 목록 및 정보 조회 화면 (`/skills`)_
 <p align="left"><img style="border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);" src="resources/setup/skill_1.png" width="700" alt="스킬 목록 및 정보 조회 화면"></p>
 
 > [!NOTE]
-> **💡 스킬(Skill) 작성 핵심 규칙 4가지**:
-> 1. **폴더 및 고정 파일명**: 반드시 `.agents/skills/[스킬명]/SKILL.md` (대문자 `SKILL.md` 필수) 경로에 만듭니다.
-> 2. **머리말(Frontmatter)**: 파일 맨 위에 `---`로 감싸 `name`(스킬명)과 `description`(사용 시점 트리거 조건)을 선언합니다.
-> 3. **단계별 표준 업무 절차서(SOP: Standard Operating Procedure)**: 본문에는 업무를 순서대로 진행할 수 있도록 단계별 처리 절차(`1.`, `2.`, `3.`)와 원하는 출력 서식(Template)을 명시합니다.
-> 4. **On-Demand 로드**: 평소에는 메모리를 점유하지 않고, 해당 업무 지시가 있을 때만 동적으로 읽어와 토큰을 크게 절약합니다.
+> **💡 SKILL.md 파일 내부 작성 및 필수 등록 정보**:
+> 스킬은 `.agents/skills/[스킬명]/SKILL.md` (파일명 대문자 고정) 경로에 위치하며, **Frontmatter(헤더)** 와 **SOP 지침(본문)** 으로 구성됩니다:
+>
+> 1. **Frontmatter (YAML 헤더 — 필수 메타데이터)**:
+>    - `name` *(필수)*: 스킬 고유 ID (영문 소문자·하이픈 권장, 폴더명과 일치).
+>    - `description` *(필수·가장 중요)*: 스킬의 **구체적인 역할과 사용 시점(트리거 조건)** 을 설명합니다. AI가 사용자 요청 맥락을 분석해 해당 스킬을 자동으로 꺼내 쓸지 결정하는 핵심 기준이 됩니다.
+>
+> 2. **Instructions (본문 — 단계별 표준 업무 절차 SOP)**:
+>    - **작업 절차 (Step-by-Step)**: AI가 순서대로 따라야 할 작업 단계(`1단계`, `2단계`, `3단계`)를 구체적으로 명시합니다.
+>    - **출력 서식 템플릿 (Template)**: 최종 결과물이 출력되어야 하는 표준 서식(표, 글머리 기호 등)을 지정합니다.
+>    - **검증 및 완료 기준 (Validation)**: 누락된 데이터 처리 지침이나 결과물 검증 규칙을 규정합니다.
+>
+> 💡 *참고: 복잡한 대형 스킬의 경우 `SKILL.md`와 같은 디렉터리에 `scripts/`(실행 스크립트), `examples/`(예제), `references/`(참고 문서) 하위 폴더를 추가하여 기능을 확장할 수 있습니다.*
 
 - **Skill 파일 작성 (`.agents/skills/meeting-summary/SKILL.md`)**:
 
