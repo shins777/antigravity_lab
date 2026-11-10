@@ -9,7 +9,7 @@
 
 ## 📑 목차 (Table of Contents)
 
-1. [AI 하네스(Harness)와 엔터프라이즈 4대 리스크](#1-ai-하네스harness와-엔터프라이즈-4대-리스크)
+1. [AI 하네스(Harness) 개념 및 6대 핵심 통제 메커니즘](#1-ai-하네스harness-개념-및-6대-핵심-통제-메커니즘)
 2. [옴니채널 하네스: "One Harness to Rule Them All"](#2-옴니채널-하네스-one-harness-to-rule-them-all)
 3. [프로젝트 도메인 하네스 배포 3대 채널](#3-프로젝트-도메인-하네스-배포-3대-채널)
 4. [개발자 임의 변경을 원천 차단하는 4단계 심층 방어선](#4-개발자-임의-변경을-원천-차단하는-4단계-심층-방어선)
@@ -24,7 +24,7 @@
 
 ---
 
-## 1. AI 하네스(Harness)와 엔터프라이즈 4대 리스크
+## 1. AI 하네스(Harness) 개념 및 6대 핵심 통제 메커니즘
 
 기업에서 Antigravity를 전사적으로 확대 도입할 때 가장 경계해야 하는 것은 **통제되지 않는 자유도**입니다.
 
@@ -45,6 +45,45 @@
 
 따라서 성숙한 기업의 하네스는 **"막아서 멈추게 하는 벽"**이 아니라, **"그 길을 따라가면 가장 빠르고 안전하게 배포되는 포장도로, 즉 골든 패스(Golden Path)"**여야 합니다.  
 개발자에게는 *"회사 규정을 몰라도 하네스 안에서 일하면 저절로 최고 보안 등급을 만족한다"*는 심리적 안전감을 제공하고, 에이전트에게는 *"허용된 울타리 내에서 최대의 성능을 발휘하도록 권한을 명확히 한정"*하는 것이 엔터프라이즈 거버넌스의 본질입니다.
+
+### 하네스의 6대 핵심 통제 영역 및 실제 처리 메커니즘
+
+엔터프라이즈 하네스가 실제 개발 런타임에서 제약하는 6대 영역과 그 처리 방식은 다음과 같습니다:
+
+1. **파괴적·비가역적 시스템 명령어 차단 (System Integrity)**
+   - **제약 대상**: `rm -rf /`, `rm -rf ~`, `mkfs`, `DROP TABLE/DATABASE`, `gcloud projects delete`, `git push -f`
+   - **처리 방법**: `PreToolUse` 훅이 `run_command` 실행 직전에 터미널 명령어 문자열(`CommandLine`)을 가로채 정규식 블랙리스트와 대조하며, 위험 패턴 감지 시 `sys.exit(1)`로 0.001초 만에 OS 프로세스를 강제 종료하여 물리적 실행을 차단합니다.
+
+2. **비밀키·인증정보·개인정보(PII) 유출 차단 (Secret Protection)**
+   - **제약 대상**: `.env`, `*.pem`, `id_rsa`, `service-account.json`, 코드 내 하드코딩된 API 키 및 개인정보
+   - **처리 방법**: `read_file` 도구 호출 시 대상 경로(`Path`)를 검사해 기밀 파일 접근을 거부하고, 소스코드나 터미널 출력에 API 키 패턴이 감지되면 LLM 컨텍스트 전달 직전에 `***REDACTED***`로 0-토큰 실시간 마스킹(Scrubbing)합니다.
+
+3. **하네스 자체 변조 및 우회 시도 차단 (Tamper Resistance)**
+   - **제약 대상**: `.agents/hooks.json`, `.agents/scripts/`, `GEMINI.md`, `AGENTS.md`의 임의 수정 및 삭제
+   - **처리 방법**: OS 커널 불변 플래그(`chattr +i` / `chflags uchg`)로 root조차 삭제 불가하도록 잠그고, AI의 도구 기반 수정 시도를 `protect_governance.py` 훅으로 차단하며, CI/CD 파이프라인에서 원본 SHA-256 해시 검증(`sha256sum -c`)을 수행하여 변조 시 빌드를 즉시 중단합니다.
+
+4. **네트워크 외부 유출(Egress) 및 비인가 통신 차단 (Network Sandboxing)**
+   - **제약 대상**: 검증되지 않은 외부 IP/도메인으로의 `curl`, `wget`, `ssh` 아웃바운드 연결 및 데이터 전송
+   - **처리 방법**: 에이전트를 가상 샌드박스(Sandbox / Docker / gVisor) 환경에 격리하고, 네트워크 레벨에서 Egress Allowlist(사내 Nexus, GitHub, Cloud API만 허용)를 적용해 그 외 모든 인터넷 연결을 기본 차단(Default Deny)합니다.
+
+5. **무제한 리소스 점유 및 토큰 비용 폭증 제약 (FinOps & Resource Quotas)**
+   - **제약 대상**: 무한 도구 루프(Infinite Looping), 무제한 세션 타임아웃, 대규모 텍스트 상시 주입에 따른 토큰 낭비
+   - **처리 방법**: 훅과 도구 실행에 `"timeout": 5`초를 강제하고, Frontmatter에 `model: flash_lite` 티어를 지정하며, 상시 주입 대신 필요 시에만 지침을 인출하는 점진적 공개(Progressive Disclosure Skill) 아키텍처를 강제합니다.
+
+6. **고위험 작업의 단독 자율 실행 제약 (Human-in-the-Loop Dual Custody)**
+   - **제약 대상**: 프로덕션 실환경 배포, 대규모 DB 마이그레이션, 인프라 생성/삭제의 전자동 무인 실행
+   - **처리 방법**: 훅이 고위험 도구를 감지하면 즉시 터미널에 대화형 인터럽트를 걸어 인간 관리자의 명시적 승인(`[Y/N]` 또는 사내 OTP)을 요구하고, 비상 장애 시에만 일회용 브레이크 글래스 토큰(`AGY_BREAKGLASS_TOKEN`)을 통해 승인 모드로 전환 후 감사 로그를 남깁니다.
+
+### 💡 한눈에 보는 하네스 통제 메커니즘 요약
+
+| 제약 영역 | 주요 통제 기술 | 차단 실패 시 백업 방어선 |
+| :--- | :--- | :--- |
+| **파괴적 명령** | `PreToolUse` 훅 정규식 감지 및 강제 종료 | OS 사용자 권한 분리 (`sudo` 권한 미부여) |
+| **시크릿 유출** | 파일 읽기 차단 + 실시간 문자열 마스킹 | Git Pre-commit 훅 시크릿 스캐너 |
+| **설정 자체 변조**| AI 도구 킬 스크립트 + OS `chattr +i` 불변 잠금 | CI/CD Server-Side SHA-256 Checksum |
+| **외부 네트워크**| 방화벽 Egress Allowlist + 터미널 샌드박스 | VPC 서비스 제어 (VPC-SC) |
+| **비용 및 루프** | 도구 타임아웃(`timeout`) + Progressive Skill | 클라우드 프로젝트 일일 API Quota 한도 |
+| **고위험 작업** | Human-in-the-Loop 인터럽트 프롬프트 | 2인 승인 결재 (Dual Custody) |
 
 ---
 
